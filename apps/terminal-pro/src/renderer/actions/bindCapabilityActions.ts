@@ -74,6 +74,14 @@ export function createCapabilityActionHandler<TFixBlockManager extends Workbench
     if (capabilityInstallBtn?.dataset.capabilityInstall) {
       const packKey = capabilityInstallBtn.dataset.capabilityInstall
       resetUserTurnSubmitGuard()
+      const currentTier = String(store.getState().license.tier || 'free').toLowerCase()
+      const premiumLocked =
+        (currentTier === 'free' || currentTier === 'starter') &&
+        store.getState().capabilities.packs.some((pack) => pack.key === packKey && Number(pack.price || 0) > 0)
+      if (premiumLocked) {
+        await fixBlockManager.ensureProAccess()
+        return true
+      }
       try {
         const cached = await window.rina.licenseCachedEmail?.()
         const result = await window.rina.installMarketplaceAgent?.({ name: packKey, userEmail: cached?.email || undefined })

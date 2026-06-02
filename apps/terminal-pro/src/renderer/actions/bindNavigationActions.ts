@@ -56,7 +56,7 @@ export function createNavigationActionHandler(
         source: pickWorkspaceBtn.dataset.pickWorkspace || 'unknown',
       })
       if (result.ok) {
-        store.dispatch({ type: 'ui/setStatusSummary', text: 'Project loaded. Click Fix Project to repair it now.' })
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'Project loaded. Start with Build project, Run tests, or Plan a fix.' })
       }
       return true
     }
@@ -67,7 +67,7 @@ export function createNavigationActionHandler(
         source: demoWorkspaceBtn.dataset.loadDemoProject || 'unknown',
       })
       if (result.ok) {
-        store.dispatch({ type: 'ui/setStatusSummary', text: 'Demo project ready. Click Fix Project to watch it recover.' })
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'Demo project ready. Start with Build project, Run tests, or Plan a fix.' })
       } else {
         store.dispatch({ type: 'ui/setStatusSummary', text: result.error || 'Could not prepare the demo project.' })
       }
@@ -102,17 +102,11 @@ export function createNavigationActionHandler(
         source,
       })
       if (promptChip.dataset.intentKey === 'fix') {
-        const workspaceRoot = store.getState().workspaceKey
-        if (!workspaceRoot) {
-          store.dispatch({ type: 'ui/setStatusSummary', text: 'Choose a workspace before running Fix Project.' })
+        if (!store.getState().workspaceKey) {
+          store.dispatch({ type: 'ui/setStatusSummary', text: 'Choose a workspace before planning a fix.' })
           return true
         }
-        await deps.startFixProjectFlow(store, {
-          workspaceRoot,
-          workspaceKey: store.getState().workspaceKey,
-          mountPendingFixBlock: deps.mountPendingFixProjectBlock,
-          mountFixBlock: deps.mountFixProjectBlock,
-        })
+        await deps.submitUserTurn(promptChip.dataset.agentPrompt, source)
         return true
       }
       await deps.submitUserTurn(promptChip.dataset.agentPrompt, source)

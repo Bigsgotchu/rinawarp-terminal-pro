@@ -17,7 +17,8 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
         description,
         timeoutMs = DEFAULT_TIMEOUT_MS,
     }) {
-        const riskLevel = risk === 'high-impact' ? 'high' : risk === 'safe-write' ? 'medium' : 'low';
+        const riskLevel = risk === 'high-impact' || risk === 'dangerous' ? 'high' : risk === 'safe-write' ? 'medium' : 'low';
+        const mutation = risk !== 'inspect';
         return {
             stepId,
             tool,
@@ -29,6 +30,8 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
             risk,
             risk_level: riskLevel,
             requires_confirmation: risk !== 'inspect',
+            requiresApproval: risk !== 'inspect',
+            mutation,
             description,
         };
     }
@@ -96,7 +99,6 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
         projectRootCache = projectRoot || '';
         const packageManager = await detectNodePackageManager(projectRoot);
         const buildCommand = packageManager === 'pnpm' ? 'pnpm build' : 'npm run build';
-        const installCommand = packageManager === 'pnpm' ? 'pnpm install' : 'npm install';
         return [
             toPlanStep({
                 stepId: 'inspect_pwd',
@@ -127,14 +129,6 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                 description: 'Run one safe Node build diagnostic and capture the first concrete error',
                 timeoutMs: 120_000,
             }),
-            toPlanStep({
-                stepId: 'approval_gated_install_fix',
-                command: installCommand,
-                cwd: projectRoot,
-                risk: 'safe-write',
-                description: `Approval-gated fix only if the parsed error points to missing declared dependencies or local build binaries. Verify by rerunning ${buildCommand}.`,
-                timeoutMs: 120_000,
-            }),
         ];
     }
     async function buildStepsForKind(kind, projectRoot, workflow = 'build') {
@@ -144,6 +138,8 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                 const scripts = await readNodeScripts(projectRoot);
                 const buildScript = firstAvailableScript(scripts, ['build', 'build:electron']);
                 const testScript = firstAvailableScript(scripts, ['test', 'test:agent', 'test:unit', 'test:streaming']);
+                const lintScript = firstAvailableScript(scripts, ['lint', 'lint:check']);
+                const typecheckScript = firstAvailableScript(scripts, ['typecheck', 'type-check', 'check:types', 'tsc']);
                 const deployScript = firstAvailableScript(scripts, ['deploy', 'publish']);
                 const hasElectronBuilder = await hasProjectFile(projectRoot, 'electron-builder.yml');
                 const installCommand = await hasProjectFile(projectRoot, 'pnpm-lock.yaml') ? 'pnpm install --frozen-lockfile' : 'npm ci';
@@ -169,24 +165,53 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                     description: 'Install dependencies through the workspace package manager',
                     timeoutMs: 120_000,
                 });
+                const runner = installCommand.startsWith('pnpm') ? 'pnpm' : 'npm';
                 if (workflow === 'test') {
                     return [
                         inspectStatusStep,
                         inspectPackageStep,
                         toPlanStep({ stepId: 'node_version', command: 'node -v', cwd: projectRoot, risk: 'inspect', description: 'Inspect Node.js version' }),
-                        toPlanStep({ stepId: 'npm_version', command: installCommand.startsWith('pnpm') ? 'pnpm -v' : 'npm -v', cwd: projectRoot, risk: 'inspect', description: 'Inspect package-manager version' }),
-                        installStep,
+                        toPlanStep({ stepId: 'package_manager_version', command: runner === 'pnpm' ? 'pnpm -v' : 'npm -v', cwd: projectRoot, risk: 'inspect', description: 'Inspect package-manager version' }),
                         toPlanStep({
                             stepId: 'run_tests',
-                            command: testScript ? `${installCommand.startsWith('pnpm') ? 'pnpm' : 'npm'} run ${testScript}` : installCommand.startsWith('pnpm') ? 'pnpm test' : 'npm test',
+                            command: testScript ? `${runner} run ${testScript}` : runner === 'pnpm' ? 'pnpm test' : 'npm test',
                             cwd: projectRoot,
                             risk: 'inspect',
                             description: 'Run the current test gate',
                             timeoutMs: 120_000,
                         }),
                     ];
+                } else if (workflow === 'lint') {
+                    return [
+                        inspectStatusStep,
+                        inspectPackageStep,
+                        toPlanStep({ stepId: 'node_version', command: 'node -v', cwd: projectRoot, risk: 'inspect', description: 'Inspect Node.js version' }),
+                        toPlanStep({ stepId: 'package_manager_version', command: runner === 'pnpm' ? 'pnpm -v' : 'npm -v', cwd: projectRoot, risk: 'inspect', description: 'Inspect package-manager version' }),
+                        toPlanStep({
+                            stepId: 'run_lint',
+                            command: lintScript ? `${runner} run ${lintScript}` : runner === 'pnpm' ? 'pnpm lint' : 'npm run lint',
+                            cwd: projectRoot,
+                            risk: 'inspect',
+                            description: 'Run the current lint verification gate',
+                            timeoutMs: 120_000,
+                        }),
+                    ];
+                } else if (workflow === 'typecheck') {
+                    return [
+                        inspectStatusStep,
+                        inspectPackageStep,
+                        toPlanStep({ stepId: 'node_version', command: 'node -v', cwd: projectRoot, risk: 'inspect', description: 'Inspect Node.js version' }),
+                        toPlanStep({ stepId: 'package_manager_version', command: runner === 'pnpm' ? 'pnpm -v' : 'npm -v', cwd: projectRoot, risk: 'inspect', description: 'Inspect package-manager version' }),
+                        toPlanStep({
+                            stepId: 'run_typecheck',
+                            command: typecheckScript ? `${runner} run ${typecheckScript}` : runner === 'pnpm' ? 'pnpm exec tsc --noEmit' : 'npx tsc --noEmit',
+                            cwd: projectRoot,
+                            risk: 'inspect',
+                            description: 'Run the current typecheck verification gate',
+                            timeoutMs: 120_000,
+                        }),
+                    ];
                 } else if (workflow === 'deploy') {
-                    const runner = installCommand.startsWith('pnpm') ? 'pnpm' : 'npm';
                     const deployCommand = deployScript ? `${runner} run ${deployScript}` : hasElectronBuilder ? 'npx electron-builder --publish never' : 'echo "No deploy target detected"';
                     return [
                         inspectStatusStep,
@@ -205,23 +230,21 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                             stepId: 'deploy_project',
                             command: deployCommand,
                             cwd: projectRoot,
-                            risk: 'high-impact',
+                            risk: 'dangerous',
                             description: 'Run the deploy command on the trusted path',
                             timeoutMs: 180_000,
                         }),
                     ];
                 } else {
-                    const runner = installCommand.startsWith('pnpm') ? 'pnpm' : 'npm';
                     return [
                         inspectStatusStep,
                         inspectPackageStep,
                         toPlanStep({ stepId: 'node_version', command: 'node -v', cwd: projectRoot, risk: 'inspect', description: 'Inspect Node.js version' }),
-                        installStep,
                         toPlanStep({
                             stepId: 'build_project',
                             command: buildScript ? `${runner} run ${buildScript}` : `${runner} run build`,
                             cwd: projectRoot,
-                            risk: 'safe-write',
+                            risk: 'inspect',
                             description: workflow === 'build' ? 'Build the current project' : 'Run the primary build workflow',
                             timeoutMs: 120_000,
                         }),
@@ -232,7 +255,6 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                 return [
                     toPlanStep({ stepId: 'inspect_python_version', command: 'python -V', cwd: projectRoot, risk: 'inspect', description: 'Inspect Python version' }),
                     toPlanStep({ stepId: 'inspect_pip_version', command: 'pip -V', cwd: projectRoot, risk: 'inspect', description: 'Inspect pip version' }),
-                    toPlanStep({ stepId: 'install_dependencies', command: 'pip install -r requirements.txt', cwd: projectRoot, risk: 'safe-write', description: 'Install Python dependencies', timeoutMs: 120_000 }),
                     toPlanStep({
                         stepId: workflow === 'test' ? 'run_tests' : 'validate_project',
                         command: workflow === 'test' ? 'pytest -q' : 'python -m compileall .',
@@ -249,7 +271,7 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                         stepId: workflow === 'test' ? 'run_tests' : 'build_project',
                         command: workflow === 'test' ? 'cargo test' : 'cargo build',
                         cwd: projectRoot,
-                        risk: workflow === 'test' ? 'inspect' : 'safe-write',
+                        risk: 'inspect',
                         description: workflow === 'test' ? 'Run cargo test' : 'Build the Rust project',
                         timeoutMs: 120_000,
                     }),
@@ -261,7 +283,7 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                         stepId: workflow === 'test' ? 'run_tests' : 'build_project',
                         command: workflow === 'test' ? 'go test ./...' : 'go build ./...',
                         cwd: projectRoot,
-                        risk: workflow === 'test' ? 'inspect' : 'safe-write',
+                        risk: 'inspect',
                         description: workflow === 'test' ? 'Run go test' : 'Build the Go project',
                         timeoutMs: 120_000,
                     }),
@@ -311,32 +333,16 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                 ],
             };
         }
-        if (/\b(?:my\s+)?build\s+(?:is\s+)?(?:failing|failed|broken|erroring)\b/.test(intent) || /\b(?:fix|diagnose|debug)\s+(?:the\s+)?(?:failed\s+)?build\b/.test(intent)) {
-            const steps = buildKind === 'node' ? await failedBuildSteps(projectRoot) : await buildStepsForKind(buildKind, projectRoot, 'build');
+        if (/\b(delete|remove files?|rm\s+-|docker cleanup|cloud action|cloud deploy)\b/.test(intent)) {
             return {
                 id,
                 intent: intentRaw,
-                reasoning: buildKind === 'node'
-                    ? "Detected Node project. I'll inspect package metadata, run one safe build diagnostic, parse the failure, and stop at one approval-gated fix."
-                    : `Detected ${buildKind} project. I'll run the safest available build diagnostic before proposing any fix.`,
-                steps,
+                reasoning: 'This request can affect workspace or cloud state, so it requires approval before execution.',
+                steps: [
+                    toPlanStep({ stepId: 'inspect_git_status', command: 'git status --short', cwd: projectRoot, risk: 'inspect', description: 'Inspect workspace state before a dangerous action' }),
+                    toPlanStep({ stepId: 'approval_required_dangerous_action', tool: 'approval', command: 'requestApproval:dangerous_action', cwd: projectRoot, risk: 'dangerous', description: 'Request approval for a dangerous workspace or cloud action' }),
+                ],
             };
-        }
-        if (intent.includes('build') || intent.includes('test') || intent.includes('broken') || intent.includes('fix')) {
-            const workflow = intent.includes('test') && !intent.includes('build')
-                ? 'test'
-                : 'build';
-            const steps = await buildStepsForKind(buildKind, projectRoot, workflow);
-            if (steps.length > 0) {
-                return {
-                    id,
-                    intent: intentRaw,
-                    reasoning: workflow === 'test'
-                        ? `Detected ${buildKind} project. I'll run the test workflow and leave proof in the thread.`
-                        : `Detected ${buildKind} project. I'll run the build workflow to diagnose and fix issues.`,
-                    steps,
-                };
-            }
         }
         if (intent.includes('deploy')) {
             const steps = await buildStepsForKind(buildKind, projectRoot, 'deploy');
@@ -344,7 +350,66 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                 return {
                     id,
                     intent: intentRaw,
-                    reasoning: `Detected ${buildKind} project. I'll run the deploy workflow to get it live.`,
+                    reasoning: `Detected ${buildKind} project. Deploy requires approval before any publishing step runs.`,
+                    steps,
+                };
+            }
+        }
+        if (/\b(install|add package|add dependency|npm install|pnpm install|yarn install|bun install|npm i|pnpm add|npm update|pnpm update)\b/.test(intent)) {
+            const packageManager = buildKind === 'node' ? await detectNodePackageManager(projectRoot) : 'npm';
+            const command = packageManager === 'pnpm' ? 'pnpm install --frozen-lockfile' : 'npm ci';
+            return {
+                id,
+                intent: intentRaw,
+                reasoning: 'Installing or updating dependencies can change the workspace, so this requires approval before execution.',
+                steps: [
+                    toPlanStep({ stepId: 'inspect_git_status', command: 'git status --short', cwd: projectRoot, risk: 'inspect', description: 'Inspect workspace state before dependency changes' }),
+                    toPlanStep({ stepId: 'install_dependencies', command, cwd: projectRoot, risk: 'safe-write', description: 'Install dependencies through the workspace package manager', timeoutMs: 120_000 }),
+                ],
+            };
+        }
+        if (/\b(fix|repair|refactor|write|edit)\b/.test(intent)) {
+            return {
+                id,
+                intent: intentRaw,
+                reasoning: 'Fixing or editing the workspace can mutate files, so this requires approval before execution.',
+                steps: [
+                    toPlanStep({ stepId: 'inspect_git_status', command: 'git status --short', cwd: projectRoot, risk: 'inspect', description: 'Inspect workspace state before a mutation' }),
+                    toPlanStep({ stepId: 'approval_required_workspace_fix', tool: 'approval', command: 'requestApproval:workspace_fix', cwd: projectRoot, risk: 'safe-write', description: 'Request approval before modifying workspace files' }),
+                ],
+            };
+        }
+        if (/\b(?:my\s+)?build\s+(?:is\s+)?(?:failing|failed|broken|erroring)\b/.test(intent) || /\b(?:diagnose|debug)\s+(?:the\s+)?(?:failed\s+)?build\b/.test(intent)) {
+            const steps = buildKind === 'node' ? await failedBuildSteps(projectRoot) : await buildStepsForKind(buildKind, projectRoot, 'build');
+            return {
+                id,
+                intent: intentRaw,
+                reasoning: buildKind === 'node'
+                    ? "Detected Node project. I'll inspect package metadata, run one safe build diagnostic, parse the failure, and stop before any approval-gated fix."
+                    : `Detected ${buildKind} project. I'll run the safest available build diagnostic before proposing any fix.`,
+                steps,
+            };
+        }
+        if (intent.includes('build') || intent.includes('test') || intent.includes('lint') || intent.includes('typecheck') || intent.includes('type check') || intent.includes('tsc') || intent.includes('broken')) {
+            const workflow = (intent.includes('typecheck') || intent.includes('type check') || intent.includes('tsc')) && !intent.includes('build') && !intent.includes('test')
+                ? 'typecheck'
+                : intent.includes('lint') && !intent.includes('build') && !intent.includes('test')
+                ? 'lint'
+                : intent.includes('test') && !intent.includes('build')
+                ? 'test'
+                : 'build';
+            const steps = await buildStepsForKind(buildKind, projectRoot, workflow);
+            if (steps.length > 0) {
+                return {
+                    id,
+                    intent: intentRaw,
+                    reasoning: workflow === 'lint'
+                        ? `Detected ${buildKind} project. I'll run the lint verification workflow and leave proof in the thread.`
+                        : workflow === 'typecheck'
+                        ? `Detected ${buildKind} project. I'll run the typecheck verification workflow and leave proof in the thread.`
+                        : workflow === 'test'
+                        ? `Detected ${buildKind} project. I'll run the test workflow and leave proof in the thread.`
+                        : `Detected ${buildKind} project. I'll run the build workflow and capture failures with proof before proposing any fix.`,
                     steps,
                 };
             }

@@ -9,8 +9,8 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(appRoot, 'package.json'
 const version = String(packageJson.version)
 
 function releaseChannelFor(version) {
-  if (/-alpha\./.test(version)) return 'alpha'
-  if (/-beta\./.test(version)) return 'beta'
+  if (/-alpha(?:\.|-|$)/.test(version)) return 'alpha'
+  if (/-beta(?:\.|-|$)/.test(version)) return 'beta'
   return 'stable'
 }
 
@@ -36,9 +36,11 @@ async function hashArtifact(filePath, algorithm, encoding) {
 function getArtifactPatterns(version) {
   const escapedVersion = version.replaceAll('.', '\\.')
   return {
-    linux: [new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}\\.AppImage$`, 'i')],
-    deb: [new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}\\.deb$`, 'i')],
-    windows: [new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}\\.exe$`, 'i')],
+    linux: [
+      new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}(?:-linux-x86_64|-linux-amd64)?\\.AppImage$`, 'i'),
+    ],
+    deb: [new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}(?:-linux-(?:x86_64|amd64))?\\.deb$`, 'i')],
+    windows: [new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}(?:-win(?:dows)?(?:-x64|-ia32))?\\.exe$`, 'i')],
   }
 }
 
@@ -176,11 +178,9 @@ function writeUpdaterMetadata({ latestYml, latestLinuxYml, latestJson, checksums
   fs.writeFileSync(path.join(channelDir, 'latest-linux.yml'), latestLinuxYml, 'utf8')
   fs.writeFileSync(path.join(channelDir, 'latest.json'), JSON.stringify(latestJson, null, 2), 'utf8')
 
-  if (channel === 'stable') {
-    fs.writeFileSync(path.join(installerDir, 'latest.yml'), latestYml, 'utf8')
-    fs.writeFileSync(path.join(installerDir, 'latest-linux.yml'), latestLinuxYml, 'utf8')
-    fs.writeFileSync(path.join(installerDir, 'latest.json'), JSON.stringify(latestJson, null, 2), 'utf8')
-  }
+  fs.writeFileSync(path.join(installerDir, 'latest.yml'), latestYml, 'utf8')
+  fs.writeFileSync(path.join(installerDir, 'latest-linux.yml'), latestLinuxYml, 'utf8')
+  fs.writeFileSync(path.join(installerDir, 'latest.json'), JSON.stringify(latestJson, null, 2), 'utf8')
 }
 
 async function main() {

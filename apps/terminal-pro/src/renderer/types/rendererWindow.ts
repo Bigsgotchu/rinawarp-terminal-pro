@@ -20,7 +20,7 @@ export interface RinaRendererWindow {
       opts?: { workspaceRoot?: string | null }
     ) => Promise<{
       rawText: string
-      mode: 'chat' | 'question' | 'inspect' | 'execute' | 'mixed' | 'follow_up' | 'recovery' | 'settings' | 'memory_update' | 'unclear'
+      mode: 'chat' | 'question' | 'inspect' | 'execute' | 'follow_up' | 'recovery' | 'settings' | 'memory_update' | 'unclear'
       turnType?: 'greeting' | 'help' | 'follow_up' | 'diagnose' | 'action' | 'explain' | 'frustration' | 'clarify_needed'
       confidence: number
       workspaceId?: string
@@ -60,7 +60,7 @@ export interface RinaRendererWindow {
     ) => Promise<{
       assistantReply: string
       intent: {
-        type: 'chat' | 'question' | 'inspect' | 'execute' | 'mixed' | 'self_check' | 'follow_up' | 'recovery' | 'settings' | 'memory_update' | 'unclear'
+        type: 'chat' | 'question' | 'inspect' | 'execute' | 'self_check' | 'follow_up' | 'recovery' | 'settings' | 'memory_update' | 'unclear'
         confidence: number
         requiresAction: boolean
         userGoal?: string
@@ -74,7 +74,7 @@ export interface RinaRendererWindow {
       permissionRequest?: { reason: string; actions: string[] }
       routedTurn: {
         rawText: string
-        mode: 'chat' | 'question' | 'inspect' | 'execute' | 'mixed' | 'follow_up' | 'recovery' | 'settings' | 'memory_update' | 'unclear'
+        mode: 'chat' | 'question' | 'inspect' | 'execute' | 'follow_up' | 'recovery' | 'settings' | 'memory_update' | 'unclear'
         confidence: number
         allowedNextAction: 'reply_only' | 'inspect' | 'plan' | 'execute' | 'clarify'
         requiresAction?: boolean

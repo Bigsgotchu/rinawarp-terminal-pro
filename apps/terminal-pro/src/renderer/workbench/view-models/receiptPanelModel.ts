@@ -65,7 +65,7 @@ export function buildReceiptPanelModel(state: WorkbenchState): ReceiptPanelModel
 
   return {
     state: 'structured',
-    receiptId: receipt.id || 'Receipt',
+    receiptId: receipt.id || 'Proof',
     intentLabel,
     statusLabel,
     command,
@@ -86,7 +86,7 @@ export function buildReceiptPanelModel(state: WorkbenchState): ReceiptPanelModel
       { label: 'Ended', value: formatNullableDate(receipt.command.endedAt) },
       { label: 'Updated', value: formatNullableDate(receipt.session?.updatedAt) },
       { label: 'Exit code', value: receipt.command.exitCode === null || receipt.command.exitCode === undefined ? 'pending' : String(receipt.command.exitCode) },
-      { label: 'Receipt ID', value: receipt.id || 'unknown' },
+      { label: 'Proof ID', value: receipt.id || 'unknown' },
       { label: 'Session ID', value: receipt.sessionId || receipt.session?.id || 'unknown' },
       { label: 'Project root', value: receipt.session?.projectRoot || 'none recorded' },
       { label: 'Source', value: receipt.session?.source || 'unknown' },
@@ -107,10 +107,10 @@ export function buildReceiptPanelModel(state: WorkbenchState): ReceiptPanelModel
         label: 'Summary',
         value:
           receipt.command.cancelled
-            ? 'This receipt is partial proof because the run stopped early. Start with the receipt, then decide whether resume or rerun is safer.'
+            ? 'This proof is partial because the run stopped early. Start with the evidence, then decide whether resume or rerun is safer.'
             : receipt.command.ok === true
-              ? 'The run completed, but the receipt still keeps the evidence and safest follow-up visible if you need to inspect or repeat it.'
-              : 'This receipt narrows down what most likely broke, why that call is credible, and what to do next without guessing.',
+              ? 'The run completed, and the proof keeps the evidence and safest follow-up visible if you need to inspect or repeat it.'
+              : 'This proof narrows down what most likely broke, why that call is credible, and what to do next without guessing.',
       },
       { label: 'Likely cause', value: failure.likelyCause },
       { label: 'Best next action', value: failure.nextActionLabel },

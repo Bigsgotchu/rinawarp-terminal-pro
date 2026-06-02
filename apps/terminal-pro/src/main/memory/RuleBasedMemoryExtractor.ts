@@ -5,10 +5,48 @@ function normalize(text: string): string {
   return text.trim().toLowerCase()
 }
 
+// Patterns for sensitive data that should never be stored in memory
+const SENSITIVE_PATTERNS = [
+  /sk_live_[a-zA-Z0-9]+/,
+  /sk_test_[a-zA-Z0-9]+/,
+  /sk__[a-zA-Z0-9]+/,
+  /api[_-]?key\s*[=:]\s*[a-zA-Z0-9_\-]+/i,
+  /bearer\s+[a-zA-Z0-9_\-\.]+/i,
+  /password\s*[=:]\s*\S+/i,
+  /secret\s*[=:]\s*\S+/i,
+  /token\s*[=:]\s*[a-zA-Z0-9_\-]+/i,
+  /aws[_-]?access[_-]?key[_-]?id/i,
+  /aws[_-]?secret[_-]?access[_-]?key/i,
+  /private[_-]?key/i,
+]
+
+/**
+ * Checks if content contains sensitive data that should be redacted
+ */
+function containsSensitiveData(content: string): boolean {
+  return SENSITIVE_PATTERNS.some((pattern) => pattern.test(content))
+}
+
+/**
+ * Redacts sensitive data from content while preserving context
+ */
+function redactContent(content: string): string {
+  let redacted = content
+  for (const pattern of SENSITIVE_PATTERNS) {
+    redacted = redacted.replace(pattern, '[REDACTED]')
+  }
+  return redacted
+}
+
 export class RuleBasedMemoryExtractor implements MemoryExtractor {
   async extract(input: ExtractMemoryInput): Promise<MemorySuggestion[]> {
     const suggestions: MemorySuggestion[] = []
     const text = normalize(input.userMessage)
+
+    // Never store sensitive data
+    if (containsSensitiveData(input.userMessage)) {
+      return suggestions
+    }
 
     const push = (suggestion: MemorySuggestion) => {
       suggestions.push(suggestion)
@@ -105,11 +143,16 @@ export class RuleBasedMemoryExtractor implements MemoryExtractor {
     }
 
     if (input.taskResult) {
+      // Redact sensitive data from task result summary
+      const safeSummary = containsSensitiveData(input.taskResult.summary)
+        ? redactContent(input.taskResult.summary)
+        : input.taskResult.summary
+
       push({
         scope: 'episode',
         kind: 'task_outcome',
         status: 'approved',
-        content: input.taskResult.summary,
+        content: safeSummary,
         normalizedKey: null,
         salience: input.taskResult.success ? 0.7 : 0.8,
         confidence: 1,

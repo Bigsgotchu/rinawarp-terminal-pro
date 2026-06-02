@@ -1,3 +1,6 @@
+/* Canonical workbench styles */
+@import './renderer.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

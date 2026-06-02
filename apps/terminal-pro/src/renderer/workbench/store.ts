@@ -93,7 +93,7 @@ function reduce(state: WorkbenchState, action: WorkbenchAction): WorkbenchState 
         ui: {
           ...state.ui,
           openDrawer:
-            action.view === 'execution-trace' || action.view === 'runs' || action.view === 'marketplace' || action.view === 'code' || action.view === 'brain'
+            action.view === 'execution-trace' || action.view === 'runs' || action.view === 'receipt' || action.view === 'marketplace' || action.view === 'code' || action.view === 'brain'
               ? action.view
               : null,
         },

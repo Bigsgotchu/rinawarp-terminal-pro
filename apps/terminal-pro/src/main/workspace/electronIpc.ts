@@ -9,6 +9,9 @@ export function createWorkspaceElectronIpcHelpers(
   deps: WorkspaceElectronIpcHelperDeps
 ) {
     const { dialog, ptySessions, getDefaultCwd } = deps;
+    const IS_E2E = process.env.RINAWARP_E2E === '1';
+    const E2E_WORKSPACE = process.env.RINAWARP_E2E_WORKSPACE;
+    
     function createDemoWorkspace() {
         const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'rinawarp-demo-fix-project-'));
         fs.writeFileSync(path.join(workspaceRoot, 'package.json'), JSON.stringify({
@@ -47,6 +50,15 @@ export function createWorkspaceElectronIpcHelpers(
         return { ok: true, path: result.filePaths[0] };
     }
     async function workspaceDefaultForIpc(senderId) {
+        // E2E mode: auto-select configured workspace
+        if (IS_E2E && E2E_WORKSPACE) {
+            const testWorkspacePath = E2E_WORKSPACE;
+            if (fs.existsSync(testWorkspacePath)) {
+                console.log('[E2E] auto-selecting workspace:', testWorkspacePath);
+                return { ok: true, path: testWorkspacePath, source: 'e2e-auto' };
+            }
+        }
+        
         const existing = ptySessions.get(senderId);
         const resolvedPath = existing?.cwd || '';
         if (!resolvedPath) {

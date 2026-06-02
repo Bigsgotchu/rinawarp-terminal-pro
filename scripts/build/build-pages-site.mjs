@@ -1,6 +1,15 @@
 import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { SEO_LANDING_PAGES, buildSeoLandingPageHtml } from "../../website/seo-landings.mjs";
+import {
+  ABOUT_PAGE_HTML,
+  CASE_STUDIES_INDEX_HTML,
+  CASE_STUDY_PAGES,
+  DOCS_BODY_HTML,
+  HERO_REPAIR_REPORT,
+  buildCaseStudyHtml,
+} from "../../website/site-shared.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,7 +33,7 @@ const PUBLIC_BETA_CHECKSUMS_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/SHASUMS256.txt`;
 const PUBLIC_BETA_LATEST_JSON_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest.json`;
 const PUBLIC_BETA_LATEST_YML_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest.yml`;
 const PUBLIC_BETA_LATEST_LINUX_YML_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest-linux.yml`;
-const ASSET_VERSION = "20260329-brand-refresh";
+const ASSET_VERSION = "20260602-site-consistency";
 const GA_MEASUREMENT_ID = "G-YGX1R0MEB6";
 const SCREENSHOT_SOURCES = [
   ["agent-empty-state.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "agent-empty-state.png")],
@@ -32,6 +41,8 @@ const SCREENSHOT_SOURCES = [
   ["diagnostics-inspector.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "diagnostics-inspector.png")],
   ["settings-memory.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "settings-memory.png")],
   ["proof-after-fixed-project.png", path.join(repoRoot, "output", "playwright", "rinawarp-live-after-status.png")],
+  ["terminal-pro-interface.png", path.join(repoRoot, "website", "assets", "img", "terminal-pro-interface.png")],
+  ["terminal-pro-agent-thread.png", path.join(repoRoot, "website", "assets", "img", "terminal-pro-agent-thread.png")],
 ];
 const BRAND_MARK_PATH = path.join(repoRoot, "apps", "terminal-pro", "src", "assets", "rinawarp-mark.svg");
 const BRAND_LOGO_PATH = path.join(repoRoot, "apps", "terminal-pro", "src", "assets", "rinawarp-logo.png");
@@ -43,33 +54,33 @@ const SITE_CSS = `
 * { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   color-scheme: dark;
-  --bg: #0b1020;
-  --surface: rgba(10, 21, 32, 0.84);
-  --surface-strong: #0d1c2a;
-  --surface-soft: rgba(255, 255, 255, 0.04);
-  --line: rgba(148, 163, 184, 0.16);
-  --line-strong: rgba(98, 246, 229, 0.28);
-  --text: #edf6ff;
-  --muted: #a3b6c9;
-  --accent: #62f6e5;
-  --accent-2: #ff4fd8;
-  --accent-warm: #ff9b6b;
-  --accent-soft: #8fefff;
+  --bg: #0B0F14;
+  --surface: rgba(13, 17, 23, 0.88);
+  --surface-strong: #181b22;
+  --surface-soft: rgba(255, 255, 255, 0.03);
+  --line: rgba(148, 163, 184, 0.12);
+  --line-strong: rgba(22, 212, 193, 0.25);
+  --text: #F5F7FA;
+  --muted: #A3B6C9;
+  --accent: #FF3EA5;
+  --accent-2: #16D4C5;
+  --accent-warm: #FF6F61;
+  --accent-blue: #7FD3FF;
   --success: #22c55e;
   --danger: #fb7185;
-  --shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
-  --radius: 18px;
-  --radius-sm: 12px;
-  --content: 1080px;
+  --shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
+  --radius: 20px;
+  --radius-sm: 14px;
+  --content: 1200px;
 }
 body {
   min-height: 100vh;
   color: var(--text);
-  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-family: "Inter", "Segoe UI", sans-serif;
   background:
-    radial-gradient(circle at top, rgba(255, 79, 216, 0.11), transparent 30%),
-    radial-gradient(circle at 85% 12%, rgba(98, 246, 229, 0.10), transparent 22%),
-    linear-gradient(180deg, #090d18 0%, #0b1020 100%);
+    radial-gradient(circle at 82% 8%, rgba(22, 212, 197, 0.1), transparent 42%),
+    radial-gradient(circle at 12% 88%, rgba(255, 62, 165, 0.04), transparent 36%),
+    #0B0F14;
 }
 a { color: inherit; text-decoration: none; }
 .skip-link {
@@ -79,21 +90,19 @@ a { color: inherit; text-decoration: none; }
   z-index: 50;
   padding: 10px 14px;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--accent-2), var(--accent-warm), var(--accent));
-  color: #08121b;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #0B0F14;
   font-weight: 700;
   transition: top 0.2s ease;
 }
-.skip-link:focus-visible {
-  top: 16px;
-}
+.skip-link:focus-visible { top: 16px; }
 .site-shell { min-height: 100vh; display: flex; flex-direction: column; }
 header {
   position: sticky;
   top: 0;
   z-index: 10;
-  backdrop-filter: blur(20px);
-  background: rgba(7, 17, 26, 0.78);
+  backdrop-filter: blur(16px);
+  background: rgba(7, 12, 18, 0.72);
   border-bottom: 1px solid var(--line);
 }
 nav {
@@ -107,16 +116,8 @@ nav {
   gap: 16px;
   flex-wrap: wrap;
 }
-.logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-}
-.logo-wordmark {
-  height: 30px;
-  width: auto;
-  object-fit: contain;
-}
+.logo { display: inline-flex; align-items: center; gap: 0; }
+.logo-wordmark { height: 30px; width: auto; object-fit: contain; }
 .nav-links {
   display: flex;
   gap: 12px;
@@ -125,27 +126,12 @@ nav {
   font-size: 0.88rem;
   color: var(--muted);
 }
-.nav-links a {
-  padding: 6px 10px;
-  border-radius: 999px;
-}
-.nav-links a.nav-cta {
-  padding: 9px 14px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-soft));
-  color: #04121a;
-  font-weight: 700;
-}
-.nav-links a.active,
-.nav-links a:hover {
-  color: var(--text);
-  background: rgba(255,255,255,0.04);
-}
-.nav-links a.nav-cta.active,
-.nav-links a.nav-cta:hover {
-  color: #04121a;
-  background: linear-gradient(135deg, var(--accent), var(--accent-soft));
-}
+.nav-links a { padding: 8px 12px; border-radius: 999px; transition: color 0.2s ease, background 0.2s ease; }
+.nav-links a:hover, .nav-links a.active { color: var(--text); background: rgba(255, 255, 255, 0.05); }
+.nav-links a.nav-cta { padding: 9px 14px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #0B0F14; font-weight: 700; }
+.nav-links a.nav-cta:hover { color: #0B0F14; }
 main { flex: 1; }
+
 .hero,
 .section {
   max-width: var(--content);
@@ -172,12 +158,163 @@ main { flex: 1; }
   font-size: 0.68rem;
   font-weight: 700;
 }
+.hero h1,
+.section-title {
+  font-family: "Space Grotesk", "Inter", sans-serif;
+}
 .hero h1 {
   margin-top: 10px;
   font-size: clamp(1.85rem, 3vw, 3.2rem);
   line-height: 1.02;
   max-width: 12ch;
   letter-spacing: -0.04em;
+}
+.hero-terminal {
+  padding: 28px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  background:
+    radial-gradient(circle at top right, rgba(22, 212, 197, 0.12), transparent 40%),
+    linear-gradient(180deg, rgba(11, 15, 20, 0.98), rgba(14, 18, 24, 0.94));
+  box-shadow: var(--shadow);
+}
+.hero-terminal pre {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--text);
+  overflow-x: auto;
+}
+.hero-terminal .terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.hero-terminal .terminal-line.ok { color: #86efac; }
+.hero-terminal .terminal-line.dim { color: var(--muted); opacity: 0.85; }
+.how-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.step-card {
+  padding: 24px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.step-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+  background: rgba(22, 212, 197, 0.12);
+  border: 1px solid rgba(22, 212, 197, 0.32);
+  color: var(--accent-2);
+}
+.proof-grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+.proof-item {
+  padding: 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+}
+.proof-item.bad { border-color: rgba(251, 113, 133, 0.25); }
+.proof-item.good { border-color: rgba(34, 197, 94, 0.25); }
+.proof-item pre {
+  margin-top: 10px;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: #d8f3ff;
+}
+.section-proof { padding-top: 56px; padding-bottom: 56px; }
+.section-proof .section-title { font-size: clamp(1.6rem, 3vw, 2.4rem); }
+.demo-frame {
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  overflow: hidden;
+  background: #070b10;
+  box-shadow: var(--shadow);
+}
+.demo-frame video { display: block; width: 100%; height: auto; }
+.case-study { display: grid; gap: 16px; padding: 24px; border-radius: var(--radius); border: 1px solid var(--line-strong); background: var(--surface); box-shadow: var(--shadow); }
+.case-study dl { display: grid; gap: 12px; font-size: 0.92rem; }
+.case-study dt { color: var(--accent-2); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+.case-study dd { color: var(--text); line-height: 1.55; margin: 0; }
+.case-study ul { list-style: none; display: grid; gap: 6px; }
+.case-study li::before { content: "→ "; color: var(--accent-2); }
+.verification-list { list-style: none; display: grid; gap: 6px; font-family: "IBM Plex Mono", Consolas, monospace; font-size: 0.86rem; }
+.verification-list li.ok { color: #86efac; }
+.repair-report {
+  padding: 20px 22px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: rgba(22, 212, 197, 0.06);
+  margin-bottom: 16px;
+}
+.repair-report-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+.repair-report-badge { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-2); border: 1px solid var(--line-strong); padding: 4px 10px; border-radius: 999px; }
+.repair-report-grid { display: grid; gap: 12px 20px; grid-template-columns: repeat(2, minmax(0, 1fr)); font-size: 0.92rem; }
+.repair-report-grid dt { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.repair-report-grid dd { color: var(--text); font-weight: 600; }
+.repair-report-span { grid-column: 1 / -1; }
+.repair-report-span ul { margin: 6px 0 0; padding-left: 18px; color: var(--muted); font-weight: 400; }
+.repair-report-note { margin-top: 12px; font-size: 0.86rem; color: var(--muted); }
+.proof-screenshots { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.proof-screenshots figcaption { margin-top: 8px; font-size: 0.82rem; color: var(--muted); }
+.download-trust-bar {
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  font-size: 0.92rem;
+}
+.download-trust-bar a { color: var(--accent-2); text-decoration: underline; }
+.use-case-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); }
+.use-case-card { padding: 14px 16px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface); font-size: 0.9rem; font-weight: 600; display: block; transition: border-color 0.2s; }
+a.use-case-card:hover { border-color: var(--line-strong); color: var(--accent-2); }
+.platform-status { display: grid; border-radius: var(--radius-sm); border: 1px solid var(--line-strong); overflow: hidden; background: var(--surface); }
+.platform-status-row { display: flex; justify-content: space-between; gap: 16px; padding: 14px 20px; border-bottom: 1px solid var(--line); font-size: 0.95rem; }
+.platform-status-row:last-child { border-bottom: 0; }
+.status-available { color: var(--success); font-weight: 600; }
+.status-unavailable { color: var(--muted); font-weight: 600; }
+.compare-table-wrap { overflow-x: auto; }
+.compare-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+.compare-table th, .compare-table td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; }
+.compare-table th { color: var(--muted); }
+.mark-yes { color: var(--success); font-weight: 700; }
+.mark-no { color: var(--muted); }
+.product-compare { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.product-card { padding: 28px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); }
+.product-card.muted-product { border-style: dashed; }
+.video-grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.docs-nav { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
+.docs-nav a { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); font-size: 0.88rem; color: var(--muted); }
+.btn-primary {
+  color: #0B0F14;
+  background: var(--accent);
+  border-color: transparent;
+}
+@media (max-width: 860px) {
+  .hero-layout { grid-template-columns: 1fr; }
+  .hero-terminal { order: -1; }
 }
 .hero-copy, .section-copy, p, li {
   color: var(--muted);
@@ -248,13 +385,11 @@ main { flex: 1; }
   padding-top: 42px;
   padding-bottom: 12px;
 }
-[data-page="home"] .hero h1,
-[data-page="download"] .hero h1 {
+[data-page="home"] .hero h1 {
   max-width: 10ch;
   font-size: clamp(2.4rem, 5vw, 4.7rem);
 }
-[data-page="home"] .hero-copy,
-[data-page="download"] .hero-copy {
+[data-page="home"] .hero-copy {
   max-width: 48ch;
   font-size: 1.02rem;
 }
@@ -533,8 +668,876 @@ footer {
   .logo-wordmark { height: 24px; }
   .hero-layout { grid-template-columns: 1fr; }
   .hero-proof-strip { grid-template-columns: 1fr; }
+  [data-page="home"] .hero { padding-top: 28px; }
+}
+
+/* Bright service-site refresh inspired by polished B12-style layouts. */
+:root {
+  color-scheme: light;
+  --bg: #f7fbfc;
+  --surface: #ffffff;
+  --surface-strong: #eef7f8;
+  --surface-soft: #f5fafb;
+  --line: #dce9ec;
+  --line-strong: #96d7d7;
+  --text: #10242f;
+  --muted: #5f7280;
+  --accent: #0b7c83;
+  --accent-soft: #7ee0d8;
+  --accent-2: #0f9f9a;
+  --accent-warm: #ff8a5b;
+  --accent-blue: #2478bf;
+  --success: #147d4a;
+  --danger: #b4233a;
+  --shadow: 0 18px 55px rgba(16, 36, 47, 0.1);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --content: 1160px;
+}
+
+body {
+  color: var(--text);
+  background:
+    linear-gradient(180deg, #eefafa 0, #ffffff 430px, #f7fbfc 100%);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+header {
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(16, 36, 47, 0.08);
+  box-shadow: 0 8px 30px rgba(16, 36, 47, 0.04);
+}
+
+nav {
+  min-height: 76px;
+}
+
+.logo-wordmark {
+  height: 34px;
+}
+
+.nav-links {
+  color: #48606f;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.nav-links a {
+  border-radius: 8px;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  color: var(--accent);
+  background: rgba(11, 124, 131, 0.08);
+}
+
+.nav-links a.nav-cta {
+  border-radius: 8px;
+  background: #0b7c83;
+  color: #ffffff;
+  box-shadow: 0 10px 26px rgba(11, 124, 131, 0.18);
+}
+
+.nav-links a.nav-cta:hover {
+  color: #ffffff;
+  background: #075f66;
+}
+
+.hero,
+.section {
+  padding: 56px 24px;
+}
+
+[data-page="home"] .hero {
+  padding-top: 76px;
+  padding-bottom: 46px;
+}
+
+.hero-layout {
+  grid-template-columns: minmax(0, 0.92fr) minmax(360px, 1.08fr);
+  gap: 52px;
+}
+
+.hero-body {
+  align-content: center;
+  gap: 18px;
+}
+
+.eyebrow {
+  display: none;
+}
+
+.kicker,
+.pill {
+  color: var(--accent);
+  letter-spacing: 0.12em;
+}
+
+.hero h1,
+.section-title {
+  color: #10242f;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+[data-page="home"] .hero h1,
+.hero h1 {
+  max-width: 11.5ch;
+  font-size: clamp(2.75rem, 5.8vw, 5.7rem);
+  line-height: 0.94;
+}
+
+.hero-copy,
+[data-page="home"] .hero-copy {
+  max-width: 54ch;
+  color: #4d6573;
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  line-height: 1.65;
+}
+
+.hero-support,
+.section-copy,
+p,
+li {
+  color: #5f7280;
+  font-size: 0.98rem;
+  line-height: 1.66;
+}
+
+.hero-actions,
+.cta-row,
+.link-row {
+  gap: 12px;
+}
+
+.btn {
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 8px;
+  font-size: 0.94rem;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: #0b7c83;
+  color: #ffffff;
+  border-color: #0b7c83;
+  box-shadow: 0 12px 28px rgba(11, 124, 131, 0.2);
+}
+
+.btn-primary:hover {
+  background: #075f66;
+  border-color: #075f66;
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: #163543;
+  border-color: #c7d9de;
+}
+
+.btn-secondary:hover {
+  border-color: #8fcbd0;
+  box-shadow: 0 10px 24px rgba(16, 36, 47, 0.08);
+}
+
+.hero-media {
+  border-radius: 18px;
+  border: 1px solid rgba(150, 215, 215, 0.72);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.96), rgba(236, 250, 250, 0.9));
+  box-shadow: 0 28px 70px rgba(16, 36, 47, 0.14);
+}
+
+.hero-media::before {
+  background: linear-gradient(135deg, rgba(11,124,131,0.08), transparent 44%);
+}
+
+.case-study,
+.card,
+.panel,
+.auth-card,
+.pricing-card,
+.platform-card,
+.proof-step,
+.product-card,
+.repair-report,
+.step-card,
+.proof-item,
+.faq-item,
+.fit-card,
+.founder-note,
+.download-trust-bar,
+.platform-status,
+.transcript-demo {
+  border: 1px solid var(--line);
+  background: #ffffff;
+  box-shadow: 0 14px 38px rgba(16, 36, 47, 0.07);
+}
+
+.case-study {
+  padding: 20px;
+}
+
+.repair-report {
+  background: #f6fcfc;
+  border-color: #cde9ea;
+}
+
+.repair-report-badge {
+  color: var(--accent);
+  border-color: #b8e2e3;
+  background: #ffffff;
+}
+
+.repair-report-grid dd,
+.price,
+.demo-proof-header,
+.founder-note blockquote {
+  color: var(--text);
+}
+
+.repair-report-span ul {
+  color: var(--muted);
+}
+
+.verification-list li.ok {
+  color: var(--success);
+}
+
+.screenshot-frame {
+  border-color: #d9e8eb;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(16, 36, 47, 0.08);
+}
+
+.proof-screenshots {
+  grid-template-columns: 1fr;
+}
+
+.proof-screenshots figcaption {
+  padding: 0 2px 2px;
+  color: #667a86;
+}
+
+.section-title {
+  max-width: 760px;
+  margin-bottom: 12px;
+  font-size: clamp(1.65rem, 3vw, 2.75rem);
+  line-height: 1.08;
+}
+
+.section > .section-copy {
+  max-width: 680px;
+  margin-bottom: 24px;
+}
+
+.use-case-grid,
+.how-grid,
+.grid.three-up,
+.download-grid,
+.pricing-grid,
+.faq-grid,
+.fit-grid {
+  gap: 18px;
+}
+
+.use-case-card {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #183847;
+  box-shadow: 0 10px 28px rgba(16, 36, 47, 0.05);
+}
+
+a.use-case-card:hover {
+  color: var(--accent);
+  border-color: #9ed9dc;
+}
+
+.step-card,
+.card,
+.pricing-card,
+.platform-card,
+.product-card,
+.panel {
+  padding: 24px;
+}
+
+.step-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  background: #e8f7f7;
+  border-color: #b9e5e5;
+  color: #0b7c83;
+  font-weight: 800;
+}
+
+.proof-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.proof-item {
+  background: #ffffff;
+}
+
+.proof-item.bad {
+  border-color: #f2c3c9;
+}
+
+.proof-item.good {
+  border-color: #b7dfc8;
+}
+
+.proof-item pre,
+.hero-terminal pre {
+  color: #244453;
+  background: #f3f8f9;
+  border: 1px solid #d9e8eb;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.demo-frame {
+  border-color: #cde9ea;
+  background: #ffffff;
+  box-shadow: 0 18px 46px rgba(16, 36, 47, 0.1);
+}
+
+.pricing-card.featured {
+  border-color: #73c9cb;
+  background: linear-gradient(180deg, #eafafa, #ffffff);
+  transform: translateY(-8px);
+}
+
+.compare-table th,
+.compare-table td {
+  border-bottom-color: #dce9ec;
+}
+
+input,
+textarea,
+select {
+  background: #ffffff;
+  color: var(--text);
+  border-color: #cfe0e4;
+}
+
+footer {
+  margin-top: 48px;
+  background: #10242f;
+  border-top: 0;
+  color: #d8e5e8;
+}
+
+.footer-inner,
+.footer-links {
+  color: #c2d1d6;
+}
+
+footer a:hover {
+  color: #ffffff;
+}
+
+.skip-link {
+  background: #0b7c83;
+  color: #ffffff;
+}
+
+@media (max-width: 840px) {
+  nav {
+    min-height: auto;
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  .nav-links {
+    width: 100%;
+    gap: 6px;
+  }
+
+  .nav-links a {
+    padding: 7px 9px;
+  }
+
+  .hero-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .hero-body,
+  .hero-media,
+  .case-study,
+  .screenshot-frame {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .case-study {
+    padding: 14px;
+  }
+
+  .repair-report {
+    padding: 16px;
+  }
+
+  .repair-report-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero,
+  .section {
+    padding-top: 38px;
+    padding-bottom: 38px;
+  }
+
+  [data-page="home"] .hero h1,
+  .hero h1 {
+    max-width: 12ch;
+    font-size: clamp(2.5rem, 14vw, 4rem);
+  }
+
+  .pricing-card.featured {
+    transform: none;
+  }
+}
+
+/* B12 reference alignment for the homepage. */
+:root {
+  --b12-magenta: #f72585;
+  --b12-pink: #ff3ea5;
+  --b12-red: #ff6f61;
+  --b12-teal: #16d4c5;
+  --b12-blue: #bdefff;
+  --b12-ink: #08121b;
+  --b12-gray: #f1f1f1;
+}
+
+[data-page="home"] body,
+body[data-page="home"] {
+  background: #ffffff;
+}
+
+[data-page="home"] header {
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom-color: rgba(16, 36, 47, 0.08);
+  box-shadow: 0 8px 30px rgba(16, 36, 47, 0.04);
+}
+
+[data-page="home"] nav {
+  min-height: 48px;
+  max-width: 820px;
+  padding: 0 18px;
+}
+
+[data-page="home"] .logo-wordmark {
+  height: 22px;
+}
+
+[data-page="home"] .nav-links {
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #48606f;
+}
+
+[data-page="home"] .nav-links a {
+  padding: 6px 8px;
+  border-radius: 3px;
+}
+
+[data-page="home"] .nav-links a:hover,
+[data-page="home"] .nav-links a.active {
+  color: var(--b12-teal);
+  background: rgba(11, 124, 131, 0.08);
+}
+
+[data-page="home"] .nav-links a.nav-cta {
+  color: #ffffff;
+  background: var(--b12-magenta);
+  box-shadow: none;
+}
+
+[data-page="home"] .hero,
+[data-page="home"] .section {
+  max-width: 820px;
+  padding: 42px 22px;
+}
+
+[data-page="home"] .hero {
+  max-width: none;
+  background: #ffffff;
+  color: #111111;
+  padding-top: 42px;
+  padding-bottom: 34px;
+}
+
+[data-page="home"] .hero-layout {
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+[data-page="home"] .hero-layout,
+[data-page="home"] .split-section {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.95fr);
+  gap: 32px;
+  align-items: center;
+}
+
+[data-page="home"] .hero h1 {
+  max-width: 12ch;
+  color: #111111;
+  font-size: clamp(2.15rem, 4.8vw, 3.4rem);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+
+[data-page="home"] .hero-copy {
+  max-width: 46ch;
+  color: #4d6573;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+[data-page="home"] .btn {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 4px;
+  font-size: 0.74rem;
+}
+
+[data-page="home"] .btn-primary {
+  background: var(--b12-magenta);
+  border-color: var(--b12-magenta);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+[data-page="home"] .btn-primary:hover {
+  background: #a72fd0;
+  border-color: #a72fd0;
+}
+
+[data-page="home"] .btn-secondary {
+  background: #ffffff;
+  border-color: #c7d9de;
+  color: #163543;
+}
+
+[data-page="home"] .hero-media {
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  box-shadow: none;
+}
+
+[data-page="home"] .hero-media::before {
+  content: none;
+}
+
+[data-page="home"] .hero-product-shot,
+[data-page="home"] .split-section .screenshot-frame {
+  border: 1px solid rgba(189, 239, 255, 0.28);
+  border-radius: 5px;
+  background: #0b1020;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.34);
+}
+
+[data-page="home"] .hero-product-shot img,
+[data-page="home"] .split-section .screenshot-frame img {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+[data-page="home"] .feature-band {
+  max-width: none;
+  background: var(--b12-gray);
+  padding: 44px max(22px, calc((100vw - 820px) / 2 + 22px));
+}
+
+[data-page="home"] .section-title {
+  margin-bottom: 10px;
+  color: #111111;
+  font-size: clamp(1.45rem, 2.5vw, 2rem);
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+}
+
+[data-page="home"] .centered {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+[data-page="home"] .section-copy.centered {
+  margin-bottom: 26px;
+}
+
+.four-up {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.mini-card {
+  min-height: 92px;
+  padding: 18px;
+  border: 1px solid #dedede;
+  border-radius: 3px;
+  background: #ffffff;
+}
+
+.mini-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 12px;
+  border-radius: 999px;
+  background: var(--b12-blue);
+  color: #075f66;
+  font-size: 1rem;
+}
+
+.mini-card h3,
+.developer-grid h3,
+.step-list h3 {
+  margin-bottom: 7px;
+  color: #111111;
+  font-size: 0.86rem;
+}
+
+.mini-card p,
+.developer-grid p,
+.step-list p,
+.accent-list li {
+  color: #64666b;
+  font-size: 0.74rem;
+  line-height: 1.58;
+}
+
+.split-section {
+  display: grid;
+}
+
+.step-list {
+  display: grid;
+  gap: 14px;
+}
+
+.step-list article {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.step-list article span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  background: var(--b12-magenta);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.developer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 42px;
+  max-width: 760px;
+  margin: 30px auto 0;
+  text-align: center;
+}
+
+.stack-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.stack-grid article {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.soft-icon {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 14px;
+  border-radius: 999px;
+  background: #e9faff;
+  color: #0b7c83;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.interface-section {
+  grid-template-columns: minmax(0, 0.92fr) minmax(300px, 1.08fr);
+}
+
+.accent-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+  list-style: none;
+}
+
+.accent-list li::before {
+  content: "+";
+  margin-right: 8px;
+  color: var(--b12-teal);
+  font-weight: 800;
+}
+
+[data-page="home"] .proof-section {
+  max-width: 820px;
+}
+
+[data-page="home"] .proof-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+[data-page="home"] .proof-item {
+  border-radius: 5px;
+  box-shadow: none;
+}
+
+[data-page="home"] .proof-item.bad {
+  border-color: rgba(255, 111, 97, 0.38);
+  background: #fff8f6;
+}
+
+[data-page="home"] .proof-item.good {
+  border-color: rgba(22, 212, 197, 0.38);
+  background: #f4fffd;
+}
+
+[data-page="home"] .proof-item pre {
+  background: #08121b;
+  border-color: #162737;
+  color: #d8f3ff;
+}
+
+.final-cta {
+  max-width: none;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  background: linear-gradient(135deg, #f72585, #c23be8);
+  color: #ffffff;
+  padding: 52px 22px;
+}
+
+.final-cta h2 {
+  color: #ffffff;
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+}
+
+.final-cta p {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.final-cta .cta-row {
+  margin-top: 8px;
+}
+
+.btn-light {
+  background: #ffffff;
+  border-color: #ffffff;
+  color: var(--b12-magenta);
+}
+
+.btn-outline-light {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.72);
+  color: #ffffff;
+}
+
+@media (max-width: 760px) {
+  [data-page="home"] nav,
   [data-page="home"] .hero,
-  [data-page="download"] .hero { padding-top: 28px; }
+  [data-page="home"] .section {
+    max-width: 100%;
+  }
+
+  [data-page="home"] .hero-layout,
+  [data-page="home"] .split-section,
+  [data-page="home"] .interface-section,
+  .four-up,
+  .developer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  [data-page="home"] .proof-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stack-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  [data-page="home"] .hero h1 {
+    max-width: 12ch;
+    font-size: clamp(2rem, 11vw, 3rem);
+  }
+
+  .developer-grid {
+    gap: 24px;
+  }
+}
+
+/* Shared page typography: keep secondary pages visually consistent. */
+body:not([data-page="home"]) .hero {
+  padding-top: 54px;
+  padding-bottom: 38px;
+}
+
+body:not([data-page="home"]) .hero h1 {
+  max-width: 14ch;
+  font-size: clamp(2.05rem, 4.4vw, 3.45rem);
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+}
+
+body:not([data-page="home"]) .hero-copy {
+  max-width: 56ch;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+body:not([data-page="home"]) .section-title {
+  font-size: clamp(1.45rem, 2.55vw, 2rem);
+  line-height: 1.16;
+}
+
+body:not([data-page="home"]) .section-copy,
+body:not([data-page="home"]) p,
+body:not([data-page="home"]) li {
+  font-size: 0.96rem;
+  line-height: 1.64;
+}
+
+@media (max-width: 760px) {
+  body:not([data-page="home"]) .hero h1 {
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
 }
 `;
 
@@ -629,36 +1632,38 @@ if (referralCodeFromUrl) {
 }
 
 if (page === 'pricing') {
-  document.querySelectorAll('[data-checkout-cycle]')?.forEach((button) => {
+  document.querySelectorAll('[data-checkout-tier]')?.forEach((button) => {
     button.addEventListener('click', async () => {
       const emailInput = document.getElementById('checkout-email');
       const email = emailInput?.value?.trim();
-      const billingCycle = button.getAttribute('data-checkout-cycle') || 'monthly';
+      const tier = button.getAttribute('data-checkout-tier') || 'pro';
       if (!email) {
-        setStatus('checkout-status', 'Add your email first so Stripe can create the checkout session.');
+        setStatus('checkout-status', 'Add your email first so Stripe can create the checkout session.', 'error');
         emailInput?.focus();
         return;
       }
       setStatus('checkout-status', 'Opening secure checkout…');
+      button.disabled = true;
       try {
         trackSiteEvent('checkout_started', {
-          tier: 'pro',
-          billingCycle,
-          placement: 'pricing_pro',
+          tier,
+          billingCycle: 'monthly',
+          placement: tier === 'team' ? 'pricing_team' : tier === 'fix' ? 'pricing_one_fix' : 'pricing_pro',
         });
         localStorage.setItem('checkout_email', email);
-        localStorage.setItem('checkout_tier', 'pro');
-        localStorage.setItem('checkout_billing_cycle', billingCycle);
+        localStorage.setItem('checkout_tier', tier);
+        localStorage.setItem('checkout_billing_cycle', 'monthly');
         const referralCode = getReferralCode();
         const payload = await withJson(await fetch('/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, tier: 'pro', billingCycle, referralCode }),
+          body: JSON.stringify({ email, tier, billingCycle: 'monthly', referralCode }),
         }));
         if (!payload.checkoutUrl) throw new Error('Checkout could not be created.');
         window.location.href = payload.checkoutUrl;
       } catch (error) {
         setStatus('checkout-status', error instanceof Error ? error.message : 'Checkout could not be created.', 'error');
+        button.disabled = false;
       }
     });
   });
@@ -712,7 +1717,7 @@ if (page === 'success') {
   const sessionEl = document.getElementById('success-session-id');
   if (sessionEl) sessionEl.textContent = sessionId || 'Pending';
   const planEl = document.getElementById('success-plan');
-  if (planEl) planEl.textContent = tier === 'team' ? 'Power / Team' : 'Pro';
+  if (planEl) planEl.textContent = tier === 'team' ? 'Team' : tier === 'fix' ? 'One Fix' : 'Pro';
   const seatEl = document.getElementById('success-seats');
   if (seatEl) seatEl.textContent = tier === 'team' ? (seats || 'Seat count saved in checkout') : '1';
   const workspaceEl = document.getElementById('success-workspace');
@@ -866,8 +1871,10 @@ if (page === 'account') {
       }));
       if (authGate) authGate.hidden = true;
       if (authState) authState.hidden = false;
-      document.getElementById('account-name').textContent = payload.user?.name || 'RinaWarp account';
-      document.getElementById('account-email').textContent = payload.user?.email || localStorage.getItem('user_email') || '';
+      const accountNameEl = document.getElementById('account-display-name');
+      if (accountNameEl) accountNameEl.textContent = payload.user?.name || 'RinaWarp customer';
+      const accountEmailEl = document.getElementById('account-email');
+      if (accountEmailEl) accountEmailEl.textContent = payload.user?.email || localStorage.getItem('user_email') || '';
       if (payload.user?.email) localStorage.setItem('user_email', payload.user.email);
       try {
         const sub = await withJson(await fetch('/api/license/lookup-by-email', {
@@ -876,10 +1883,16 @@ if (page === 'account') {
           body: JSON.stringify({ email: payload.user?.email }),
         }));
         document.getElementById('account-tier').textContent = sub.tier ? String(sub.tier).toUpperCase() : 'FREE';
-        document.getElementById('account-tier-note').textContent = sub.tier ? 'Status: ' + (sub.status || 'active') : 'No paid entitlement found yet.';
+        document.getElementById('account-tier-note').textContent = sub.tier ? String(sub.status || 'active').replace(/^./, (c) => c.toUpperCase()) : 'No paid subscription found';
+        const billingBtn = document.getElementById('billing-portal-btn');
+        const upgradeLink = document.getElementById('account-upgrade-link');
+        if (billingBtn) billingBtn.hidden = !sub.tier;
+        if (upgradeLink) upgradeLink.hidden = Boolean(sub.tier);
       } catch {
         document.getElementById('account-tier').textContent = 'UNKNOWN';
-        document.getElementById('account-tier-note').textContent = 'Could not load billing state.';
+        document.getElementById('account-tier-note').textContent = 'No paid subscription found';
+        document.getElementById('billing-portal-btn')?.setAttribute('hidden', 'hidden');
+        document.getElementById('account-upgrade-link')?.removeAttribute('hidden');
       }
 
       try {
@@ -890,57 +1903,9 @@ if (page === 'account') {
         document.getElementById('account-invite-link').value = referral.inviteUrl || '';
         document.getElementById('account-referral-code').textContent = referral.code || '—';
         document.getElementById('account-referral-stats').textContent =
-          (referral.stats?.checkouts || 0) + ' checkout(s) started • ' + (referral.stats?.conversions || 0) + ' paid conversion(s)';
+          (referral.stats?.checkouts || 0) + ' checkouts started · ' + (referral.stats?.conversions || 0) + ' paid conversions';
       } catch {
         document.getElementById('account-referral').hidden = true;
-      }
-
-      try {
-        const adminCard = document.getElementById('account-referral-admin');
-        const form = document.getElementById('account-referral-admin-form');
-        const output = document.getElementById('account-referral-admin-output');
-        if (adminCard && form && output) {
-          adminCard.hidden = false;
-          form.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const formData = new FormData(form);
-            const code = String(formData.get('code') || '').trim();
-            const email = String(formData.get('email') || '').trim();
-            setStatus('account-referral-admin-status', 'Looking up referral activity...');
-            try {
-              const params = new URLSearchParams();
-              if (code) params.set('code', code);
-              if (email) params.set('email', email);
-              const payload = await withJson(await fetch('/api/referrals/admin?' + params.toString(), {
-                headers: { Authorization: 'Bearer ' + token },
-              }));
-              if (!payload.found) {
-                output.textContent = 'No referral record found for that code or email.';
-                setStatus('account-referral-admin-status', 'Lookup finished.', 'success');
-                return;
-              }
-              const lines = [
-                'Referral code: ' + (payload.referral?.code || '—'),
-                'Owner email: ' + (payload.referral?.email || '—'),
-                'Events: ' + (payload.stats?.events || 0),
-                'Checkouts: ' + (payload.stats?.checkouts || 0),
-                'Conversions: ' + (payload.stats?.conversions || 0),
-                '',
-                'Recent events:',
-                ...((payload.events || []).map((entry) =>
-                  '- ' + String(entry.event_type || 'event') + ' · ' + String(entry.referred_email || '—') + ' · ' + String(entry.source || '—')
-                )),
-              ];
-              output.textContent = lines.join('\\n');
-              setStatus('account-referral-admin-status', 'Lookup finished.', 'success');
-            } catch (error) {
-              output.textContent = '';
-              setStatus('account-referral-admin-status', error instanceof Error ? error.message : 'Lookup failed.', 'error');
-            }
-          });
-        }
-      } catch {
-        document.getElementById('account-referral-admin')?.setAttribute('hidden', 'hidden');
       }
     } catch {
       clearToken();
@@ -967,6 +1932,10 @@ if (page === 'account') {
   });
 
   document.getElementById('billing-portal-btn')?.addEventListener('click', async () => {
+    if (document.getElementById('billing-portal-btn')?.hidden) {
+      window.location.href = '/pricing/';
+      return;
+    }
     const email = document.getElementById('account-email').textContent.trim() || localStorage.getItem('user_email') || '';
     try {
       const payload = await withJson(await fetch('/api/portal', {
@@ -994,7 +1963,7 @@ if (page === 'account') {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       }));
-      setStatus('restore-status', lookup.tier ? 'Entitlement found. Open the desktop app and use the restore flow with this billing email.' : 'No paid entitlement found for that email yet.', lookup.tier ? 'success' : 'error');
+      setStatus('restore-status', lookup.tier ? 'Access found: ' + String(lookup.tier).toUpperCase() + '. Open Terminal Pro and restore with this billing email.' : 'No paid access was found for that billing email yet.', lookup.tier ? 'success' : 'error');
     } catch (error) {
       setStatus('restore-status', error instanceof Error ? error.message : 'Restore lookup failed.', 'error');
     }
@@ -1008,7 +1977,7 @@ function seo(path, title, description) {
   const canonical = `https://rinawarptech.com${path}`;
   const ogImage = "https://rinawarptech.com/assets/img/rinawarp-logo.png";
   const normalizedPath = path === "/" ? "/" : path.replace(/\/$/, "");
-  const isMatterPage = normalizedPath === "/products" || normalizedPath.startsWith("/matter-intelligence");
+  const isProductsPage = normalizedPath === "/products" || normalizedPath.startsWith("/products");
   const noindexPaths = new Set(["/account", "/login", "/register", "/forgot-password", "/reset-password", "/success/"]);
   const robots = noindexPaths.has(path) ? 'noindex, nofollow' : 'index, follow';
   const structuredData = buildStructuredData(path, title, description);
@@ -1023,17 +1992,20 @@ function seo(path, title, description) {
   <meta property="og:description" content="${description}">
   <meta property="og:url" content="${canonical}">
   <meta property="og:image" content="${ogImage}">
-  <meta property="og:site_name" content="${isMatterPage ? "RinaWarp" : "RinaWarp Terminal Pro"}">
+  <meta property="og:site_name" content="RinaWarp Terminal Pro">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${ogImage}">
-  <meta name="theme-color" content="#ff9b6b">
-  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#f7fbfc">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <meta name="color-scheme" content="light">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="msapplication-TileColor" content="#ff4fd8">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="msapplication-TileColor" content="#0b7c83">
   <link rel="preconnect" href="https://pub-58c0b2f3cc8d43fa8cf6e1d4d2dcf94b.r2.dev" crossorigin>
   <link rel="preconnect" href="https://pub-4df343f1b4524762a4f8ad3c744653c9.r2.dev" crossorigin>
   <link rel="preconnect" href="https://www.googletagmanager.com">
@@ -1048,7 +2020,7 @@ function seo(path, title, description) {
     gtag('js', new Date());
     gtag('config', '${GA_MEASUREMENT_ID}');
   </script>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://static.cloudflareinsights.com; font-src 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; media-src 'self' https:; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://www.google.com https://www.googletagmanager.com https://static.cloudflareinsights.com; font-src 'self' https://fonts.gstatic.com;">
   <script type="application/ld+json">${structuredData}</script>
   `;
 }
@@ -1056,8 +2028,7 @@ function seo(path, title, description) {
 function buildStructuredData(path, title, description) {
   const canonical = `https://rinawarptech.com${path}`;
   const normalizedPath = path === "/" ? "/" : path.replace(/\/$/, "");
-  const isMatterPage = normalizedPath === "/products" || normalizedPath.startsWith("/matter-intelligence");
-  const offerPrice = normalizedPath === "/team" ? "40" : "15";
+  const offerPrice = "15";
   const graph = [
     {
       "@context": "https://schema.org",
@@ -1068,14 +2039,10 @@ function buildStructuredData(path, title, description) {
     },
     {
       "@context": "https://schema.org",
-      "@type": isMatterPage ? "SoftwareApplication" : "SoftwareApplication",
-      name: isMatterPage
-        ? normalizedPath === "/products"
-          ? "RinaWarp"
-          : "RinaWarp Matter Intelligence"
-        : "RinaWarp Terminal Pro",
-      applicationCategory: isMatterPage ? "BusinessApplication" : "DeveloperApplication",
-      operatingSystem: isMatterPage ? "Web, Windows, Linux" : "Windows, Linux",
+      "@type": "SoftwareApplication",
+      name: "RinaWarp Terminal Pro",
+      applicationCategory: "DeveloperApplication",
+      operatingSystem: "Linux",
       url: canonical,
       description,
       publisher: {
@@ -1085,11 +2052,7 @@ function buildStructuredData(path, title, description) {
       offers: {
         "@type": "Offer",
         priceCurrency: "USD",
-        price: isMatterPage
-          ? normalizedPath === "/matter-intelligence/pricing"
-            ? "99"
-            : "0"
-          : offerPrice,
+        price: offerPrice,
         availability: "https://schema.org/InStock",
       },
     },
@@ -1161,12 +2124,11 @@ function buildStructuredData(path, title, description) {
 function nav(active) {
   const items = [
     ["/", "Home", "home"],
-    ["/products/", "Products", "products"],
-    ["/matter-intelligence/", "Matter Intelligence", "products"],
+    ["/products/", "Features", "products"],
     ["/pricing/", "Pricing", "pricing"],
     ["/download/", "Download", "download"],
     ["/docs/", "Docs", "docs"],
-    ["/agents/", "Agents", "docs"],
+    ["/trust/", "Trust", "trust"],
     ["/support/", "Support", "feedback"],
     ["/account/", "Account", "account"],
   ];
@@ -1227,6 +2189,10 @@ function shell({ path, page, title, description, eyebrow, heading, copy, heroAct
           <a href="/pricing/">Pricing</a>
           <a href="/download/">Download</a>
           <a href="/support/">Support</a>
+          <a href="/trust/">Trust</a>
+          <a href="/case-studies/">Case studies</a>
+          <a href="/fix-typescript-errors/">Fix guides</a>
+          <a href="/about/">About</a>
           <a href="/terms/">Terms</a>
           <a href="/privacy/">Privacy</a>
           <a href="/early-access/">Early Access</a>
@@ -1244,295 +2210,133 @@ const pages = [
     route: "",
     path: "/",
     page: "home",
-    title: "Fix Your Broken Project Automatically | RinaWarp",
-    description: "RinaWarp detects, repairs, and verifies broken developer projects automatically. Click Fix Project, watch the repair flow, and see proof that it worked.",
-    eyebrow: "Fix Project",
-    heading: "Fix your broken project automatically.",
-    copy: "AI that reads your code, fixes issues, and verifies it works. Open the project, click Fix Project, and watch the repair happen live.",
+    title: "Your Project Is Broken. RinaWarp Fixes It. | Terminal Pro",
+    description: "RinaWarp investigates broken repositories, repairs build errors, verifies results, and explains every change.",
+    eyebrow: "RinaWarp Terminal Pro",
+    heading: "Your project is broken. RinaWarp fixes it.",
+    copy: "Upload a repository. Let RinaWarp investigate, repair, verify, and explain every change.",
     heroActions: `
-      <a href="/download/" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download Now</a>
-      <a href="/pricing/" class="btn btn-secondary">See pricing</a>
-      <a href="/#demo" class="btn btn-secondary">Watch demo</a>
-    `,
-    heroSupport: "Broken build, dead install, bad config, crashed dev server. The first screen should make the outcome obvious.",
-    heroProof: `
-      <div class="hero-proof-item"><span class="hero-proof-label">Outcome</span><span class="hero-proof-value">Broken project to verified working result</span></div>
-      <div class="hero-proof-item"><span class="hero-proof-label">Proof</span><span class="hero-proof-value">What changed, what worked, confidence attached</span></div>
-      <div class="hero-proof-item"><span class="hero-proof-label">Demo</span><span class="hero-proof-value">21-second real repair flow above the fold</span></div>
+      <a href="/download/" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download Free</a>
+      <a href="/#proof" class="btn btn-secondary">Watch Demo</a>
     `,
     heroMedia: `
-      <div class="screenshot-frame">
-        <video id="demo" controls preload="metadata" poster="${DEMO_POSTER_URL}" playsinline>
-          <source src="${DEMO_WEBM_URL}" type="video/webm">
-          <source src="${DEMO_MP4_URL}" type="video/mp4">
-        </video>
+      <div class="screenshot-frame hero-product-shot">
+        <img src="/assets/img/terminal-pro-interface.png" alt="Current RinaWarp Terminal Pro interface" width="1400" height="768" loading="eager" decoding="async">
       </div>
     `,
     content: `
-      <section class="section"><div class="panel stack">
-        <h2 class="section-title">Broken projects waste hours</h2>
-        <p class="section-copy">A broken install, failed build, bad config, or dead dev server all create the same problem: progress stops. RinaWarp is built to get the project working again without turning the website into a wall of explanation.</p>
-        <div class="grid three-up">
-          <article class="card"><h3>Missing dependencies</h3><p>Get stalled installs moving again.</p></article>
-          <article class="card"><h3>Broken builds</h3><p>Recover from config and compile failures faster.</p></article>
-          <article class="card"><h3>Dev server crashes</h3><p>Diagnose, repair, and verify the path back to running.</p></article>
+      <section class="section feature-band">
+        <h2 class="section-title centered">What RinaWarp Can Do</h2>
+        <p class="section-copy centered">Built for broken projects, failed builds, and messy dependency problems.</p>
+        <div class="grid four-up">
+          <article class="mini-card"><div class="mini-icon">🔍</div><h3>Analyze Repositories</h3><p>Find the dependency, config, and source errors blocking your project.</p></article>
+          <article class="mini-card"><div class="mini-icon">⚡</div><h3>Repair Broken Builds</h3><p>Apply targeted fixes across files, package scripts, and project settings.</p></article>
+          <article class="mini-card"><div class="mini-icon">✅</div><h3>Verify Results</h3><p>Run builds and tests so success is proven in the terminal.</p></article>
+          <article class="mini-card"><div class="mini-icon">📋</div><h3>Explain Changes</h3><p>Show exactly what changed, why it changed, and how it was verified.</p></article>
         </div>
-      </div></section>
-      <section class="section"><div class="panel stack">
-        <h2 class="section-title">Verified success</h2>
-        <p class="section-copy">This is the app after a real repair. One strong proof screen is more convincing than a dozen feature blocks.</p>
-        <div class="screenshot-frame"><img src="/assets/img/proof-after-fixed-project.png" alt="RinaWarp showing the project fixed with verified status after repair" width="1356" height="697" loading="lazy" decoding="async"></div>
-      </div></section>
-      <section id="products" class="section"><h2 class="section-title">How it works</h2><p class="section-copy">The flow should feel obvious in seconds, not after a long read.</p><div class="grid three-up">
-        <article class="card"><div class="kicker">1</div><h3>Open your project</h3><p>Start inside the real broken repo.</p></article>
-        <article class="card"><div class="kicker">2</div><h3>Click Fix Project</h3><p>RinaWarp analyzes the workspace and runs the repair.</p></article>
-        <article class="card"><div class="kicker">3</div><h3>Check the result</h3><p>See what changed, what worked, and how confident the fix is.</p></article>
-      </div></section>
-      <section class="section"><div class="panel stack">
-        <h2 class="section-title">Trust the result</h2>
-        <p class="section-copy">The trust story is simple: show the change, show the verification, show the confidence.</p>
-        <div class="grid three-up">
-          <article class="card"><div class="kicker">What changed</div><h3>Readable summary</h3><p>Dependency installs, config edits, and fixes stay visible.</p></article>
-          <article class="card"><div class="kicker">What worked</div><h3>Verified outcome</h3><p>The app confirms whether the recovery actually succeeded.</p></article>
-          <article class="card"><div class="kicker">Confidence</div><h3>Honest score</h3><p>You see how safe the result looks before you move on.</p></article>
+      </section>
+      <section class="section split-section">
+        <div class="screenshot-frame">
+          <img src="/assets/img/terminal-pro-agent-thread.png" alt="RinaWarp Agent Thread with current quick actions" width="1400" height="768" loading="lazy" decoding="async">
         </div>
-      </div></section>
-      <section class="section"><div class="panel stack">
-        <h2 class="section-title">Start free. Upgrade when you need more.</h2>
-        <p class="section-copy">The homepage only needs one pricing idea: try it on a broken project, then pay if it saves you time.</p>
+        <div class="step-list">
+          <h2 class="section-title">Three Steps</h2>
+          <article><span>1</span><div><h3>Scan</h3><p>Open the broken repo and let RinaWarp inspect the project, logs, config, and dependency state.</p></div></article>
+          <article><span>2</span><div><h3>Fix</h3><p>Apply focused repairs to the files and settings that are actually causing the failure.</p></div></article>
+          <article><span>3</span><div><h3>Verify</h3><p>Run the build, tests, or health checks and keep the proof attached to the repair.</p></div></article>
+        </div>
+      </section>
+      <section id="proof" class="section proof-section">
+        <h2 class="section-title centered">Before → After Repair Proof</h2>
+        <p class="section-copy centered">Developers trust terminal output. Show the fix, then show the verification.</p>
+        <div class="proof-grid">
+          <article class="proof-item bad"><div class="kicker">Before</div><h3>React build</h3><pre>npm run build
+Module not found: react-scripts</pre></article>
+          <article class="proof-item good"><div class="kicker">After</div><h3>Build successful</h3><pre>Installed missing dependency
+Updated package scripts
+✓ Build successful</pre></article>
+          <article class="proof-item bad"><div class="kicker">Before</div><h3>TypeScript</h3><pre>error TS2322
+Type 'string' is not assignable</pre></article>
+          <article class="proof-item good"><div class="kicker">After</div><h3>Tests passing</h3><pre>Fixed type mismatch
+✓ Build successful
+✓ Tests passing</pre></article>
+        </div>
+      </section>
+      <section class="section feature-band">
+        <h2 class="section-title centered">Built for Developers</h2>
+        <div class="developer-grid stack-grid">
+          <article><div class="soft-icon">R</div><h3>React</h3></article>
+          <article><div class="soft-icon">TS</div><h3>TypeScript</h3></article>
+          <article><div class="soft-icon">N</div><h3>Node</h3></article>
+          <article><div class="soft-icon">Py</div><h3>Python</h3></article>
+          <article><div class="soft-icon">Rs</div><h3>Rust</h3></article>
+          <article><div class="soft-icon">Go</div><h3>Go</h3></article>
+        </div>
+      </section>
+      <section class="section split-section interface-section">
+        <div>
+          <h2 class="section-title">Real Terminal Pro Interface</h2>
+          <p class="section-copy">Use actual repair output, build logs, and product UI. No decorative robot art, no fake dashboards.</p>
+          <ul class="accent-list">
+            <li>Real terminal screenshots</li>
+            <li>Build logs and verification output</li>
+            <li>Before and after repair examples</li>
+            <li>Readable explanations for every change</li>
+          </ul>
+        </div>
+        <div class="screenshot-frame">
+          <img src="/assets/img/terminal-pro-agent-thread.png" alt="Current Terminal Pro Agent Thread interface" width="1400" height="768" loading="lazy" decoding="async">
+        </div>
+      </section>
+      <section class="section final-cta">
+        <h2>Ready to stop debugging and start shipping?</h2>
+        <p>Download Terminal Pro and fix the broken project blocking your next release.</p>
         <div class="cta-row">
-          <a href="/download/" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_final_cta" data-analytics-prop-target="download">Download Now</a>
-          <a href="/pricing/" class="btn btn-secondary">See pricing</a>
-          <a href="/#demo" class="btn btn-secondary">Watch demo</a>
+          <a href="/download/" class="btn btn-light" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_final" data-analytics-prop-target="download">Download Terminal Pro</a>
         </div>
-      </div></section>
+      </section>
     `
   },
   {
     route: "products",
     path: "/products",
     page: "products",
-    title: "RinaWarp Products | Terminal Pro and Matter Intelligence",
-    description: "Explore RinaWarp Terminal Pro for broken projects and RinaWarp Matter Intelligence for sensitive legal, finance, and compliance workflows.",
+    title: "RinaWarp Products | Terminal Pro",
+    description: "RinaWarp Terminal Pro detects, repairs, and verifies broken developer projects automatically.",
     eyebrow: "Products",
-    heading: "RinaWarp products",
-    copy: "Terminal Pro stays focused on fixing broken projects automatically. Matter Intelligence is a separate product line for sensitive legal, finance, and compliance workflows.",
+    heading: "Two products. Two audiences.",
+    copy: "Terminal Pro is for developers. Matter Intelligence is separate and not GA — do not mix the pitches.",
     content: `
-      <section class="section"><div class="grid three-up">
-        <article class="card" style="grid-column: span 2;">
-          <div class="kicker">RinaWarp Terminal Pro</div>
-          <h3>Fix broken projects automatically.</h3>
-          <p>AI that reads your code, fixes issues, and verifies the result. Built for broken installs, failed builds, bad config, and crashed dev servers.</p>
-          <div class="link-row">
-            <a href="/" class="btn btn-primary">View Terminal Pro</a>
-            <a href="/pricing/" class="btn btn-secondary">See pricing</a>
-            <a href="/download/" class="btn btn-secondary">Download</a>
-          </div>
-        </article>
-        <article class="card">
-          <div class="kicker">RinaWarp Matter Intelligence</div>
-          <h3>Institutional memory for sensitive matters.</h3>
-          <p>AI for legal, finance, and compliance teams that connects matter documents, email, transcripts, obligations, and decisions into one evidence-grounded workspace.</p>
-          <div class="link-row">
-            <a href="/matter-intelligence/" class="btn btn-primary">Explore Matter Intelligence</a>
-            <a href="/matter-intelligence/demo/" class="btn btn-secondary">Request demo</a>
-          </div>
-        </article>
+      <section class="section"><div class="product-compare">
+        <article class="product-card stack"><span class="pill">For developers</span><h2>Terminal Pro</h2><p><strong>Fixes broken repos.</strong></p><div class="link-row"><a href="/download/" class="btn btn-primary">Download Free</a><a href="/pricing/" class="btn btn-secondary">Pricing</a></div></article>
+        <article class="product-card muted-product stack"><span class="pill">Legal &amp; compliance</span><h2>Matter Intelligence</h2><p><strong>Coming Soon</strong></p><a href="/matter-intelligence/contact" class="btn btn-secondary">Join waitlist</a></article>
       </div></section>
     `
   },
-  {
-    route: "matter-intelligence",
-    path: "/matter-intelligence",
-    page: "products",
-    title: "RinaWarp Matter Intelligence | Institutional Memory for Sensitive Matters",
-    description: "RinaWarp Matter Intelligence gives legal, finance, and compliance teams cited answers and reviewer-ready drafts grounded in matter evidence.",
-    eyebrow: "RinaWarp Matter Intelligence",
-    heading: "Institutional memory for sensitive matters.",
-    copy: "RinaWarp Matter Intelligence helps legal, finance, and compliance teams reconstruct what happened, what changed, what deadlines exist, and which evidence supports the answer.",
-    heroActions: `
-      <a href="/matter-intelligence/demo/" class="btn btn-primary">Request demo</a>
-      <a href="/matter-intelligence/pricing/" class="btn btn-secondary">See pricing</a>
-    `,
-    content: `
-      <section class="section"><div class="grid three-up">
-        <article class="card"><div class="kicker">Ask any matter</div><h3>Find prior decisions fast</h3><p>Find prior decisions, obligations, deadlines, approvals, and open risks in one place.</p></article>
-        <article class="card"><div class="kicker">See the evidence</div><h3>Every answer is grounded</h3><p>Every answer is grounded in source-linked documents, messages, and timeline events.</p></article>
-        <article class="card"><div class="kicker">Generate drafts</div><h3>Reviewer-ready status memos</h3><p>Create status memos and decision recaps with citations before anything leaves the workspace.</p></article>
-      </div></section>
-      <section class="section"><div class="panel stack">
-        <h2 class="section-title">Built for regulated workflows</h2>
-        <div class="grid three-up">
-          <article class="card"><h3>Legal matters</h3><p>Keep matter history, evidence, and decisions connected over time.</p></article>
-          <article class="card"><h3>Finance investigations</h3><p>Reconstruct facts, approvals, and changes without scattered context.</p></article>
-          <article class="card"><h3>Compliance reviews</h3><p>Support internal reviews, audit prep, and sensitive internal cases.</p></article>
-        </div>
-      </div></section>
-    `
-  },
-  {
-    route: "matter-intelligence/pricing",
-    path: "/matter-intelligence/pricing",
-    page: "products",
-    title: "Matter Intelligence Pricing | RinaWarp",
-    description: "See Solo, Team, and Enterprise pricing for RinaWarp Matter Intelligence.",
-    eyebrow: "Pricing",
-    heading: "Pricing for Matter Intelligence",
-    copy: "Start with clear pricing and a guided onboarding path. The product and trust model stay separate from Terminal Pro.",
-    content: `
-      <section class="section"><div class="pricing-grid">
-        <article class="card pricing-card"><span class="pill">Solo</span><div class="price">$99 <span>/ month</span></div><p>For independent legal, finance, or compliance professionals working on sensitive matters.</p><ul class="feature-list"><li>1 user</li><li>Up to 25 active matters</li><li>Outlook + SharePoint connectors</li><li>Cited answers</li><li>Status memo drafts</li></ul><a href="/matter-intelligence/demo/" class="btn btn-primary">Request guided access</a></article>
-        <article class="card pricing-card featured"><span class="pill">Team</span><div class="price">$399 <span>/ month</span></div><p>For small teams that need shared matter memory, reviewer workflows, and audit visibility.</p><ul class="feature-list"><li>Up to 5 users</li><li>Shared workspace</li><li>Matter timeline</li><li>Review queue</li><li>Admin controls</li><li>Audit log</li></ul><a href="/matter-intelligence/demo/" class="btn btn-primary">Request setup</a></article>
-        <article class="card pricing-card"><span class="pill">Enterprise</span><div class="price">Custom</div><p>For teams that need SSO, private deployment, retention controls, or custom integrations.</p><ul class="feature-list"><li>SSO</li><li>Custom retention</li><li>Advanced governance</li><li>Private deployment options</li><li>Priority support</li></ul><a href="/matter-intelligence/contact/" class="btn btn-secondary">Talk to sales</a></article>
-      </div></section>
-    `
-  },
-  {
-    route: "matter-intelligence/security",
-    path: "/matter-intelligence/security",
-    page: "products",
-    title: "Matter Intelligence Security | RinaWarp",
-    description: "Review data sources, access controls, retention expectations, and support contacts for RinaWarp Matter Intelligence.",
-    eyebrow: "Security",
-    heading: "Security and data handling",
-    copy: "RinaWarp Matter Intelligence is designed for sensitive work. This page explains what data enters the system, what is stored, and how access is controlled.",
-    content: `
-      <section class="section"><div class="grid three-up">
-        <article class="card"><h3>Data sources</h3><p>Outlook mail, selected SharePoint files, matter notes, metadata, generated summaries, and drafts.</p></article>
-        <article class="card"><h3>Data controls</h3><p>Matter-scoped access, role-based permissions, exclusion controls, retention expectations, and audit logging.</p></article>
-        <article class="card"><h3>Model usage</h3><p>Generated responses are grounded in retrieved matter evidence. Customers should review outputs before relying on them.</p></article>
-      </div></section>
-      <section class="section"><div class="panel stack"><h2 class="section-title">Security contact</h2><p>Email <a href="mailto:security@rinawarptech.com">security@rinawarptech.com</a> for security and data handling questions.</p></div></section>
-    `
-  },
-  {
-    route: "matter-intelligence/demo",
-    path: "/matter-intelligence/demo",
-    page: "products",
-    title: "Request a Matter Intelligence Demo | RinaWarp",
-    description: "Request a RinaWarp Matter Intelligence demo to see cited answers and status memo generation for one sensitive matter workflow.",
-    eyebrow: "Demo",
-    heading: "See one matter workflow in action.",
-    copy: "Connect Outlook and SharePoint for one matter. Ask what changed since last review. Get a cited answer and a grounded status memo draft.",
-    content: `
-      <section class="section"><div class="panel stack">
-        <h2 class="section-title">Request a guided demo</h2>
-        <p class="section-copy">Use the live Matter Intelligence intake flow so we can scope the workflow, deployment needs, and trust questions before access is granted.</p>
-        <div class="cta-row">
-          <a href="/matter-intelligence/contact/" class="btn btn-primary">Request demo</a>
-          <a href="/matter-intelligence/security/" class="btn btn-secondary">Review security</a>
-        </div>
-      </div></section>
-    `
-  },
-  {
-    route: "matter-intelligence/download",
-    path: "/matter-intelligence/download",
-    page: "products",
-    title: "Matter Intelligence Access | RinaWarp",
-    description: "Learn how guided access, onboarding, billing, and workspace setup work for RinaWarp Matter Intelligence.",
-    eyebrow: "Access",
-    heading: "Get access to Matter Intelligence.",
-    copy: "Matter Intelligence has its own access path. It is intentionally separate from the Terminal Pro installer and billing flow.",
-    content: `
-      <section class="section"><div class="grid three-up">
-        <article class="card"><div class="kicker">1</div><h3>Request or buy access</h3><p>Start with guided onboarding or the live paid path we are validating for early customers.</p></article>
-        <article class="card"><div class="kicker">2</div><h3>Provision workspace</h3><p>Create the workspace, confirm entitlements, and assign the right members before data connectors go live.</p></article>
-        <article class="card"><div class="kicker">3</div><h3>Connect sources</h3><p>Connect Microsoft 365, create the first matter, and prove the cited-answer workflow on real data.</p></article>
-      </div></section>
-      <section class="section"><div class="panel stack">
-        <div class="cta-row">
-          <a href="/matter-intelligence/demo/" class="btn btn-primary">Request demo</a>
-          <a href="/matter-intelligence/pricing/" class="btn btn-secondary">See pricing</a>
-          <a href="/matter-intelligence/contact/" class="btn btn-secondary">Talk to sales</a>
-        </div>
-      </div></section>
-    `
-  },
-  {
-    route: "matter-intelligence/docs",
-    path: "/matter-intelligence/docs",
-    page: "products",
-    title: "Matter Intelligence Docs | RinaWarp",
-    description: "Start with one matter, connected evidence, and a cited status memo workflow in RinaWarp Matter Intelligence.",
-    eyebrow: "Docs",
-    heading: "Start with one matter and one trusted workflow.",
-    copy: "The launch workflow is intentionally narrow: connect the right sources, ask one matter question, and produce one grounded status memo.",
-    content: `
-      <section class="section"><div class="grid three-up">
-        <article class="card"><div class="kicker">1</div><h3>Connect Outlook and SharePoint</h3><p>Limit the scope to the sources needed for the first matter.</p></article>
-        <article class="card"><div class="kicker">2</div><h3>Ask what changed</h3><p>Use one concrete question to prove the evidence-grounded retrieval path.</p></article>
-        <article class="card"><div class="kicker">3</div><h3>Draft a status memo</h3><p>Generate a reviewer-ready draft with citations before anything leaves the workspace.</p></article>
-      </div></section>
-    `
-  },
-  {
-    route: "matter-intelligence/contact",
-    path: "/matter-intelligence/contact",
-    page: "products",
-    title: "Contact Matter Intelligence | RinaWarp",
-    description: "Talk to RinaWarp about Matter Intelligence sales, onboarding, and security review.",
-    eyebrow: "Contact",
-    heading: "Talk to RinaWarp about Matter Intelligence.",
-    copy: "Use this route for sales, onboarding, security review, and deployment questions related to Matter Intelligence. Terminal Pro support stays on the main support path.",
-    content: `
-      <section class="section"><div class="grid three-up">
-        <article class="card"><h3>Sales</h3><p><a href="mailto:hello@rinawarptech.com?subject=Matter%20Intelligence%20sales">hello@rinawarptech.com</a></p></article>
-        <article class="card"><h3>Security</h3><p><a href="mailto:security@rinawarptech.com?subject=Matter%20Intelligence%20security">security@rinawarptech.com</a></p></article>
-        <article class="card"><h3>Onboarding</h3><p>Use demo and contact requests to scope rollout, access, and data connector setup.</p></article>
-      </div></section>
-    `
-  },
-  {
-    route: "matter-intelligence/terms",
-    path: "/matter-intelligence/terms",
-    page: "products",
-    title: "Matter Intelligence Terms | RinaWarp",
-    description: "Read the product-specific terms for RinaWarp Matter Intelligence.",
-    eyebrow: "Terms",
-    heading: "Terms for RinaWarp Matter Intelligence.",
-    copy: "These terms apply to the Matter Intelligence product line and are separate from the Terminal Pro Early Access terms.",
-    content: `<section class="section"><div class="panel stack"><p>RinaWarp Matter Intelligence is provided by <strong>RinaWarp Technologies, LLC</strong> for professional use in legal, finance, compliance, and related sensitive workflows. Customers are responsible for reviewing generated outputs before relying on them.</p></div></section>`
-  },
-  {
-    route: "matter-intelligence/privacy",
-    path: "/matter-intelligence/privacy",
-    page: "products",
-    title: "Matter Intelligence Privacy | RinaWarp",
-    description: "Read the product-specific privacy summary for RinaWarp Matter Intelligence.",
-    eyebrow: "Privacy",
-    heading: "Privacy for RinaWarp Matter Intelligence.",
-    copy: "Matter Intelligence handles more sensitive workflows than Terminal Pro, so this page is intentionally product-specific.",
-    content: `<section class="section"><div class="panel stack"><p>Depending on customer configuration, Matter Intelligence may process Outlook mail, SharePoint files, matter notes, metadata, generated summaries, and workspace activity required to produce grounded responses.</p><p>Questions about Matter Intelligence privacy can be sent to <a href="mailto:security@rinawarptech.com">security@rinawarptech.com</a>.</p></div></section>`
-  },
-  {
-    route: "pricing",
+   {
+     route: "pricing",
     path: "/pricing",
     page: "pricing",
     title: "RinaWarp Terminal Pro Pricing | AI Terminal Plans",
-    description: "See RinaWarp Terminal Pro pricing for individual and team plans with trusted execution, receipts, recovery, and proof-backed repair workflows.",
+    description: "See RinaWarp Terminal Pro pricing for Free, One Fix, Pro, Team, and Enterprise access mapped to repair, verification, proof export, and team controls.",
     eyebrow: "Pricing",
-    heading: "Start fixing your projects for free.",
-    copy: "Try it free. If it fixes your project, upgrade. One fix can save hours, so the next step should feel obvious.",
+    heading: "Plans mapped to real product access.",
+    copy: "Choose the level of repair, verification, and team control you need. Pricing stays focused on buying RinaWarp, not repeating the whole product tour.",
     content: `
       <section class="section"><div class="pricing-grid">
-        <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Try the workflow on a broken project first. If it fixes the repo, you will know quickly.</p><ul class="feature-list"><li>Try the Fix Project workflow</li><li>Visible repair steps and proof-backed runs</li><li>Best for first-time use and simple fixes</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Choose installer</a></article>
-        <article class="card pricing-card featured"><span class="pill">Pro</span><div class="price">$15 <span>/ month</span></div><p>Upgrade when you are blocked and want the fastest path from broken project to verified result.</p><ul class="feature-list"><li>Unlimited fixes on real projects</li><li>Trusted build, test, deploy, and repair flows</li><li>What changed, what worked, and confidence summaries</li><li>Priority support while the product keeps hardening</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for Pro checkout"><div class="link-row"><button class="btn btn-primary" data-checkout-cycle="monthly" type="button">Start Pro checkout</button></div><p id="checkout-status" class="status-message" aria-live="polite">Pro is $15 per month. Checkout opens in Stripe.</p></div></article>
-        <article class="card pricing-card"><span class="pill">Power / Team</span><div class="price">$40 <span>/ user / month</span></div><p>For teams that want seat-based rollout, shared proof, role boundaries, and a cleaner path to fixing broken projects together.</p><ul class="feature-list"><li>Seat-based checkout and workspace rollout</li><li>Role-aware invite management and audit direction</li><li>Shared proof-backed workflows for teams</li><li>Priority support and migration help</li></ul><a href="/pricing/" class="btn btn-secondary">Start Team checkout</a></article>
+        <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Evaluate RinaWarp on a broken project before you pay.</p><ul class="feature-list"><li>Chat with Rina</li><li>Inspect workspace</li><li>Limited build/test runs</li><li>Local memory</li><li>Limited proof history</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Start free</a></article>
+        <article class="card pricing-card"><span class="pill">One Fix</span><div class="price">$3 <span>/ repair</span></div><p>Use one approval-gated repair when a single project is blocking you.</p><ul class="feature-list"><li>One approval-gated repair</li><li>Verification run</li><li>Proof export</li></ul><button class="btn btn-secondary" data-checkout-tier="fix" type="button">Buy One Fix — $3</button></article>
+        <article class="card pricing-card featured"><span class="pill">Pro</span><div class="price">$15 <span>/ month</span></div><p>For individual developers who want ongoing proof-backed repair work.</p><ul class="feature-list"><li>Unlimited local proof-backed runs</li><li>Safe mutation approvals</li><li>Marketplace packs</li><li>Proof export</li><li>Local memory</li><li>Priority updates</li></ul><button class="btn btn-primary" data-checkout-tier="pro" type="button">Start Pro — $15/mo</button></article>
+        <article class="card pricing-card"><span class="pill">Team</span><div class="price">$40 <span>/ user / month</span></div><p>Seat-based checkout for teams that need shared controls.</p><ul class="feature-list"><li>Team seats</li><li>Shared policy controls</li><li>Shared project memory later</li><li>Admin controls</li><li>Shared proof history</li></ul><button class="btn btn-secondary" data-checkout-tier="team" type="button">Start Team — $40/user/mo</button></article>
       </div></section>
-      <section class="section"><div class="panel stack">
-        <h2 class="section-title">Why people pay for Pro</h2>
-        <div class="grid three-up">
-          <article class="card"><div class="kicker">Unlimited</div><h3>Fix more than one repo</h3><p>Pro is for people who hit broken installs, failed builds, and config damage often enough that speed matters.</p></article>
-          <article class="card"><div class="kicker">Confidence</div><h3>Trust the outcome</h3><p>The value is not only the repair. It is knowing what changed and whether the result really worked.</p></article>
-          <article class="card"><div class="kicker">Support</div><h3>Get help if the edge case is rough</h3><p>Support exists so the product keeps getting better on real broken projects, not just polished demos.</p></article>
-        </div>
-      </div></section>
+      <section class="section"><article class="panel stack"><h2 class="section-title">Secure checkout</h2><p class="section-copy">Enter the email that should own the license, then choose One Fix, Pro, or Team.</p><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for checkout"><p id="checkout-status" class="status-message" aria-live="polite">One Fix is $3. Pro is $15/month. Team is $40/user/month. Checkout opens in Stripe.</p></article></section>
+      <section class="section"><div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Feature</th><th>Free</th><th>One Fix</th><th>Pro</th><th>Team</th></tr></thead><tbody><tr><td>Workspace inspection</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Approval-gated repair</td><td class="mark-no">Limited</td><td class="mark-yes">1</td><td class="mark-yes">Unlimited</td><td class="mark-yes">Unlimited</td></tr><tr><td>Verification and proof export</td><td class="mark-no">Limited</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Marketplace packs</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Shared policy controls</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td></tr></tbody></table></div></section>
+      <section class="section"><article class="panel stack"><span class="pill">Enterprise</span><h2 class="section-title">Need enterprise controls?</h2><p class="section-copy">Enterprise adds SSO/SAML, custom model or BYOK options, audit logs, admin command policies, private marketplace access, and data retention controls.</p><a href="/support/" class="btn btn-secondary">Contact support</a></article></section>
       <section class="section"><h2 class="section-title">Quick answers before you buy</h2><p class="section-copy">The practical questions people ask right before paying.</p><div class="faq-grid">
-        <article class="faq-item"><h3>What happens after checkout?</h3><p>Checkout returns you to RinaWarp so you can download the app, restore access if needed, and start fixing projects immediately.</p></article>
-        <article class="faq-item"><h3>How does restore work?</h3><p>Paid access is tied to your billing email. If a device loses entitlement state, use the restore path in the app or account page first.</p></article>
-        <article class="faq-item"><h3>Can I cancel later?</h3><p>Yes. Billing is handled through Stripe, and the billing portal is the place to cancel, change plans, or update payment details.</p></article>
-        <article class="faq-item"><h3>Why is there only one Pro button?</h3><p>The pricing page only advertises plans that are active in the current checkout catalog. If annual returns later, it should come back with a live Stripe price first.</p></article>
+        <article class="faq-item"><h3>Which plan should I choose?</h3><p>Start with Free if you are evaluating one project. Choose Pro for ongoing individual repair work. Choose Team when multiple developers need seats.</p></article>
+        <article class="faq-item"><h3>Is there a one-time option?</h3><p>Yes. One Fix is a single paid repair attempt without a subscription, meant for one-off blocked projects.</p></article>
+        <article class="faq-item"><h3>Can I cancel later?</h3><p>Yes. Subscription billing is handled through Stripe and cancellation is available after purchase.</p></article>
+        <article class="faq-item"><h3>What has to work before access is production-grade?</h3><p>Paid access depends on Stripe webhook signature verification, secure sessions, entitlement refresh, and license checks that do not fall back to a development user.</p></article>
       </div></section>
     `
   },
@@ -1541,49 +2345,38 @@ const pages = [
     path: "/download",
     page: "download",
     title: "Download RinaWarp Terminal Pro | Verified AI Terminal Releases",
-    description: "Download verified RinaWarp Terminal Pro releases for Linux and Windows, inspect the live manifest, and verify integrity with published checksums.",
+    description: "Download RinaWarp Terminal Pro for Linux (.deb and AppImage). Verify SHA256 checksums before install. Windows and macOS are not in this public beta.",
     eyebrow: "Download",
-    heading: "Fix your project in under 30 seconds.",
-    copy: "Download RinaWarp and let it fix your code automatically. Open the broken repo, click Fix Project, and see the proof.",
+    heading: "Download RinaWarp Terminal Pro.",
+    copy: "Get the current Linux public beta, verify the checksum, and install Terminal Pro.",
     heroActions: `
       <a href="${PUBLIC_BETA_DEB_URL}" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a>
       <a href="${PUBLIC_BETA_APPIMAGE_URL}" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a>
-      <a href="/pricing/" class="btn btn-secondary">See pricing</a>
     `,
-    heroSupport: "Use the live download routes below. Checksums and release manifests stay published so the trust story remains explicit.",
-    heroProof: `
-      <div class="hero-proof-item"><span class="hero-proof-label">Step 1</span><span class="hero-proof-value">Download and open the broken repo</span></div>
-      <div class="hero-proof-item"><span class="hero-proof-label">Step 2</span><span class="hero-proof-value">Click Fix Project and watch the repair</span></div>
-      <div class="hero-proof-item"><span class="hero-proof-label">Step 3</span><span class="hero-proof-value">Check proof, verification, and confidence</span></div>
-    `,
+    heroSupport: `Version ${VERSION} · Linux only in this public beta · <a href="${PUBLIC_BETA_CHECKSUMS_URL}">Verify SHA256</a>`,
     heroMedia: `
       <div class="screenshot-frame">
-        <video controls preload="metadata" poster="${DEMO_POSTER_URL}" playsinline>
-          <source src="${DEMO_WEBM_URL}" type="video/webm">
-          <source src="${DEMO_MP4_URL}" type="video/mp4">
-        </video>
+        <img src="/assets/img/terminal-pro-interface.png" alt="Current RinaWarp Terminal Pro interface after install" loading="eager" decoding="async">
       </div>
     `,
     content: `
-      <section class="section"><div class="panel stack">
-        <h2 class="section-title">How it works</h2>
-        <div class="grid three-up">
-          <article class="card"><div class="kicker">1</div><h3>Download</h3><p>Install the Linux public beta and open the repo that is blocking you.</p></article>
-          <article class="card"><div class="kicker">2</div><h3>Open the project</h3><p>Let the app inspect the actual workspace instead of explaining the problem from memory.</p></article>
-          <article class="card"><div class="kicker">3</div><h3>Click Fix Project</h3><p>Watch the repair happen, then check the proof to confirm the project is working again.</p></article>
+      <section class="section">
+        <h2 class="section-title">Current release — platform availability</h2>
+        <div class="platform-status">
+          <div class="platform-status-row"><span>Linux</span><span class="status-available">Available (.deb + AppImage)</span></div>
+          <div class="platform-status-row"><span>Windows</span><span class="status-unavailable">Not in this beta</span></div>
+          <div class="platform-status-row"><span>macOS</span><span class="status-unavailable">Coming after signing</span></div>
         </div>
-      </div></section>
-      <section class="section"><div class="panel stack">
-        <h2 class="section-title">See it fix a real project</h2>
-        <p class="section-copy">One real RinaWarp screen is enough here. The goal is fast belief, not more clutter.</p>
-        <div class="screenshot-frame"><img src="/assets/img/proof-after-fixed-project.png" alt="Project after RinaWarp repair showing verified success" width="1356" height="697" loading="lazy" decoding="async"></div>
-      </div></section>
+      </section>
       <section class="section"><div class="download-grid">
-        <article class="card platform-card"><span class="pill">Linux</span><h3>Choose your Linux path</h3><p><strong>.deb</strong> is the fastest way to get running on Debian and Ubuntu. <strong>AppImage</strong> is the better choice if you want the in-app update path later.</p><div class="link-row"><a href="${PUBLIC_BETA_DEB_URL}" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a><a href="${PUBLIC_BETA_APPIMAGE_URL}" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a><a href="${PUBLIC_BETA_LATEST_JSON_URL}" class="btn btn-secondary">View manifest</a></div><p class="note"><strong>Update note:</strong> If you install with <code>.deb</code>, update with the next <code>.deb</code>. If you want automatic in-app updates, use AppImage and keep that as your main install.</p></article>
+        <article class="card platform-card"><span class="pill">Linux .deb</span><h3>Debian and Ubuntu</h3><p>Use the <code>.deb</code> for the simplest manual install path on Debian or Ubuntu desktops. Update later by installing the next published <code>.deb</code>.</p></article>
+        <article class="card platform-card"><span class="pill">Linux AppImage</span><h3>Portable Linux install</h3><p>Use AppImage when you want a portable Linux app path and future in-app update behavior.</p></article>
         <article class="card platform-card"><span class="pill">Windows</span><h3>Not in this public beta</h3><p>The current public beta release only includes Linux installers. Windows should come back once a matching <code>.exe</code> artifact is published and verified.</p><div class="link-row"><a href="/support/" class="btn btn-secondary">Ask about Windows</a></div><p class="note"><strong>Trust note:</strong> The website should not offer a Windows download until the release actually contains a Windows installer.</p></article>
         <article class="card platform-card"><span class="pill">macOS</span><h3>Coming after signing</h3><p>macOS is not live yet because we do not want to ship a rough installer path we cannot support well.</p><div class="link-row"><a href="/support/" class="btn btn-secondary">Ask about macOS</a></div></article>
       </div></section>
-      <section class="section"><div class="panel stack"><div class="card trust-note"><h3>Verification matters more than vibes</h3><p>Checksums, release feeds, and honest platform notes are the trust surface on the website. If anything about the download feels inconsistent, stop and verify before running the installer.</p></div><h2 class="section-title">How to verify your download</h2><div class="link-row"><a href="${PUBLIC_BETA_CHECKSUMS_URL}" class="btn btn-secondary">Download SHASUMS256.txt</a><a href="${PUBLIC_BETA_LATEST_JSON_URL}" class="btn btn-secondary">Open latest.json</a><a href="${PUBLIC_BETA_LATEST_YML_URL}" class="btn btn-secondary">Open latest.yml</a><a href="${PUBLIC_BETA_LATEST_LINUX_YML_URL}" class="btn btn-secondary">Open latest-linux.yml</a></div><p class="section-copy">The public beta updater feed lives on the GitHub release for <code>${PUBLIC_BETA_TAG}</code>. If the checksum does not match, do not run the file. Reach out to support instead.</p></div></section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">System requirements</h2><ul class="signal-list"><li>Linux desktop environment for this public beta</li><li>Debian/Ubuntu for the <code>.deb</code> installer, or AppImage-capable Linux desktop</li><li>4 GB RAM minimum; 8 GB+ recommended for large repositories</li><li>Git and your project package manager available in PATH</li></ul></div></section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">Install instructions</h2><ol class="signal-list"><li>Download the Linux <code>.deb</code> or AppImage.</li><li>Open <a href="${PUBLIC_BETA_CHECKSUMS_URL}">SHASUMS256.txt</a> and verify the file hash.</li><li>Install the <code>.deb</code> on Debian/Ubuntu, or mark the AppImage executable and run it.</li><li>Open your repository folder in Terminal Pro.</li></ol></div></section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">Checksums and release metadata</h2><div class="link-row"><a href="${PUBLIC_BETA_CHECKSUMS_URL}" class="btn btn-secondary">Download SHASUMS256.txt</a><a href="${PUBLIC_BETA_LATEST_JSON_URL}" class="btn btn-secondary">Open latest.json</a><a href="${PUBLIC_BETA_LATEST_YML_URL}" class="btn btn-secondary">Open latest.yml</a><a href="${PUBLIC_BETA_LATEST_LINUX_YML_URL}" class="btn btn-secondary">Open latest-linux.yml</a></div><p class="section-copy">If the checksum does not match, do not run the installer. Contact support before continuing.</p></div></section>
     `
   },
   {
@@ -1702,66 +2495,116 @@ const pages = [
     `
   },
   {
+    route: "trust",
+    path: "/trust",
+    page: "trust",
+    title: "RinaWarp Trust & Safety | Local-First Proof-Backed AI Workbench",
+    description: "Learn how RinaWarp handles local execution, approval-gated repairs, rollback, proof, privacy-safe telemetry, marketplace permissions, and current platform readiness.",
+    eyebrow: "Trust & Safety",
+    heading: "How RinaWarp keeps developer work inspectable.",
+    copy: "RinaWarp is built for real repositories, real commands, and real verification. The product should show what it inspected, ask before high-impact changes, and keep proof attached to every repair.",
+    heroActions: `
+      <a href="/download/" class="btn btn-primary">Download Terminal Pro</a>
+      <a href="/docs/" class="btn btn-secondary">Read docs</a>
+    `,
+    content: `
+      <section class="section"><article class="panel stack">
+        <span class="pill">Current production status</span>
+        <h2 class="section-title">Linux production candidate. macOS and Windows pending.</h2>
+        <p class="section-copy">The current public release is available for Linux as a checksum-verified .deb and AppImage. macOS and Windows are pending signed, notarized, and smoke-tested installers before they return to the download page.</p>
+      </article></section>
+      <section class="section"><div class="grid three-up">
+        <article class="card"><h3>Local-first execution</h3><p>RinaWarp runs developer work from the selected workspace and keeps repository inspection tied to the local project context.</p></article>
+        <article class="card"><h3>Workspace boundaries</h3><p>Repairs should stay scoped to the project you opened. High-impact actions must be visible before they run.</p></article>
+        <article class="card"><h3>Approval before mutation</h3><p>File changes, install steps, and risky commands should require clear approval instead of happening silently.</p></article>
+      </div></section>
+      <section class="section"><div class="grid three-up">
+        <article class="card"><h3>Rollback and recovery</h3><p>Repair work should preserve a recovery path so developers can understand and undo changes when a fix is not right.</p></article>
+        <article class="card"><h3>Proof-backed results</h3><p>Build, test, and health-check output should stay attached to the repair so success is evidence-based.</p></article>
+        <article class="card"><h3>Secret redaction</h3><p>Logs and telemetry should avoid secrets, tokens, file contents, command output, and private paths unless they are safely redacted or hashed.</p></article>
+      </div></section>
+      <section class="section"><div class="grid two-up">
+        <article class="panel stack"><h2 class="section-title">Memory and data controls</h2><p>Local memory should help RinaWarp remember project context without turning private code into a public profile. Cloud sync is optional, not the default. Developers should be able to export or delete saved memory.</p></article>
+        <article class="panel stack"><h2 class="section-title">Marketplace permissions</h2><p>Capability packs need a manifest, publisher, version, permissions, risk level, install approval, disable control, changelog, and proof of what ran. Packs should not bypass Agent Thread, policy, execution, verification, and proof.</p></article>
+      </div></section>
+      <section class="section"><div class="grid two-up">
+        <article class="panel stack"><h2 class="section-title">Download verification</h2><p>Installers are linked through public release metadata and checksums. If the SHA256 checksum does not match the published file, do not run the installer.</p><a href="/download/" class="btn btn-secondary">Verify downloads</a></article>
+        <article class="panel stack"><h2 class="section-title">Privacy-safe telemetry</h2><p>RinaWarp should measure activation events like install, first launch, first scan, first proof, fix approval, proof export, marketplace install, memory saved, memory cleared, and crash report creation. It should not collect source files, terminal output, secrets, tokens, or private paths.</p><a href="/privacy/" class="btn btn-secondary">Read privacy policy</a></article>
+      </div></section>
+    `
+  },
+  {
     route: "docs",
     path: "/docs",
     page: "docs",
-    title: "RinaWarp Terminal Pro Docs | AI Terminal Guides",
-    description: "Read RinaWarp Terminal Pro docs, setup guides, and proof-first AI terminal workflows for trusted execution, receipts, and recovery.",
-    eyebrow: "Getting started",
-    heading: "Use RinaWarp Terminal Pro like a collaborator, not a command form.",
-    copy: "The desktop app is built around one simple flow: ask in the Agent surface, let Rina inspect or act, and inspect proof only when you need more detail.",
-    content: `
-      <section class="section"><div class="grid three-up">
-        <article class="card"><div class="kicker">1. Ask naturally</div><h3>Start in the Agent thread</h3><p>Use normal language. Rina can handle questions, vague asks, follow-ups, and real execution requests without forcing you into terminal-shaped commands.</p></article>
-        <article class="card"><div class="kicker">2. Trust the route</div><h3>Execution only happens through the canonical path</h3><p>If Rina needs to build, test, deploy, fix, or inspect, the work goes through the trusted execution spine.</p></article>
-        <article class="card"><div class="kicker">3. Inspect only when needed</div><h3>Runs, code, diagnostics, and terminal are inspectors</h3><p>The thread is primary. Proof is there when you need it.</p></article>
-      </div></section>
-    `
+    title: "RinaWarp Terminal Pro Docs | Installation & First Repair",
+    description: "Install RinaWarp Terminal Pro, run your first Fix Project repair, and learn permissions, safety, and troubleshooting.",
+    eyebrow: "Documentation",
+    heading: "RinaWarp Terminal Pro docs",
+    copy: "Install, run your first repair, and understand permissions, safety, and troubleshooting.",
+    content: DOCS_BODY_HTML
   },
   {
-    route: "agents",
-    path: "/agents",
+    route: "about",
+    path: "/about",
+    page: "legal",
+    title: "About RinaWarp | Remote-First Developer Tools Company",
+    description: "RinaWarp Technologies, LLC builds proof-first Terminal Pro and Matter Intelligence. Remote-first team; Utah operations.",
+    eyebrow: "About",
+    heading: "About RinaWarp",
+    copy: "Proof-first developer tools. Remote-first company headquartered in Utah.",
+    content: ABOUT_PAGE_HTML
+  },
+  {
+    route: "case-studies",
+    path: "/case-studies",
     page: "docs",
-    title: "RinaWarp Agents | Agents That Analyze and Fix Code",
-    description: "Explore RinaWarp agents for deployment, diagnostics, security, and repeated code-fix workflows that help analyze and fix projects automatically.",
-    eyebrow: "Agents",
-    heading: "Agents that analyze and fix your code automatically.",
-    copy: "These agents extend what Rina can fix inside the desktop app. Think deployment helpers, diagnostics, security, and repeated repair workflows, not abstract system architecture.",
-    content: `
-      <section class="section"><div class="panel stack">
-        <h2 class="section-title">What agents are for</h2>
-        <p class="section-copy">Agents should tie directly to outcomes: analyze the repo, diagnose the failure, run the repair workflow, and keep proof attached so the result is easier to trust.</p>
-      </div></section>
-      <section class="section"><div class="grid three-up">
-        <article class="card"><h3>Deployment agents</h3><p>Handle repeated deploy and environment workflows without turning every release into manual terminal archaeology.</p></article>
-        <article class="card"><h3>Diagnostics agents</h3><p>Inspect failures, gather the useful context, and move the project toward a fix faster.</p></article>
-        <article class="card"><h3>Security and repair agents</h3><p>Help with repeated code-fix flows where clear steps, visible changes, and proof matter.</p></article>
-      </div></section>
-      <section class="section"><div class="panel stack">
-        <h2 class="section-title">Need an agent we do not ship yet?</h2>
-        <p class="section-copy">Tell us what broke and what you want Rina to fix. We are prioritizing real deploy, diagnostics, security, and code-fix workflows over random breadth.</p>
-        <div class="cta-row">
-          <a href="/support/" class="btn btn-primary">Request an agent</a>
-          <a href="/download/" class="btn btn-secondary">Try RinaWarp now</a>
-        </div>
-      </div></section>
-    `
+    title: "Repair Case Studies | RinaWarp Terminal Pro",
+    description: "Real repair reports from Early Access: TypeScript, React builds, and npm dependency conflicts with verification output.",
+    eyebrow: "Case studies",
+    heading: "Real repair reports",
+    copy: "Example repairs with actions, verification, and timing — no fabricated usage metrics.",
+    content: CASE_STUDIES_INDEX_HTML
   },
+  ...CASE_STUDY_PAGES.map((study) => ({
+    route: study.slug,
+    path: study.path,
+    page: "docs",
+    title: study.title,
+    description: study.description,
+    eyebrow: "Case study",
+    heading: study.headline,
+    copy: study.problem,
+    content: buildCaseStudyHtml(study),
+  })),
   {
-    route: "support",
+     route: "support",
     path: "/support",
     page: "feedback",
-    title: "RinaWarp Support | Help, Feedback, and Contact",
-    description: "Contact RinaWarp for product support, billing help, restore issues, feedback, launch questions, and capability requests.",
-    eyebrow: "Support & feedback",
-    heading: "Help us fix more broken projects.",
-    copy: "Tell us what broke and we’ll make it more fixable. Good reports turn directly into better fixes, better trust, and better recovery paths.",
+    title: "RinaWarp Support | Contact, FAQ, Known Issues, and Billing Help",
+    description: "Contact RinaWarp for product support, billing help, known issues, and troubleshooting guidance.",
+    eyebrow: "Support",
+    heading: "Get help with RinaWarp.",
+    copy: "Contact, FAQ, known issues, and billing help in one support surface.",
     content: `
-      <section class="section"><div class="grid three-up">
-        <article class="card"><h3>Support</h3><p>If you are blocked on billing, restore, or launch issues, email <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>.</p></article>
-        <article class="card"><h3>General contact</h3><p>For partnerships, launch questions, or founder access, email <a href="mailto:hello@rinawarptech.com">hello@rinawarptech.com</a>.</p></article>
-        <article class="card"><h3>Best report format</h3><p>Tell us what was broken, what you asked Rina to do, what changed, and whether the final proof matched reality.</p></article>
-      </div></section>
+      <section class="section">
+        <h2 class="section-title">Contact</h2>
+        <div class="grid three-up">
+          <article class="card"><h3>Billing</h3><p>Email <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>. Include your billing email and what changed.</p></article>
+          <article class="card"><h3>Technical</h3><p>Send the app version, platform, installer type, failing command, and a short description of the workflow.</p></article>
+          <article class="card"><h3>Critical install issue</h3><p>If the installer or checksum looks wrong, stop before running it and contact support.</p></article>
+        </div>
+      </section>
+      <section class="section">
+        <h2 class="section-title">FAQ</h2>
+        <div class="faq-grid">
+          <article class="faq-item"><h3>My paid plan is not showing.</h3><p>Use the account restore flow with the billing email from checkout. If it still fails, email support with that billing email.</p></article>
+          <article class="faq-item"><h3>The installer failed.</h3><p>Send the installer type, Linux distribution, error text, and whether the checksum matched.</p></article>
+          <article class="faq-item"><h3>A repair did not work.</h3><p>Include the failing command, the expected result, and whether Terminal Pro showed verification output.</p></article>
+          <article class="faq-item"><h3>I need billing help.</h3><p>Billing issues are handled through Stripe records and your billing email, not public referral or diagnostic tools.</p></article>
+        </div>
+      </section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">Known issues</h2><ul class="signal-list"><li>Linux is the only public beta installer currently offered.</li><li>Windows and macOS are not listed until signed, verified installers exist.</li><li>Minimal Linux images may need GUI/runtime packages before AppImage starts cleanly.</li><li>Package registry or network failures can block repair verification even when the code fix is correct.</li></ul></div></section>
       <section class="section"><div class="panel stack"><h2 class="section-title">Send feedback</h2><form id="feedback-form"><label>Name<input type="text" name="name" placeholder="Your name" required></label><label>Email<input type="email" name="email" placeholder="you@rinawarptech.com" required></label><label>Topic<select name="topic"><option value="support">Support</option><option value="bug">Bug report</option><option value="billing">Billing</option><option value="team">Team plan</option><option value="feature">Feature request</option><option value="launch">Launch / partnership</option></select></label><label>Rating<select name="rating"><option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Okay</option><option value="2">2 - Rough</option><option value="1">1 - Broken</option></select></label><label>Message<textarea name="message" placeholder="What happened, and what should RinaWarp Terminal Pro have done instead?" required></textarea></label><button type="submit" class="btn btn-primary">Send feedback</button><p id="feedback-status" class="status-message" aria-live="polite"></p></form></div></section>
     `
   },
@@ -1773,7 +2616,7 @@ const pages = [
     description: "Read the RinaWarp Early Access terms for licensing, acceptable use, billing, and product limitations.",
     eyebrow: "Terms",
     heading: "Terms for RinaWarp Terminal Pro Early Access.",
-    copy: "These terms are intentionally plain. Early Access means real software, real support, and honest boundaries while the product is still hardening.",
+    copy: "These terms are intentionally plain. Early Access means real software, real support, and honest expectations while the product is still hardening.",
     content: `
       <section class="section"><div class="panel stack">
         <h2 class="section-title">Use of the product</h2>
@@ -1790,7 +2633,7 @@ const pages = [
         <p>Do not use the product for unlawful activity, credential theft, malware operations, unauthorized system access, or abuse of third-party systems. We may suspend access for abuse, fraud, non-payment, or security risk.</p>
       </div></section>
       <section class="section"><div class="panel stack">
-        <h2 class="section-title">Warranties, liability, and support boundaries</h2>
+        <h2 class="section-title">Warranties, liability, and support</h2>
         <p>The product is provided “as is” and “as available” to the maximum extent allowed by law. We do not guarantee uninterrupted operation or that every suggested action is correct for your environment.</p>
         <p>To the maximum extent allowed by law, RinaWarp Technologies, LLC is not liable for indirect, incidental, special, consequential, or punitive damages, or for lost revenue, data, or goodwill from product use.</p>
         <p>Early Access support is provided on a reasonable-effort basis. We aim to be responsive and honest, but we do not promise enterprise-grade response times yet.</p>
@@ -1821,6 +2664,13 @@ const pages = [
         <h2 class="section-title">Retention and processors</h2>
         <p>We retain data for operations, legal obligations, support continuity, and abuse prevention, then delete or anonymize where practical.</p>
         <p>Stripe processes billing data. Infrastructure and analytics providers may process operational metadata on our behalf under contractual controls.</p>
+      </div></section>
+      <section class="section"><div class="panel stack">
+        <h2 class="section-title">Developer-specific answers</h2>
+        <p><strong>Is my code uploaded?</strong> By default: No — repairs run locally in your workspace.</p>
+        <p><strong>Telemetry:</strong> App version, OS, install id (hashed), workflow events, error diagnostics — not full repo contents.</p>
+        <p><strong>Disable telemetry:</strong> Limited during Early Access; contact support for enterprise review.</p>
+        <p><strong>Repositories stored:</strong> No for default Fix Project. Cloud features are labeled separately when enabled.</p>
       </div></section>
       <section class="section"><div class="panel stack">
         <h2 class="section-title">Your rights and contact</h2>
@@ -1913,46 +2763,41 @@ const pages = [
     title: "RinaWarp Account | Billing, Restore, and Access",
     description: "Manage your RinaWarp account, billing, restore flow, and paid access in one place.",
     eyebrow: "Account",
-    heading: "Your account",
-    copy: "Manage your RinaWarp Terminal Pro account, billing, restore flow, and support boundaries.",
+    heading: "Manage your RinaWarp account",
+    copy: "View your plan, download Terminal Pro, restore access, and manage billing.",
     content: `
       <section class="section"><div class="auth-container stack">
         <div class="auth-card stack" id="account-gate" hidden>
-          <h2 class="section-title">Sign in to your account</h2>
-          <p class="section-copy">Use your billing email to restore paid access in the desktop app, or sign in if you already created a password.</p>
-          <div class="link-row"><a href="/login/" class="btn btn-primary">Sign In</a><a href="/register/" class="btn btn-secondary">Create Account</a><a href="/early-access/" class="btn btn-secondary">Early Access Policy</a></div>
+          <h2 class="section-title">Your account</h2>
+          <div class="grid three-up">
+            <article class="card"><div class="kicker">Plan</div><h3>Free</h3></article>
+            <article class="card"><div class="kicker">Subscription</div><h3>No paid subscription found</h3></article>
+          </div>
+          <div class="link-row"><a href="#restore" class="btn btn-primary">Restore purchase</a><a href="/download/" class="btn btn-secondary">Download Terminal Pro</a><a href="/pricing/" class="btn btn-secondary">Upgrade to Pro</a></div>
         </div>
         <div class="auth-card stack" id="account-state" hidden>
-          <h2 class="section-title" id="account-name">Loading your account</h2>
+          <h2 class="section-title">Your account</h2>
+          <h3 id="account-display-name">RinaWarp customer</h3>
           <p id="account-email" class="section-copy"></p>
-          <div class="pill" id="account-tier">—</div>
-          <p id="account-tier-note" class="section-copy">We verify your signed-in tier and billing state before showing live controls.</p>
-          <div class="link-row"><button class="btn btn-primary" id="billing-portal-btn" type="button">Open billing portal</button><button class="btn btn-secondary" id="logout-btn" type="button">Sign out</button></div>
-        </div>
-        <div class="auth-card stack" id="account-referral" hidden>
-          <h2 class="section-title">Invite someone who has a broken project</h2>
-          <p class="section-copy">Share your link right after a win. We track started checkouts and paid conversions here so the loop is real, not hand-wavy.</p>
-          <div class="pill">Referral code: <span id="account-referral-code">—</span></div>
-          <label>Invite link<input id="account-invite-link" type="text" value="" readonly></label>
-          <div class="link-row"><button class="btn btn-primary" id="copy-invite-link-btn" type="button">Copy invite link</button></div>
-          <p id="account-referral-stats" class="section-copy">0 checkout(s) started • 0 paid conversion(s)</p>
-          <p id="account-referral-status" class="status-message" aria-live="polite"></p>
-        </div>
-        <div class="auth-card stack" id="account-referral-admin" hidden>
-          <h2 class="section-title">Referral lookup</h2>
-          <p class="section-copy">Support can look up a referral code or owner email here without querying the database manually.</p>
-          <form id="account-referral-admin-form" class="stack">
-            <label>Referral code<input type="text" name="code" placeholder="A44K5"></label>
-            <label>Owner email<input type="email" name="email" placeholder="founder@company.com"></label>
-            <button class="btn btn-secondary" type="submit">Lookup referral</button>
-            <p id="account-referral-admin-status" class="status-message" aria-live="polite"></p>
-          </form>
-          <pre id="account-referral-admin-output" class="status-message" style="white-space:pre-wrap"></pre>
+          <div class="grid three-up">
+            <article class="card"><div class="kicker">Plan</div><h3 id="account-tier">Free</h3></article>
+            <article class="card"><div class="kicker">Subscription</div><h3 id="account-tier-note">No paid subscription found</h3></article>
+          </div>
+          <div class="link-row"><a href="#restore" class="btn btn-primary">Restore purchase</a><a href="/download/" class="btn btn-secondary">Download Terminal Pro</a><button class="btn btn-secondary" id="billing-portal-btn" type="button" hidden>Manage billing</button><a href="/pricing/" class="btn btn-secondary" id="account-upgrade-link">Upgrade to Pro</a><button class="btn btn-secondary" id="logout-btn" type="button">Sign out</button></div>
         </div>
         <div class="auth-card stack" id="restore">
-          <h2 class="section-title">Restore Pro access</h2>
-          <p class="section-copy">Use the same billing email from checkout. This works even if your full account state has not loaded yet.</p>
-          <form id="restore-form"><label>Billing email<input type="email" name="email" placeholder="Billing email used at checkout" required></label><button type="submit" class="btn btn-primary">Check restore status</button><p id="restore-status" class="status-message" aria-live="polite"></p></form>
+          <h2 class="section-title">Restore access</h2>
+          <p class="section-copy">Enter the billing email you used at checkout.</p>
+          <form id="restore-form"><label>Billing email<input type="email" name="email" placeholder="Billing email" required></label><button type="submit" class="btn btn-primary">Restore access</button><p id="restore-status" class="status-message" aria-live="polite"></p></form>
+        </div>
+        <div class="auth-card stack" id="account-referral" hidden>
+          <h2 class="section-title">Referral link</h2>
+          <p class="section-copy">Invite a developer and track your rewards.</p>
+          <div class="pill"><span id="account-referral-code">—</span></div>
+          <label>Invite link<input id="account-invite-link" type="text" value="" readonly></label>
+          <div class="link-row"><button class="btn btn-primary" id="copy-invite-link-btn" type="button">Copy invite link</button></div>
+          <p id="account-referral-stats" class="section-copy">0 checkouts started · 0 paid conversions</p>
+          <p id="account-referral-status" class="status-message" aria-live="polite"></p>
         </div>
       </div></section>
     `
@@ -1985,7 +2830,22 @@ const pages = [
         </div>
       </div></section>
     `
-  }
+  },
+  ...SEO_LANDING_PAGES.map((seoPage) => ({
+    route: seoPage.path.replace(/^\//, ""),
+    path: seoPage.path,
+    page: "docs",
+    title: seoPage.title,
+    description: seoPage.description,
+    eyebrow: seoPage.eyebrow,
+    heading: seoPage.headline,
+    copy: seoPage.lede,
+    heroActions: `
+      <a href="/download/" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="seo_hero" data-analytics-prop-target="download">Download Free</a>
+      <a href="/pricing/" class="btn btn-secondary">See pricing</a>
+    `,
+    content: buildSeoLandingPageHtml(seoPage),
+  })),
 ];
 
 async function writeRoute(route, html) {
@@ -2015,12 +2875,15 @@ const REDIRECTS = `
 /feedback/ /support/ 301
 /team /pricing/ 301
 /team/ /pricing/ 301
-/about /products/ 301
-/about/ /products/ 301
-/about-rinawarp /products/ 301
-/about-rinawarp/ /products/ 301
+/about-rinawarp /about/ 301
+/about-rinawarp/ /about/ 301
+/agents https://rinawarptech.com/agents 302
+/agents/ https://rinawarptech.com/agents 302
 /music-video-creator /products/ 301
 /music-video-creator/ /products/ 301
+/matter-intelligence /products/ 301
+/matter-intelligence/ /products/ 301
+/matter-intelligence/* /products/ 301
 /affiliates.html /pricing/ 301
 `.trim() + "\n";
 
@@ -2040,23 +2903,18 @@ const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://rinawarptech.com/</loc></url>
   <url><loc>https://rinawarptech.com/products/</loc></url>
-  <url><loc>https://rinawarptech.com/matter-intelligence/</loc></url>
-  <url><loc>https://rinawarptech.com/matter-intelligence/pricing/</loc></url>
-  <url><loc>https://rinawarptech.com/matter-intelligence/security/</loc></url>
-  <url><loc>https://rinawarptech.com/matter-intelligence/demo/</loc></url>
-  <url><loc>https://rinawarptech.com/matter-intelligence/download/</loc></url>
-  <url><loc>https://rinawarptech.com/matter-intelligence/docs/</loc></url>
-  <url><loc>https://rinawarptech.com/matter-intelligence/contact/</loc></url>
-  <url><loc>https://rinawarptech.com/matter-intelligence/terms/</loc></url>
-  <url><loc>https://rinawarptech.com/matter-intelligence/privacy/</loc></url>
   <url><loc>https://rinawarptech.com/pricing/</loc></url>
   <url><loc>https://rinawarptech.com/download/</loc></url>
   <url><loc>https://rinawarptech.com/docs/</loc></url>
+  <url><loc>https://rinawarptech.com/trust/</loc></url>
   <url><loc>https://rinawarptech.com/support/</loc></url>
   <url><loc>https://rinawarptech.com/early-access/</loc></url>
   <url><loc>https://rinawarptech.com/terms/</loc></url>
   <url><loc>https://rinawarptech.com/privacy/</loc></url>
-  <url><loc>https://rinawarptech.com/agents</loc></url>
+${SEO_LANDING_PAGES.map((p) => `  <url><loc>https://rinawarptech.com${p.path}/</loc></url>`).join("\n")}
+  <url><loc>https://rinawarptech.com/about/</loc></url>
+  <url><loc>https://rinawarptech.com/case-studies/</loc></url>
+${CASE_STUDY_PAGES.map((s) => `  <url><loc>https://rinawarptech.com${s.path}/</loc></url>`).join("\n")}
 </urlset>
 `;
 

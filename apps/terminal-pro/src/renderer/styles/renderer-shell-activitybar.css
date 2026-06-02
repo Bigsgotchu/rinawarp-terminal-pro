@@ -1,12 +1,13 @@
 .rw-activitybar {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: flex-start;
-  gap: 0;
-  padding: 8px 4px;
-  background: color-mix(in oklab, var(--w-panel, #0f1217) 92%, black);
-  border-inline-end: 1px solid var(--w-divider, rgba(255,255,255,0.07));
+  gap: 10px;
+  min-inline-size: 0;
+  padding: 12px 10px;
+  background: rgba(7, 10, 14, 0.98);
+  border-inline-end: 1px solid rgba(255,255,255,0.08);
 }
 
 .rw-activitybar-spacer {
@@ -14,39 +15,43 @@
 }
 
 .rw-activitybar-logo {
-  inline-size: 24px;
-  block-size: 24px;
-  border-radius: 8px;
+  inline-size: 30px;
+  block-size: 30px;
+  border-radius: 5px;
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(circle at 22% 22%, rgba(255, 47, 179, 0.26), transparent 56%),
-    radial-gradient(circle at 72% 28%, rgba(125, 211, 255, 0.2), transparent 56%),
-    radial-gradient(circle at 50% 78%, rgba(38, 247, 212, 0.18), transparent 60%),
-    color-mix(in oklab, var(--w-panel-2, #121621) 92%, black);
+  background: color-mix(in oklab, var(--w-panel-2, #121621) 92%, black);
   border: 1px solid var(--w-border, rgba(255,255,255,0.1));
 }
 
-.rw-activitybar-logo-img {
-  inline-size: 14px;
-  block-size: 14px;
-  object-fit: contain;
-  filter: drop-shadow(0 0 8px rgba(255, 47, 179, 0.24));
+.rw-activitybar-logo-img,
+.rw-activitybar-logo-mark {
+  inline-size: 18px;
+  block-size: 18px;
+  display: grid;
+  place-items: center;
+  color: rgba(245, 255, 252, 0.96);
+  font: 900 0.86rem/1 var(--font-ui);
+  filter: none;
 }
 
 .rw-activitybtn {
-  inline-size: 32px;
-  block-size: 32px;
-  display: grid;
-  place-items: center;
+  inline-size: 100%;
+  min-block-size: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 4px;
   background: transparent;
   color: rgba(154, 164, 178, 0.78);
-  font: 700 0.74rem/1 var(--font-ui);
+  font: 700 0.76rem/1 var(--font-ui);
+  padding: 0 9px;
   cursor: pointer;
   transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
   position: relative;
+  text-align: start;
 }
 
 .rw-activitybtn:hover {
@@ -56,18 +61,143 @@
 
 .rw-activitybtn.active {
   color: var(--rw-fg);
-  border-color: rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.05);
+  border-color: rgba(255, 46, 136, 0.18);
+  background: rgba(255, 46, 136, 0.09);
 }
 
 .rw-activitybtn.active::before {
   content: "";
   position: absolute;
-  inset-inline-start: -7px;
+  inset-inline-start: -11px;
   inline-size: 3px;
   block-size: 60%;
-  border-radius: 999px;
-  background: linear-gradient(180deg, var(--hot-pink), var(--teal), var(--baby-blue));
+  border-radius: 2px;
+  background: var(--hot-pink);
+}
+
+.rw-activitybtn-glyph {
+  inline-size: 17px;
+  text-align: center;
+  color: rgba(124, 199, 255, 0.82);
+  font-size: 0.76rem;
+}
+
+.rw-activitybtn-label {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rw-sidebar-account,
+.rw-sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-inline-size: 0;
+  padding: 7px;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 5px;
+  background: rgba(255,255,255,0.025);
+}
+
+.rw-sidebar-account-copy,
+.rw-sidebar-user span {
+  display: grid;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.rw-sidebar-account-title,
+.rw-sidebar-user strong {
+  overflow: hidden;
+  color: rgba(247, 249, 253, 0.94);
+  font: 800 0.7rem/1.1 var(--font-ui);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rw-sidebar-account-meta,
+.rw-sidebar-user small {
+  overflow: hidden;
+  color: rgba(154, 164, 178, 0.72);
+  font: 600 0.58rem/1.1 var(--font-ui);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rw-sidebar-section {
+  display: grid;
+  gap: 4px;
+}
+
+.rw-sidebar-section-title {
+  margin: 8px 4px 2px;
+  color: rgba(154, 164, 178, 0.72);
+  font: 700 0.6rem/1 var(--font-ui);
+  text-transform: uppercase;
+}
+
+.rw-sidebar-extensions {
+  margin-block-start: 8px;
+}
+
+.rw-sidebar-extension-card {
+  display: grid;
+  gap: 7px;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.rw-sidebar-extension-title {
+  color: rgba(247, 249, 253, 0.92);
+  font: 800 0.68rem/1.1 var(--font-ui);
+}
+
+.rw-sidebar-extension-copy {
+  color: rgba(154, 164, 178, 0.72);
+  font: 600 0.6rem/1.35 var(--font-ui);
+}
+
+.rw-sidebar-extension-action {
+  inline-size: 100%;
+  min-block-size: 26px;
+  border: 1px solid rgba(124, 199, 255, 0.14);
+  border-radius: 4px;
+  background: rgba(124, 199, 255, 0.04);
+  color: rgba(224, 236, 248, 0.86);
+  font: 700 0.6rem/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.rw-sidebar-extension-action:hover {
+  border-color: rgba(124, 199, 255, 0.24);
+  background: rgba(124, 199, 255, 0.07);
+}
+
+.rw-sidebar-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 8px;
+  border-radius: 4px;
+  background: rgba(29, 233, 182, 0.055);
+  color: rgba(129, 255, 226, 0.9);
+  font: 800 0.66rem/1 var(--font-ui);
+}
+
+.rw-sidebar-user-avatar {
+  display: grid;
+  place-items: center;
+  inline-size: 26px;
+  block-size: 26px;
+  border-radius: 5px;
+  background: rgba(255, 46, 136, 0.85);
+  color: white;
+  font: 900 0.72rem/1 var(--font-ui);
+  flex: 0 0 auto;
 }
 
 .rw-brand {
@@ -149,6 +279,36 @@
   border-block-start: 1px solid var(--rw-border);
   display: grid;
   gap: 6px;
+}
+
+@media (max-width: 760px) {
+  .rw-activitybar {
+    padding: 8px 6px;
+    align-items: center;
+  }
+
+  .rw-sidebar-account,
+  .rw-sidebar-status,
+  .rw-sidebar-shortcut,
+  .rw-sidebar-user,
+  .rw-sidebar-section-title,
+  .rw-activitybtn-label {
+    display: none;
+  }
+
+  .rw-sidebar-section {
+    inline-size: 100%;
+  }
+
+  .rw-activitybtn {
+    justify-content: center;
+    inline-size: 38px;
+    padding: 0;
+  }
+
+  .rw-activitybtn.active::before {
+    inset-inline-start: -7px;
+  }
 }
 
 .rw-status {

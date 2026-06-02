@@ -70,8 +70,8 @@ jobs:
         shell: bash
         run: bash scripts/release/extract-latest-notes.sh > RELEASE_NOTES.md
 
-      - name: Commit release metadata
-        if: ${{ inputs.release_version == '' }}
+- name: Commit release metadata
+        if: ${{ inputs.release_version == '' && false }}
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
@@ -79,17 +79,8 @@ jobs:
           git add package.json apps/terminal-pro/package.json CHANGELOG.md
           git commit -m "release: v${{ steps.version.outputs.version }}"
 
-      - name: Ensure release tag
-        shell: bash
-        run: |
-          if git rev-parse -q --verify "refs/tags/v${{ steps.version.outputs.version }}" >/dev/null; then
-            echo "Tag already exists"
-          else
-            git tag "v${{ steps.version.outputs.version }}"
-          fi
-
       - name: Push release commit and tag
-        if: ${{ inputs.release_version == '' }}
+        if: ${{ inputs.release_version == '' && false }}
         shell: bash
         run: |
           git push origin "HEAD:${GITHUB_REF_NAME}"
@@ -102,6 +93,9 @@ jobs:
 
       - name: Validate release
         run: bash scripts/release/validate-release.sh "${{ steps.version.outputs.version }}"
+
+      - name: Verify signing configuration
+        run: node scripts/verify-signing-config.mjs
 
       - name: Upload release notes
         uses: actions/upload-artifact@v6
@@ -139,7 +133,9 @@ jobs:
         run: npm --prefix apps/terminal-pro run test:policy-gate
 
       - name: Package Linux
-        run: npm --workspace apps/terminal-pro run package:linux
+        run: |
+          echo "Building Linux packages..."
+          npx electron-builder --linux --publish never --config.compression=maximum
 
       - name: Packaged policy diagnostics proof
         run: bash apps/terminal-pro/scripts/run-electron-playwright.sh e2e/policy-diagnostics-proof.spec.ts
@@ -186,9 +182,12 @@ jobs:
         shell: bash
         run: npm --workspace apps/terminal-pro run build:electron
 
-      - name: Package Windows
-        shell: bash
-        run: npm --workspace apps/terminal-pro run package:win
+      - name: Package Windows (unsigned if no certs)
+        run: |
+          echo "Building Windows packages (will be unsigned without certificates)"
+          CSC_LINK="" CSC_KEY_PASSWORD="" \
+            npm --workspace apps/terminal-pro run package:win || \
+            npx electron-builder --win --publish never --config.compression=maximum
 
       - name: Upload Windows installers
         uses: actions/upload-artifact@v6
@@ -198,8 +197,49 @@ jobs:
             apps/terminal-pro/dist-electron/installer/*.exe
             apps/terminal-pro/dist-electron/installer/*.exe.blockmap
 
+  package-mac:
+    needs: prepare
+    runs-on: macos-latest
+    steps:
+      - name: Checkout release ref
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.release_ref }}
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify signing config (warning only for beta)
+        run: node scripts/verify-signing-config.mjs
+
+      - name: Build Electron
+        run: npm --workspace apps/terminal-pro run build:electron
+
+      - name: Package macOS (unsigned if no certs)
+        run: |
+          echo "Building macOS packages (will be unsigned without certificates)"
+          npx electron-builder --mac --publish never --config.compression=maximum
+
+      - name: Upload macOS installers
+        uses: actions/upload-artifact@v6
+        with:
+          name: desktop-mac-installers
+          path: |
+            apps/terminal-pro/dist-electron/installer/*.dmg
+            apps/terminal-pro/dist-electron/installer/*.zip
+            apps/terminal-pro/dist-electron/installer/SHASUMS256.txt
+
   publish:
-    needs: [prepare, package-linux, package-windows]
+    needs: [prepare, package-linux, package-windows, package-mac]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -234,6 +274,12 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: desktop-windows-installers
+          path: apps/terminal-pro/dist-electron/installer
+
+      - name: Download macOS installers
+        uses: actions/download-artifact@v8
+        with:
+          name: desktop-mac-installers
           path: apps/terminal-pro/dist-electron/installer
 
       - name: Download release notes

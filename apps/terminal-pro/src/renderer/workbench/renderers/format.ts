@@ -47,14 +47,14 @@ export function formatExitState(run: RunModel): string {
   if (run.status === 'interrupted') return 'interrupted'
   if (run.status === 'failed') return typeof run.exitCode === 'number' ? `exit=${run.exitCode}` : 'failed'
   if (hasRunProof(run) && typeof run.exitCode === 'number') return `verified · exit=${run.exitCode}`
-  if (typeof run.exitCode === 'number') return `awaiting receipt · exit=${run.exitCode}`
+  if (typeof run.exitCode === 'number') return `awaiting proof · exit=${run.exitCode}`
   return hasRunProof(run) ? 'completed with proof' : 'proof pending'
 }
 
 export function formatProofBadge(run: RunModel): string {
-  if (run.restored && (run.latestReceiptId || run.sessionId)) return 'Recovered receipt'
-  if (hasRunProof(run) && run.latestReceiptId) return 'Receipt verified'
-  if (run.latestReceiptId) return 'Receipt attached'
-  if (run.sessionId) return run.status === 'running' ? 'Session recording' : 'Awaiting receipt'
-  return 'No receipt yet'
+  if (run.restored && (run.latestReceiptId || run.sessionId)) return 'Recovered proof'
+  if (hasRunProof(run) && run.latestReceiptId) return 'Proof verified'
+  if (run.latestReceiptId) return 'Proof attached'
+  if (run.sessionId) return run.status === 'running' ? 'Session recording' : 'Awaiting proof'
+  return 'No proof yet'
 }

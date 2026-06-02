@@ -164,11 +164,42 @@ export function threadItemsFromExecutionRecord(
     })
   }
 
+  const pendingApproval = record.outcome?.pendingApproval
+  const pendingPayload = pendingApproval?.payload as
+    | {
+        path?: string
+        riskLabel?: string
+        unifiedDiff?: string
+        diffSummary?: string
+        rollbackNotes?: string
+        verificationCommand?: string
+        approvalBoundaryMessage?: string
+      }
+    | undefined
+  if (pendingApproval?.kind === 'file_patch' && pendingPayload) {
+    items.push({
+      id: `${opts.messageId}:approval`,
+      type: 'assistant-message',
+      text: [
+        'Approval required before editing files.',
+        `Risk: ${pendingPayload.riskLabel || 'safe-write'}`,
+        `Touched file: ${pendingPayload.path || 'workspace file'}`,
+        `Diff: ${pendingPayload.diffSummary || pendingPayload.unifiedDiff || 'Diff preview prepared.'}`,
+        `Rollback: ${pendingPayload.rollbackNotes || 'A rollback backup will be created before applying the patch.'}`,
+        `Verification: ${pendingPayload.verificationCommand || 'Verification command not recorded.'}`,
+        pendingPayload.approvalBoundaryMessage || 'No files have been modified yet.',
+      ].join('\n'),
+      createdAt: baseTs + 2,
+      workspaceKey: opts.workspaceKey,
+      proofBacked: true,
+    })
+  }
+
   items.push({
     id: `thread:run:${record.runId}`,
     type: 'run-block',
     run: runBlock,
-    createdAt: baseTs + 2,
+    createdAt: baseTs + 3,
     workspaceKey: opts.workspaceKey,
   })
 
@@ -186,7 +217,7 @@ export function threadItemsFromExecutionRecord(
       type: 'cognition-stream',
       runId: record.runId,
       lines: cognitionLines,
-      createdAt: baseTs + 3,
+      createdAt: baseTs + 4,
       workspaceKey: opts.workspaceKey,
     })
   }
@@ -197,7 +228,7 @@ export function threadItemsFromExecutionRecord(
       type: 'memory-note',
       runId: record.runId,
       text: buildMemorySurfaceText(runBlock.memoryNote),
-      createdAt: baseTs + 4,
+      createdAt: baseTs + 5,
       workspaceKey: opts.workspaceKey,
     })
   }
@@ -208,7 +239,7 @@ export function threadItemsFromExecutionRecord(
       type: 'verification',
       runId: record.runId,
       results: receipt.verificationResults,
-      createdAt: baseTs + 5,
+      createdAt: baseTs + 6,
       workspaceKey: opts.workspaceKey,
     })
   }
@@ -217,7 +248,7 @@ export function threadItemsFromExecutionRecord(
     id: `thread:receipt:${record.runId}`,
     type: 'receipt',
     receipt,
-    createdAt: baseTs + 6,
+    createdAt: baseTs + 7,
     workspaceKey: opts.workspaceKey,
   })
 

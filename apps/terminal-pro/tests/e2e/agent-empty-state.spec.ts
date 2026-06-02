@@ -78,9 +78,11 @@ test('agent empty state shows only title, prompt, composer, and three starter ch
 
     const starterPrompts = page.locator('#agent-starter-prompts .rw-prompt-chip')
     await expect(starterPrompts).toHaveCount(3)
-    await expect(starterPrompts.filter({ hasText: 'Fix my project' })).toBeVisible()
+    await expect(starterPrompts.filter({ hasText: 'Plan a fix' })).toBeVisible()
     await expect(starterPrompts.filter({ hasText: 'Run tests' })).toBeVisible()
     await expect(starterPrompts.filter({ hasText: "What's wrong with my system?" })).toBeVisible()
+    await expect(starterPrompts.filter({ hasText: 'Fix Project' })).toHaveCount(0)
+    await expect(starterPrompts.filter({ hasText: 'Deploy' })).toHaveCount(0)
 
     await expect(page.locator('#status-bar')).toBeHidden()
     await expect(page.locator('#workspace-picker')).toBeHidden()

@@ -2,9 +2,18 @@ import { el, mount } from '../dom.js'
 import type { ReceiptPanelModel } from '../view-models/receiptPanelModel.js'
 import { renderProofEmptyState, renderProofHero, renderProofKeyValueGrid, renderProofSection, renderProofTagList } from './proofSurface.js'
 
+function renderReceiptActions(): HTMLElement {
+  return el(
+    'div',
+    { class: 'rw-receipt-chip-row' },
+    el('button', { class: 'rw-link-btn', dataset: { copyCurrentReceipt: '1' } }, 'Copy proof'),
+    el('button', { class: 'rw-link-btn', dataset: { exportCurrentReceipt: 'json' } }, 'Export proof JSON')
+  )
+}
+
 export function mountReceiptPanel(root: HTMLElement, model: ReceiptPanelModel): void {
   if (model.state === 'empty') {
-    const empty = renderProofEmptyState('No Receipt Loaded', 'Select a run to view its receipt.')
+    const empty = renderProofEmptyState('No Proof Loaded', 'Select a run to view its proof.')
     empty.classList.add('rw-proof-empty-state')
     mount(root, empty)
     return
@@ -16,10 +25,11 @@ export function mountReceiptPanel(root: HTMLElement, model: ReceiptPanelModel): 
         'div',
         { class: 'rw-receipt-panel rw-receipt-panel' },
         renderProofHero({
-          kicker: 'Raw receipt',
-          title: 'Receipt payload',
-          copy: 'This receipt did not match the structured proof format yet, so it is shown as raw data.',
+          kicker: 'Raw proof',
+          title: 'Proof payload',
+          copy: 'This proof did not match the structured format yet, so it is shown as raw data.',
         }),
+        renderReceiptActions(),
         el('pre', { class: 'rw-receipt-content' }, JSON.stringify(model.payload, null, 2))
       )
     )
@@ -33,11 +43,12 @@ export function mountReceiptPanel(root: HTMLElement, model: ReceiptPanelModel): 
       { class: 'rw-receipt-panel rw-receipt-panel' },
       renderProofHero({
         kicker: 'Execution proof',
-        title: `Receipt ${model.receiptId}`,
-        copy: `${model.intentLabel} receipt showing intent, command, workspace, timestamps, exit path, evidence, and the safest next move.`,
+        title: `Proof ${model.receiptId}`,
+        copy: `${model.intentLabel} proof showing intent, command, workspace, timestamps, exit path, evidence, and the safest next move.`,
         chips: model.chipRows,
       }),
-      renderProofSection('Receipt Summary', renderProofKeyValueGrid(model.summaryRows)),
+      renderReceiptActions(),
+      renderProofSection('Proof Summary', renderProofKeyValueGrid(model.summaryRows)),
       model.deployRows ? renderProofSection('Deploy State', renderProofKeyValueGrid(model.deployRows)) : null,
       renderProofSection(
         'Execution Trail',

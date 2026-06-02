@@ -79,16 +79,16 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
   const restoredRuns = state.runs.filter((run) => run.restored)
   const heading =
     workspaceState.status === 'missing'
-      ? 'Ask Rina to inspect, explain, fix, or build.'
+      ? 'Ask Rina to inspect, explain, plan, or build.'
       : workspaceState.status === 'weak'
         ? 'This folder may not be the project root yet.'
         : restoredRuns.length > 0
-          ? 'Recovered your last session.'
+          ? 'Previous work is ready to review.'
           : lastRun && isRunSuccessWithProof(lastRun)
             ? 'Ready. Workspace is known and the last verified run ended cleanly.'
             : lastRun
               ? 'Ready. I can pick up from the last run without guessing.'
-              : 'Open a project and start with Fix Project.'
+              : 'Open a project and start with a build, test, or fix plan.'
   const copy =
     workspaceState.status === 'missing'
       ? 'Open a project, then run one focused action.'
@@ -97,19 +97,19 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
         : restoredRuns.length > 0
           ? 'Want to continue where you left off?'
           : lastRun
-            ? `Build, test, deploy, or inspect what happened in ${workspaceState.displayValue}.`
-            : `Build, test, fix, or ship in ${workspaceState.displayValue}.`
+            ? `Build, test, plan, or inspect what happened in ${workspaceState.displayValue}.`
+            : `Build, test, inspect, or plan a safe fix in ${workspaceState.displayValue}.`
 
   const actions =
     workspaceState.status === 'project'
       ? [
           {
-            label: 'Fix Project',
+            label: 'Plan a fix',
             className: actionClass('primary'),
             dataset: {
-              agentPrompt: 'Figure out what is broken and fix the safest parts first.',
+              agentPrompt: 'Diagnose the project and propose a safe fix plan. Do not edit files without approval.',
               intentKey: 'fix',
-              tierHint: 'Start here',
+              tierHint: 'Review first',
               tierTone: 'available',
             },
           },
@@ -143,16 +143,16 @@ export function buildWorkspaceSetupCardModel(state: WorkbenchState): AgentEmptyC
       sectionKey: 'guided-fix',
       label: 'Start here',
       title: 'Run one focused action.',
-      copy: 'Start with a guided repair, then review proof in the thread.',
+      copy: 'Start with a diagnosis and safe fix plan, then approve any edits explicitly.',
       className: 'rw-agent-onboarding-card',
       actions: [
         {
-          label: 'Fix Project',
+          label: 'Plan a fix',
           className: actionClass('primary'),
           dataset: {
-            agentPrompt: 'Figure out what is broken and fix the safest parts first.',
+            agentPrompt: 'Diagnose the project and propose a safe fix plan. Do not edit files without approval.',
             intentKey: 'fix',
-            tierHint: 'Guided fix',
+            tierHint: 'Approval required',
             tierTone: 'available',
           },
         },
@@ -272,7 +272,7 @@ export function buildInlineRunViewModel(state: WorkbenchState, run: RunModel): I
   } else if (!hasRunProof(run)) {
     banner = {
       tone: 'verifying',
-      text: 'The command finished, but proof is still incomplete. Treat this as verifying until the receipt and exit state agree.',
+      text: 'The command finished, but proof is still incomplete. Treat this as verifying until evidence and exit state agree.',
     }
   }
 
@@ -303,13 +303,13 @@ export function buildInlineRunViewModel(state: WorkbenchState, run: RunModel): I
     nextLabel: run.status === 'failed' || run.status === 'interrupted' ? recovery.bestNextActionLabel : undefined,
     topActions: [
       { label: 'View logs', className: 'rw-link-btn', dataset: { runToggleOutput: run.id } },
-      { label: 'View receipt', className: 'rw-link-btn', dataset: { runReveal: receiptId } },
+      { label: 'View proof', className: 'rw-link-btn', dataset: { runReveal: receiptId } },
       ...(run.status === 'interrupted'
         ? [{ label: recovery.resumeLabel, className: 'rw-link-btn', dataset: { runResume: run.id } }]
         : []),
       { label: 'Replay run', className: 'rw-link-btn', dataset: { runRerun: run.id } },
       ...(run.status === 'failed' || run.status === 'interrupted'
-        ? [{ label: 'Fix & retry', className: 'rw-link-btn', dataset: { runFix: run.id } }]
+        ? [{ label: 'Plan fix & retry', className: 'rw-link-btn', dataset: { runFix: run.id } }]
         : []),
       { label: expanded ? 'Collapse' : 'Inspect output', className: 'rw-link-btn', dataset: { runToggleOutput: run.id } },
     ],
@@ -324,7 +324,7 @@ export function buildInlineRunViewModel(state: WorkbenchState, run: RunModel): I
         dataset: { runRerun: run.id },
       },
       ...(run.status === 'failed' || run.status === 'interrupted'
-        ? [{ label: 'Fix & retry', className: actionClass('attention'), dataset: { runFix: run.id } }]
+        ? [{ label: 'Plan fix & retry', className: actionClass('attention'), dataset: { runFix: run.id } }]
         : []),
       {
         label: expanded ? 'Collapse output' : 'Inspect output',
@@ -337,7 +337,7 @@ export function buildInlineRunViewModel(state: WorkbenchState, run: RunModel): I
     ],
     overflowActions: [
       { label: 'View diff', dataset: { runDiff: run.id } },
-      { label: 'View receipt', dataset: { runReveal: receiptId } },
+      { label: 'View proof', dataset: { runReveal: receiptId } },
       { label: 'View logs', dataset: { runToggleOutput: run.id } },
       { label: 'Open workspace folder', dataset: { runFolder: run.projectRoot || run.cwd || '' } },
       { label: 'Replay run', dataset: { runRerun: run.id } },

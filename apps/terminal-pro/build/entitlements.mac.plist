@@ -1,11 +1,28 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
   <dict>
+    <!-- Allow JIT compilation for terminal/webview operations -->
     <key>com.apple.security.cs.allow-jit</key>
-    <false/>
+    <true/>
+    
+    <!-- Allow unsigned executable memory (needed for node-pty and native modules) -->
     <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
-    <false/>
+    <true/>
+    
+    <!-- Disable library validation (needed for node-pty native modules) -->
     <key>com.apple.security.cs.disable-library-validation</key>
-    <false/>
+    <true/>
+    
+    <!-- Allow network client connections -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+    
+    <!-- Allow file system access for project operations -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+    
+    <!-- Allow process creation for terminal operations -->
+    <key>com.apple.security.process.info</key>
+    <true/>
   </dict>
 </plist>

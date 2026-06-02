@@ -83,7 +83,7 @@ export function buildWorkbenchShellChromeModel(state: WorkbenchState): Workbench
   const recoveryFocused = state.activeTab === 'agent' && recoveryMessages.length > 0 && threadMessages.length === 0
   const drawerOpen = state.activeTab === 'agent' && Boolean(state.ui.openDrawer)
   const activeTabs: Record<string, boolean> = {}
-  const tabCandidates: TabKey[] = ['agent', 'settings']
+  const tabCandidates: TabKey[] = ['agent', 'runs', 'settings']
   for (const tab of tabCandidates) {
     activeTabs[tab] = tab === state.activeTab || (tab !== 'agent' && tab !== 'settings' && tab === state.ui.openDrawer)
   }
@@ -93,12 +93,15 @@ export function buildWorkbenchShellChromeModel(state: WorkbenchState): Workbench
     activeActivityTabs: {
       agent: state.activeTab === 'agent',
       runs: state.ui.openDrawer === 'runs',
+      receipt: state.ui.openDrawer === 'receipt',
       marketplace: state.ui.openDrawer === 'marketplace',
+      code: state.ui.openDrawer === 'code',
+      brain: state.ui.openDrawer === 'brain',
       diagnostics: state.ui.openDrawer === 'diagnostics',
       settings: state.activeTab === 'settings',
     },
     activeCenterViews: {
-      'execution-trace': state.ui.openDrawer === 'execution-trace',
+      agent: state.activeTab === 'agent',
       runs: state.ui.openDrawer === 'runs',
       receipt: state.ui.openDrawer === 'receipt',
       marketplace: state.ui.openDrawer === 'marketplace',
@@ -106,7 +109,7 @@ export function buildWorkbenchShellChromeModel(state: WorkbenchState): Workbench
       brain: state.ui.openDrawer === 'brain',
     },
     activeRightViews: {
-      agent: state.activeTab === 'agent',
+      'execution-trace': state.activeTab === 'agent' && state.ui.openDrawer !== 'diagnostics',
       diagnostics: state.ui.openDrawer === 'diagnostics',
     },
     agentFocused: state.activeTab === 'agent',

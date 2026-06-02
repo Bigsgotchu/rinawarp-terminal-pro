@@ -97,7 +97,7 @@ export function summarizeCommandReply(reply: StructuredCommandReply): string {
   const normalized = reply.command.trim()
   if (reply.success) {
     if (!hasStructuredCommandRunRef(reply)) {
-      return 'I have immediate command output, but this path did not attach a run ID or receipt. Treat it as unverified until Rina reruns it through the trusted path.'
+      return 'I have immediate command output, but this path did not attach a run ID or proof. Treat it as unverified until Rina reruns it through the trusted path.'
     }
     if (normalized.includes('build')) return 'I ran the build command, but do not treat it as done until the linked run proof is complete.'
     if (normalized.includes('test')) return 'I ran the test command, but do not treat it as done until the linked run proof is complete.'
@@ -165,11 +165,11 @@ export function buildCommandResultBlock(
   const proofWarning = reply.success
     ? hasRunRef
       ? copyBlock(
-          'This card only reflects the immediate command output. Treat the result as proof pending until the linked run has a run ID, exit code, and receipt.',
+          'This card only reflects the immediate command output. Treat the result as proof pending until the linked run has a run ID, exit code, and proof.',
           'muted'
         )
       : copyBlock(
-          'This output came back without a linked run ID or receipt, so it is not trusted proof yet. Ask Rina to rerun it through the trusted path if you need a proof-backed result.',
+          'This output came back without a linked run ID or proof, so it is not trusted proof yet. Ask Rina to rerun it through the trusted path if you need a proof-backed result.',
           'muted'
         )
     : null
@@ -177,7 +177,7 @@ export function buildCommandResultBlock(
     { label: 'Command', value: reply.command, emphasis: 'code' as const },
     durationLabel ? { label: 'Duration', value: durationLabel, emphasis: 'strong' as const } : null,
     reply.runId ? { label: 'Run', value: reply.runId, emphasis: 'strong' as const } : null,
-    reply.receiptId ? { label: 'Receipt', value: reply.receiptId, emphasis: 'strong' as const } : null,
+    reply.receiptId ? { label: 'Proof', value: reply.receiptId, emphasis: 'strong' as const } : null,
     typeof reply.exitCode === 'number' ? { label: 'Exit', value: String(reply.exitCode), emphasis: 'strong' as const } : null,
     intent === 'test' && typeof testCounts.passed === 'number'
       ? { label: 'Passed', value: String(testCounts.passed), emphasis: 'strong' as const }
@@ -225,14 +225,14 @@ export function buildCommandResultBlock(
   const recommendationItems = buildRecommendedNextSteps(reply, intent)
   const baseActions = hasRunRef
     ? [
-        { label: 'Receipt', runReveal: reply.receiptId || reply.sessionId || reply.runId },
+        { label: 'Proof', runReveal: reply.receiptId || reply.sessionId || reply.runId },
         ...(reply.runId && reply.sessionId ? [{ label: 'Inspect artifacts', runArtifacts: reply.runId }] : []),
-        { label: 'Inspect receipts', tab: 'runs' },
-        { label: 'Inspect execution trace', tab: 'execution-trace' },
+        { label: 'Inspect proof', tab: 'runs' },
+        { label: 'Inspect terminal', tab: 'execution-trace' },
       ]
     : [
-        { label: 'Inspect execution trace', tab: 'execution-trace' },
-        { label: 'Rerun through trusted path', prompt: `Run this through the trusted path with receipts: ${reply.command}` },
+        { label: 'Inspect terminal', tab: 'execution-trace' },
+        { label: 'Rerun through trusted path', prompt: `Run this through the trusted path with proof: ${reply.command}` },
       ]
   const actions = dedupeActions([...baseActions, ...buildRecommendedActions(reply, intent)])
   const bodyBlocks: MessageBlock[] = [proofSummaryBlock(proofItems)]
@@ -354,7 +354,7 @@ function buildRecommendedNextSteps(
     if (intent === 'build') {
       return [
         { title: 'Run the tests next', text: 'A passing build is the right place to verify behavior before we celebrate.', badge: 'Recommended', strongTitle: true },
-        { title: 'Keep the receipt handy', text: 'Use the linked receipt if you want to trace exactly what the build produced.' },
+        { title: 'Keep the proof handy', text: 'Use the linked proof if you want to trace exactly what the build produced.' },
       ]
     }
     if (intent === 'test') {
@@ -368,7 +368,7 @@ function buildRecommendedNextSteps(
         { title: 'Confirm rollback truth', text: 'Make sure rollback is truly available for this target instead of assuming the provider can undo it.' },
       ]
     }
-    return [{ title: 'Inspect the receipt trail', text: 'That keeps the next step grounded in the same proof-backed path.', badge: 'Recommended', strongTitle: true }]
+    return [{ title: 'Inspect the proof trail', text: 'That keeps the next step grounded in the same proof-backed path.', badge: 'Recommended', strongTitle: true }]
   }
 
   if (intent === 'build') {
@@ -380,19 +380,19 @@ function buildRecommendedNextSteps(
   if (intent === 'test') {
     return [
       { title: 'Focus on the first failing test', text: 'The first failure is usually the cleanest place to recover without noise.', badge: 'Recommended', strongTitle: true },
-      { title: 'Draft a fix plan', text: 'Rina can turn the failing output into a safe, receipts-backed repair path.' },
+      { title: 'Draft a fix plan', text: 'Rina can turn the failing output into a safe, proof-backed repair path.' },
     ]
   }
   if (intent === 'deploy') {
     return [
       { title: 'Inspect the deploy target and trace', text: 'That will tell us whether the failure was configuration, packaging, or provider-side.', badge: 'Recommended', strongTitle: true },
       { title: 'Ask for a rollback-safe recovery plan', text: 'Rina can map the safest next move without pretending the release landed.' },
-      { title: 'Check whether rollback is real', text: 'Some targets need manual rollback, and the receipt should say that clearly.' },
+      { title: 'Check whether rollback is real', text: 'Some targets need manual rollback, and the proof should say that clearly.' },
     ]
   }
   return [
     { title: 'Inspect the trace before retrying', text: 'That keeps the next move anchored to what actually failed.', badge: 'Recommended', strongTitle: true },
-    { title: 'Rerun through the trusted path if needed', text: 'Use the canonical run flow if you need receipts and proof attached.' },
+    { title: 'Rerun through the trusted path if needed', text: 'Use the canonical run flow if you need proof attached.' },
   ]
 }
 

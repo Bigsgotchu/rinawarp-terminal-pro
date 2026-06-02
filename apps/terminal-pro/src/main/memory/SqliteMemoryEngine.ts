@@ -123,4 +123,12 @@ export class SqliteMemoryEngine implements MemoryEngine {
     }
     return messages
   }
+
+  async clearWorkspaceMemory(workspaceId: string): Promise<{ success: boolean; count: number }> {
+    return this.store.clearWorkspaceMemory(workspaceId)
+  }
+
+  async clearAllMemory(): Promise<{ success: boolean; count: number }> {
+    return this.store.clearAllMemory()
+  }
 }

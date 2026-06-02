@@ -26,4 +26,6 @@ export interface MemoryStore {
     createdAt: string
   }>>
   recordTaskOutcome(input: TaskOutcomeInput): Promise<MemoryEntry>
+  clearWorkspaceMemory(workspaceId: string): Promise<{ success: boolean; count: number }>
+  clearAllMemory(): Promise<{ success: boolean; count: number }>
 }

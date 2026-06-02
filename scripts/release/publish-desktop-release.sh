@@ -52,6 +52,19 @@ artifacts=(
   "$INSTALLER_DIR/SHASUMS256.txt"
 )
 
+# Add macOS artifacts if present
+if [[ -f "$INSTALLER_DIR/RinaWarp-Terminal-Pro-$VERSION.dmg" ]]; then
+  artifacts+=("$INSTALLER_DIR/RinaWarp-Terminal-Pro-$VERSION.dmg")
+fi
+
+# Add Windows artifacts if present
+if [[ -f "$INSTALLER_DIR/RinaWarp-Terminal-Pro-$VERSION.exe" ]]; then
+  artifacts+=("$INSTALLER_DIR/RinaWarp-Terminal-Pro-$VERSION.exe")
+  if [[ -f "$INSTALLER_DIR/RinaWarp-Terminal-Pro-$VERSION.exe.blockmap" ]]; then
+    artifacts+=("$INSTALLER_DIR/RinaWarp-Terminal-Pro-$VERSION.exe.blockmap")
+  fi
+fi
+
 for artifact in "${artifacts[@]}"; do
   if [[ ! -f "$artifact" ]]; then
     echo "[publish:desktop-release] Missing required release artifact: $artifact" >&2

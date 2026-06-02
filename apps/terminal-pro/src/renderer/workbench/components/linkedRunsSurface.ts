@@ -39,7 +39,7 @@ export function renderLinkedRunsSurface(model: LinkedRunsModel): HTMLElement | n
     if (model.unresolvedCount > 0) {
       root.appendChild(
         buildPlaceholder(
-          `${model.unresolvedCount} recovered run${model.unresolvedCount === 1 ? '' : 's'} still restoring. Open Runs to inspect receipts.`
+          `${model.unresolvedCount} recovered run${model.unresolvedCount === 1 ? '' : 's'} still restoring. Open History to inspect proof.`
         )
       )
     }
@@ -68,7 +68,7 @@ export function renderLinkedRunsSurface(model: LinkedRunsModel): HTMLElement | n
   if (model.unresolvedCount > 0) {
     root.appendChild(
       buildPlaceholder(
-        `${model.unresolvedCount} linked run${model.unresolvedCount === 1 ? '' : 's'} still restoring. Open Runs to inspect recovered receipts.`
+        `${model.unresolvedCount} linked run${model.unresolvedCount === 1 ? '' : 's'} still restoring. Open History to inspect recovered proof.`
       )
     )
   }

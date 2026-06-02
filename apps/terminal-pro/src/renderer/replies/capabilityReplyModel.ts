@@ -58,7 +58,7 @@ export function buildCapabilityRunActions(pack: CapabilityPackModel): ReplyActio
 }
 
 export function buildCapabilityDecisionModel(decision: CapabilityDecision): CapabilityDecisionModel {
-  const proofLine = decision.pack.actions[0]?.proof.join(', ') || 'run, receipt, log'
+  const proofLine = decision.pack.actions[0]?.proof.join(', ') || 'run, proof, log'
   const introText = `${decision.reason} is being routed through ${decision.pack.title}.`
 
   if (decision.state === 'ready') {
@@ -104,7 +104,7 @@ export function buildCapabilityDecisionModel(decision: CapabilityDecision): Capa
 export function buildPlanCapabilityCardModel(requirements: PlanCapabilityRequirement[]): PlanCapabilityCardModel | null {
   if (requirements.length === 0) return null
   const items = requirements.map((requirement) => {
-    const proofLine = requirement.pack.actions[0]?.proof.join(', ') || 'run, receipt, log'
+    const proofLine = requirement.pack.actions[0]?.proof.join(', ') || 'run, proof, log'
     const stateLabel =
       requirement.state === 'ready' ? 'Ready' : requirement.state === 'install' ? 'Install needed' : 'Upgrade required'
     return {

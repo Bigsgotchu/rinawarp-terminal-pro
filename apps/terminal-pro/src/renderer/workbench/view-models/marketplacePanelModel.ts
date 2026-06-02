@@ -34,7 +34,7 @@ export function buildMarketplacePanelModel(state: WorkbenchState) {
           `Category ${capabilityPack?.category || (premium ? 'marketplace' : 'workspace')}`,
           `${Array.isArray(agent.commands) ? agent.commands.length : 0} workflow${Array.isArray(agent.commands) && agent.commands.length === 1 ? '' : 's'}`,
           installed ? 'Proof ready in thread' : locked ? 'Unlock to run with proof' : 'Install to run with proof',
-          `Proof ${capabilityPack?.actions?.[0]?.proof?.join(', ') || 'run, receipt, log'}`,
+          `Proof ${capabilityPack?.actions?.[0]?.proof?.join(', ') || 'run, proof, log'}`,
           `Permissions ${capabilityPack?.permissions?.join(', ') || 'read-only'}`,
           `${String(agent.downloads || 0)} downloads`,
         ],

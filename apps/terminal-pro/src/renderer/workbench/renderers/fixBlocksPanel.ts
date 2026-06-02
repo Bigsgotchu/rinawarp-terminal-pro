@@ -257,7 +257,7 @@ function renderChangedFilesSummary(fix: FixBlockModel): HTMLElement | null {
       ? el(
           'div',
           { class: 'fix-status-note' },
-          `${fix.changedFiles.length - changedFiles.length} more file${fix.changedFiles.length - changedFiles.length === 1 ? '' : 's'} are available in the receipt trail.`
+          `${fix.changedFiles.length - changedFiles.length} more file${fix.changedFiles.length - changedFiles.length === 1 ? '' : 's'} are available in the proof trail.`
         )
       : null,
     diffHints.length > 0
@@ -317,7 +317,7 @@ function renderProofSummary(fix: FixBlockModel): HTMLElement {
       tone: fix.applyRunId ? 'success' : 'pending',
     },
     {
-      label: 'Receipt trail',
+      label: 'Proof trail',
       value: fix.applyPlanRunId || fix.runId || 'Pending',
       tone: fix.applyPlanRunId || fix.runId ? 'success' : 'pending',
     },
@@ -348,8 +348,8 @@ function renderNextStepGuidance(fix: FixBlockModel): HTMLElement {
           : fix.phase === 'verifying'
             ? 'The commands finished. RinaWarp is checking whether the project actually cleared the repair.'
             : fix.phase === 'done'
-              ? 'The repair cleared verification. Review the proof trail or receipt if you want to confirm what changed.'
-              : 'The automatic repair stopped early. Review the receipt trail, then rerun a step or adjust the project manually.'
+              ? 'The repair cleared verification. Review the proof trail if you want to confirm what changed.'
+              : 'The automatic repair stopped early. Review the proof trail, then rerun a step or adjust the project manually.'
 
   const tone =
     fix.phase === 'done'
@@ -655,7 +655,7 @@ function renderAgentHistory(fix: FixBlockModel): HTMLElement {
     el(
       'div',
       { class: 'agent-history-actions' },
-      el('button', { class: 'secondary-btn', dataset: { fixReveal: '', fixId: fix.id } }, 'Open receipt'),
+      el('button', { class: 'secondary-btn', dataset: { fixReveal: '', fixId: fix.id } }, 'Open proof'),
       fix.applyRunId ? el('button', { class: 'secondary-btn', dataset: { fixProof: '', fixId: fix.id } }, 'Export proof') : null,
       el('button', { class: 'secondary-btn', dataset: { tab: 'runs' } }, 'Open runs')
     )
@@ -671,8 +671,8 @@ function renderAgentHistory(fix: FixBlockModel): HTMLElement {
 
 function renderAgentInputActions(fix: FixBlockModel): HTMLElement {
   const projectPrompt = fix.cwd && fix.cwd !== '.'
-    ? 'Figure out what is broken and fix the safest parts first.'
-    : 'Help me fix this project.'
+    ? 'Diagnose the project and propose a safe fix plan. Do not edit files without approval.'
+    : 'Diagnose this project and propose a safe fix plan. Do not edit files without approval.'
 
   return el(
     'div',
@@ -688,11 +688,11 @@ function renderAgentInputActions(fix: FixBlockModel): HTMLElement {
           dataset: {
             agentPrompt: projectPrompt,
             intentKey: 'fix',
-            tierHint: 'Start here',
+            tierHint: 'Review first',
             tierTone: 'available',
           },
         },
-        'Fix my project'
+        'Plan a fix'
       ),
       el(
         'button',

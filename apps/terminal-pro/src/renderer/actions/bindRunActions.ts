@@ -2,9 +2,10 @@ import type { WorkbenchActionControllerDeps } from './actionController.js'
 import { WorkbenchStore } from '../workbench/store.js'
 import type { UserTurnSource } from './conversationOwner.js'
 import { recordDebugEvent } from '../services/debugEvidence.js'
-import { revealReceiptInWorkbench } from '../state/receiptOwnership.js'
+import { revealExecutionReceiptInWorkbench, revealReceiptInWorkbench } from '../state/receiptOwnership.js'
 import { copyReceiptSummary, replayRunFromReceipt } from '../state/executionReplay.js'
 import { openRunsFolderOwned } from './utilityOwnership.js'
+import { loadExecutionReceipt } from '../../workbench/runBlocks/receiptPersistence.js'
 
 export function createRunActionHandler(
   store: WorkbenchStore,
@@ -116,7 +117,12 @@ export function createRunActionHandler(
         if (result.ok && result.receipt) {
           revealReceiptInWorkbench(store, result.receipt)
         } else {
-          store.dispatch({ type: 'ui/setStatusSummary', text: result.error || 'Failed to load receipt' })
+          const localReceipt = store.getState().executionReceiptsByRunId[receiptId] || loadExecutionReceipt(receiptId)
+          if (localReceipt) {
+            revealExecutionReceiptInWorkbench(store, localReceipt)
+          } else {
+            store.dispatch({ type: 'ui/setStatusSummary', text: result.error || 'Failed to load proof' })
+          }
         }
       }
       return true
@@ -182,7 +188,7 @@ export function createRunActionHandler(
         store.dispatch({ type: 'ui/closeDrawer' })
         store.dispatch({ type: 'view/rightSet', view: 'agent' })
         await deps.submitUserTurn(
-          `The run "${run.command}" ${run.status === 'interrupted' ? 'was interrupted' : 'failed'} with exit code ${run.exitCode ?? 'unknown'}. Analyze the receipt and output, fix the safest issue first, then retry if appropriate.`,
+          `The run "${run.command}" ${run.status === 'interrupted' ? 'was interrupted' : 'failed'} with exit code ${run.exitCode ?? 'unknown'}. Analyze the proof and output, then propose a safe fix and retry plan. Do not edit files without approval.`,
           'run_fix'
         )
       }
@@ -235,9 +241,9 @@ export function createRunActionHandler(
       const summary = copyReceiptSummary(store, receiptCopyBtn.dataset.receiptCopy)
       if (summary) {
         void navigator.clipboard.writeText(summary)
-        store.dispatch({ type: 'ui/setStatusSummary', text: 'Receipt summary copied.' })
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'Proof summary copied.' })
       } else {
-        store.dispatch({ type: 'ui/setStatusSummary', text: 'Receipt summary unavailable.' })
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'Proof summary unavailable.' })
       }
       return true
     }

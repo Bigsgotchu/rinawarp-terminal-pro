@@ -1,3 +1,5 @@
+import { uiFlags } from '../config/uiFlags.js'
+
 export type WorkbenchShellTabModel = {
   id: string
   label: string
@@ -13,6 +15,8 @@ export type WorkbenchShellActivityItemModel = {
   ariaLabel: string
   tab: string
   placement: 'primary' | 'footer'
+  section?: string
+  meta?: string
 }
 
 export type WorkbenchShellActionModel = {
@@ -47,93 +51,33 @@ export type WorkbenchShellFrameModel = {
 }
 
 export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
+  const advancedInspectors = uiFlags.showAdvancedInspectors
   return {
     activityItems: [
-      { id: 'settings', label: 'Settings', glyph: 'S', ariaLabel: 'Settings', tab: 'settings', placement: 'footer' },
+      { id: 'agent', label: 'Agent', glyph: '✦', ariaLabel: 'Agent thread', tab: 'agent', placement: 'primary', section: 'workspace' },
+      { id: 'history', label: 'History', glyph: '◷', ariaLabel: 'History', tab: 'runs', placement: 'primary', section: 'workspace' },
+      { id: 'marketplace', label: 'Marketplace', glyph: '◇', ariaLabel: 'Marketplace', tab: 'marketplace', placement: 'primary', section: 'workspace' },
+      { id: 'settings', label: 'Settings', glyph: '⚙', ariaLabel: 'Settings', tab: 'settings', placement: 'primary', section: 'workspace' },
+      ...(advancedInspectors
+        ? [
+            { id: 'workspace', label: 'Workspace', glyph: '⌁', ariaLabel: 'Workspace Inspector', tab: 'code', placement: 'primary', section: 'advanced' },
+            { id: 'diagnostics', label: 'Diagnostics', glyph: '◌', ariaLabel: 'Diagnostics', tab: 'diagnostics', placement: 'primary', section: 'advanced' },
+            { id: 'brain', label: 'Memory', glyph: '⌑', ariaLabel: 'Memory', tab: 'brain', placement: 'primary', section: 'advanced' },
+          ]
+        : []),
     ],
     tabs: [
-      { id: 'agent', label: 'Rina', ariaLabel: 'Rina workbench', tone: 'primary', active: true },
-      { id: 'runs', label: 'History', ariaLabel: 'Run history', tone: 'secondary' },
+      { id: 'agent', label: 'Agent Thread', ariaLabel: 'Agent thread', tone: 'primary', active: true },
     ],
     actions: [
       { id: 'recovery-toggle', tab: 'runs', label: 'Recovered work', ariaLabel: 'Recovered work', tone: 'secondary', hidden: true },
-      {
-        action: 'open-updates',
-        tab: 'settings',
-        label: 'Updates',
-        ariaLabel: 'Open update settings',
-        tone: 'secondary',
-      },
-      {
-        action: 'open-settings',
-        tab: 'settings',
-        label: '⚙ Settings',
-        ariaLabel: 'Open settings',
-        tone: 'primary',
-      },
     ],
     centerPanels: [
       {
-        id: 'panel-execution-trace',
-        view: 'execution-trace',
-        title: 'Execution Trace',
-        subtitle: 'Background-only execution stream. Rina uses this internally while the thread stays primary.',
-        bodyId: 'execution-trace-output',
-        bodyMarkup: '<div id="thinking-stream" class="rw-stream-strip"></div>',
-        extraHeadMarkup: `
-          <div id="thinking-indicator" class="rw-thinking" style="display:none;">
-            <div class="rw-thinking-dots">
-              <span class="rw-thinking-dot"></span>
-              <span class="rw-thinking-dot"></span>
-              <span class="rw-thinking-dot"></span>
-            </div>
-            <span>Rina is figuring it out</span>
-          </div>
-        `,
-      },
-      {
-        id: 'panel-code',
-        view: 'code',
-        title: 'Workspace Inspector',
-        subtitle: 'Project files and code context when you want to inspect them',
-        bodyId: 'workspace-files',
-      },
-      {
-        id: 'panel-runs',
-        view: 'runs',
-        title: 'Runs Inspector',
-        subtitle: 'Receipts, sessions, and proof when you want to inspect execution.',
-        bodyId: 'runs-output',
-      },
-      {
-        id: 'panel-receipt',
-        view: 'receipt',
-        title: 'Receipt Viewer',
-        subtitle: 'Detailed proof of execution with commands, timestamps, and next actions.',
-        bodyId: 'receipt-output',
-      },
-      {
-        id: 'panel-marketplace',
-        view: 'marketplace',
-        title: 'Marketplace',
-        subtitle: 'Capability packs and installable workflows when you need to expand what Rina can do',
-        bodyId: 'marketplace-output',
-      },
-      {
-        id: 'panel-brain',
-        view: 'brain',
-        title: 'Brain Inspector',
-        subtitle: 'Planning, tools, memory, and results',
-        bodyId: 'brain-visualization',
-        extraHeadMarkup: '<div id="brain-stats" class="rw-brain-stats"></div>',
-      },
-    ],
-    rightPanels: [
-      {
         id: 'panel-agent',
         view: 'agent',
-        title: '',
-        subtitle: '',
+        title: 'Agent Thread',
+        subtitle: 'Thread ARTIFACTS',
         active: true,
         className: 'rw-agent-panel',
         includeCloseButton: false,
@@ -151,12 +95,16 @@ export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
                 id="agent-input"
                 class="rw-agent-input"
                 rows="3"
-                placeholder="Tell Rina what you want done."
+                placeholder="Ask Rina to fix, build, test, or explain..."
                 data-testid="rina-chat-input"
                 spellcheck="false"
               ></textarea>
               <div id="agent-starter-prompts" class="rw-agent-prompts"></div>
               <div class="rw-agent-composer-actions">
+                <button class="rw-agent-tool-btn" type="button" data-agent-prompt="Run tests" data-intent-key="test">Run tests</button>
+                <button class="rw-agent-tool-btn" type="button" data-agent-prompt="Build project" data-intent-key="build">Build project</button>
+                <button class="rw-agent-tool-btn" type="button" data-agent-prompt="Inspect this workspace and summarize the safest next step. Do not change files." data-intent-key="inspect">Inspect workspace</button>
+                <button class="rw-agent-tool-btn" type="button" data-agent-prompt="Diagnose the project and propose a safe fix plan. Do not edit files without approval." data-intent-key="fix">Plan a fix</button>
                 <button id="agent-send" class="rw-agent-send" type="button" data-testid="rina-chat-send">Send</button>
               </div>
             </div>
@@ -164,12 +112,80 @@ export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
         `,
       },
       {
+        id: 'panel-code',
+        view: 'code',
+        title: 'Workspace',
+        subtitle: 'Project files and code context when you want to inspect them',
+        bodyId: 'workspace-files',
+      },
+      {
+        id: 'panel-runs',
+        view: 'runs',
+        title: 'History',
+        subtitle: 'Previous runs and their proof.',
+        bodyId: 'runs-output',
+      },
+      {
+        id: 'panel-receipt',
+        view: 'receipt',
+        title: 'Proof',
+        subtitle: 'Attached evidence for the selected run.',
+        bodyId: 'receipt-output',
+      },
+      {
+        id: 'panel-marketplace',
+        view: 'marketplace',
+        title: 'Marketplace',
+        subtitle: 'Capability packs and installable workflows when you need to expand what Rina can do',
+        bodyId: 'marketplace-output',
+      },
+      {
+        id: 'panel-brain',
+        view: 'brain',
+        title: 'Memory',
+        subtitle: 'Planning, tools, memory, and results',
+        bodyId: 'brain-visualization',
+        extraHeadMarkup: '<div id="brain-stats" class="rw-brain-stats"></div>',
+      },
+    ].filter((panel) => advancedInspectors || !['code', 'brain'].includes(panel.view)),
+    rightPanels: [
+      {
+        id: 'panel-execution-trace',
+        view: 'execution-trace',
+        title: 'Inspect',
+        subtitle: 'Terminal',
+        active: true,
+        includeCloseButton: false,
+        bodyMarkup: `
+          <div class="rw-panel-body rw-execution-trace-body">
+            <div id="thinking-stream" class="rw-stream-strip"></div>
+            <div id="execution-trace-output"></div>
+          </div>
+        `,
+        extraHeadMarkup: `
+          <div class="rw-inspector-tabs" aria-label="Inspector views">
+            <button class="active" type="button">Terminal</button>
+            <button type="button">Logs</button>
+            <button type="button">Diff</button>
+            <button type="button">Proof</button>
+          </div>
+          <div id="thinking-indicator" class="rw-thinking" style="display:none;">
+            <div class="rw-thinking-dots">
+              <span class="rw-thinking-dot"></span>
+              <span class="rw-thinking-dot"></span>
+              <span class="rw-thinking-dot"></span>
+            </div>
+            <span>Rina is figuring it out</span>
+          </div>
+        `,
+      },
+      {
         id: 'panel-diagnostics',
         view: 'diagnostics',
-        title: 'Diagnostics Inspector',
-        subtitle: 'Open this drawer when you want health, status, and observability details.',
+        title: 'Diagnostics',
+        subtitle: 'Health, status, and observability details.',
         bodyId: 'diagnostics-output',
       },
-    ],
+    ].filter((panel) => panel.view !== 'diagnostics' || advancedInspectors),
   }
 }

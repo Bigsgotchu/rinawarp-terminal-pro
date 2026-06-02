@@ -121,7 +121,7 @@ export function buildRinaReplyContent(result: RinaReplyResult, options?: { leadT
               ].filter(Boolean) as Array<{ label: string; value: string }>
             ),
           ],
-          actions: [{ label: 'Inspect receipts', tab: 'runs' }],
+          actions: [{ label: 'Inspect proof', tab: 'runs' }],
         })
       )
     }
@@ -149,7 +149,7 @@ export function buildRinaReplyContent(result: RinaReplyResult, options?: { leadT
     blocks.push(
       inlineActionsBlock([
         { label: 'Inspect execution trace', tab: 'execution-trace' },
-        { label: 'Inspect receipts', tab: 'runs' },
+        { label: 'Inspect proof', tab: 'runs' },
       ])
     )
   }

@@ -2,11 +2,135 @@ import type { WorkbenchActionControllerDeps } from './actionController.js'
 import { WorkbenchStore } from '../workbench/store.js'
 import { receiptReferenceForFix } from '../state/receiptOwnership.js'
 
+type ReceiptExportPayload = {
+  exportedAt: string
+  receiptId: string
+  timestamp: string | null
+  intent: string
+  command: string
+  exitCode: number | null
+  verification: {
+    ok: boolean | null
+    results: string[]
+  }
+  proofBlockIds: string[]
+  verificationResult: {
+    ok: boolean | null
+    exitCode: number | null
+    results: string[]
+  }
+  runtimeReceipt: unknown
+}
+
 type ShareCardPayload = {
   title: string
   subtitle: string
   highlights: string[]
   confidence: string
+}
+
+function sanitizeReceiptFilename(receiptId: string): string {
+  const safe = receiptId.replace(/[^a-z0-9._-]+/gi, '-').replace(/^-+|-+$/g, '')
+  return `rinawarp-proof-${safe || Date.now()}.json`
+}
+
+function asRecord(value: unknown): Record<string, any> {
+  return value && typeof value === 'object' ? (value as Record<string, any>) : {}
+}
+
+function pickReceiptId(receipt: Record<string, any>): string {
+  return String(receipt.id || receipt.receiptId || receipt.runId || receipt.sessionId || receipt.session?.id || '').trim()
+}
+
+function pickReceiptRunId(receipt: Record<string, any>, store: WorkbenchStore): string | null {
+  const receiptId = pickReceiptId(receipt)
+  const direct = String(receipt.runId || '').trim()
+  if (direct) return direct
+  const sessionId = String(receipt.sessionId || receipt.session?.id || '').trim()
+  const run = store.getState().runs.find((entry) => {
+    return (
+      String(entry.latestReceiptId || '').trim() === receiptId ||
+      String(entry.id || '').trim() === receiptId ||
+      (sessionId && String(entry.sessionId || '').trim() === sessionId)
+    )
+  })
+  return run?.id || null
+}
+
+function buildCurrentReceiptExport(store: WorkbenchStore): ReceiptExportPayload | null {
+  const receipt = store.getState().receipt
+  if (!receipt) return null
+
+  const state = store.getState()
+  const source = asRecord(receipt)
+  const receiptId = pickReceiptId(source)
+  const runId = pickReceiptRunId(source, store)
+  const runtimeReceipt = runId ? state.executionReceiptsByRunId[runId] : null
+  const command = asRecord(source.command)
+  const commandText = String(command.input || command.command || source.commandText || source.intent || '').trim()
+  const exitCode =
+    typeof command.exitCode === 'number'
+      ? command.exitCode
+      : typeof runtimeReceipt?.exitCode === 'number'
+        ? runtimeReceipt.exitCode
+        : null
+  const proofBlockIds = Object.values(state.runBlocksById)
+    .filter((block) => {
+      const receiptMatch = block.receipts.some((item) => item.id === receiptId)
+      return receiptMatch || Boolean(runId && block.runId === runId)
+    })
+    .map((block) => block.id)
+
+  const verificationResults = Array.isArray(runtimeReceipt?.verificationResults)
+    ? runtimeReceipt.verificationResults
+    : Array.isArray(source.verificationResults)
+      ? source.verificationResults.map(String)
+      : []
+
+  return {
+    exportedAt: new Date().toISOString(),
+    receiptId: receiptId || 'unknown',
+    timestamp:
+      String(command.endedAt || command.startedAt || source.completedAt || source.startedAt || source.session?.updatedAt || '').trim() ||
+      null,
+    intent: String(source.intent || source.workflow || source.kind || command.input || 'unknown'),
+    command: commandText || String(source.intent || source.workflow || source.kind || 'unknown'),
+    exitCode,
+    verification: {
+      ok: typeof command.ok === 'boolean' ? command.ok : typeof exitCode === 'number' ? exitCode === 0 : null,
+      results: verificationResults,
+    },
+    proofBlockIds,
+    verificationResult: {
+      ok: typeof command.ok === 'boolean' ? command.ok : typeof exitCode === 'number' ? exitCode === 0 : null,
+      exitCode,
+      results: verificationResults,
+    },
+    runtimeReceipt: receipt,
+  }
+}
+
+function formatReceiptExportText(payload: ReceiptExportPayload): string {
+  return [
+    `RinaWarp proof ${payload.receiptId}`,
+    `Timestamp: ${payload.timestamp || 'not recorded'}`,
+    `Intent: ${payload.intent}`,
+    `Proof blocks: ${payload.proofBlockIds.join(', ') || 'none recorded'}`,
+    `Verification: ${payload.verificationResult.results.join(' · ') || (payload.verificationResult.ok === true ? 'passed' : payload.verificationResult.ok === false ? 'failed' : 'not recorded')}`,
+    `Exit code: ${payload.verificationResult.exitCode ?? 'not recorded'}`,
+  ].join('\n')
+}
+
+function downloadReceiptJson(payload: ReceiptExportPayload): void {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = sanitizeReceiptFilename(payload.receiptId)
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 function formatShareSummary(store: WorkbenchStore, fixId: string): string | null {
@@ -229,7 +353,7 @@ export function createClipboardActionHandler(
       const receiptId = receiptReferenceForFix(store, fix)
       if (receiptId) {
         await navigator.clipboard.writeText(receiptId)
-        deps.setTransientStatusSummary(store, 'Receipt ID copied')
+        deps.setTransientStatusSummary(store, 'Proof ID copied')
       }
       return true
     }
@@ -279,6 +403,32 @@ export function createClipboardActionHandler(
     if (target.closest('[data-copy-trust-snapshot]')) {
       await navigator.clipboard.writeText(deps.buildTrustSnapshot(store))
       deps.setTransientStatusSummary(store, 'Workspace trust snapshot copied')
+      return true
+    }
+
+    if (target.closest('[data-copy-current-receipt]')) {
+      const payload = buildCurrentReceiptExport(store)
+      if (!payload) {
+        deps.setTransientStatusSummary(store, 'No runtime proof is loaded to copy.')
+        return true
+      }
+      await navigator.clipboard.writeText(formatReceiptExportText(payload))
+      deps.setTransientStatusSummary(store, 'Proof copied.')
+      return true
+    }
+
+    if (target.closest('[data-export-current-receipt]')) {
+      const payload = buildCurrentReceiptExport(store)
+      if (!payload) {
+        deps.setTransientStatusSummary(store, 'No runtime proof is loaded to export.')
+        return true
+      }
+      try {
+        downloadReceiptJson(payload)
+        deps.setTransientStatusSummary(store, 'Proof JSON export started.')
+      } catch (error) {
+        deps.setTransientStatusSummary(store, `Proof export failed: ${error instanceof Error ? error.message : 'unknown error'}`)
+      }
       return true
     }
 

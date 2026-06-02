@@ -17,8 +17,6 @@ function readCombinedText(step: StepLike): string {
 
 function formatIntentLead(intent: ConversationMode): string | null {
   switch (intent) {
-    case 'mixed':
-      return 'I’ve got the goal. I’ll explain what I find as I go.'
     case 'inspect':
     case 'question':
       return 'I’m starting with inspection before I change anything.'

@@ -75,16 +75,17 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
   const hasDraft = Boolean(composerInput?.value.trim())
   const isStreaming = Boolean(state.thinking.active)
   const isChatActive = hasThreadContent || isStreaming || hasDraft
-  const recoveryFocus = hasAgentRecoveryOnly(state)
+  const stripModel = buildRecoveryStripViewModel(state, recoveryMessages.length > 0 && !state.ui.recoveryExpanded)
+  const canShowRecovery = Boolean(stripModel)
+  const recoveryFocus = canShowRecovery && hasAgentRecoveryOnly(state)
   const shouldCompactRecovery = recoveryMessages.length > 0 && !state.ui.recoveryExpanded
   // Recovery intro should not persist once the user has started a real chat thread.
-  const shouldShowRecoveryStrip = recoveryMessages.length > 0 && !hasThreadContent
+  const shouldShowRecoveryStrip = canShowRecovery && recoveryMessages.length > 0 && !hasThreadContent
 
   if (recoveryRoot) {
     clear(recoveryRoot)
-    if (recoveryMessages.length > 0) {
+    if (canShowRecovery && recoveryMessages.length > 0) {
       const recoveryShell = document.createDocumentFragment()
-      const stripModel = buildRecoveryStripViewModel(state, shouldCompactRecovery)
 
       if (stripModel && shouldShowRecoveryStrip) recoveryShell.appendChild(renderRecoveryStrip(stripModel))
 
