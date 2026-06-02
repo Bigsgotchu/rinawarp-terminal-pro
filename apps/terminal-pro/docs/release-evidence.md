@@ -19,7 +19,7 @@ $(npx electron --version)
 $(npx electron-builder --version)
 
 ## Packaging Output
-$(ls -la apps/terminal-pro/dist-electron/)
+$(ls -la apps/terminal-pro/dist-electron/installer/)
 
 ## Test Results
 TODO: paste test output
