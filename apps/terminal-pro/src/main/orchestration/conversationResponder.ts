@@ -97,12 +97,6 @@ export async function buildConversationReply(
           latestRun?.runId ? ' and the latest run' : ''
         }.`,
       }
-    case 'mixed': {
-      return {
-        intent: 'mixed',
-        message: buildMixedResponse(rawText, latestRun),
-      }
-    }
     case 'follow_up':
       return {
         intent: 'follow_up',
@@ -220,6 +214,9 @@ Best next move:
 }
 
 function buildActionResponse(rawText: string, latestRun?: ConversationRunReference | null): string {
+  const verificationResponse = buildVerificationActionResponse(rawText)
+  if (verificationResponse) return verificationResponse
+
   const resumeIntent = /\b(resume|continue|pick up where we left off)\b/.test(rawText)
   const rerunIntent = /\b(rerun|run again|retry)\b/.test(rawText)
   const receiptIntent = /\b(open receipt|show receipt|receipt)\b/.test(rawText)
@@ -267,25 +264,26 @@ Recommendation:
 - Start with inspection or receipt review, then execute the smallest safe next step.`
 }
 
-function buildMixedResponse(rawText: string, latestRun?: ConversationRunReference | null): string {
-  const quickAnswer = /\bwhat should i do next\b/.test(rawText)
-    ? 'Start with the smallest high-signal step: verify run state, then execute one focused fix.'
-    : 'I can handle both explanation and execution in one pass.'
-  const workspaceAngle = latestRun?.runId
-    ? 'We have run metadata to anchor decisions, but root-cause details still require receipt/log inspection.'
-    : 'Without a verified run anchor, we should inspect first before executing any high-impact step.'
-  const nextStep = latestRun?.latestReceiptId
-    ? 'Open the latest receipt, then run the chosen fix path.'
-    : 'Run an inspect pass, then execute the selected fix path.'
+function buildVerificationActionResponse(rawText: string): string | null {
+  const normalized = rawText.toLowerCase()
+  if (!/\b(build|test|tests|lint|typecheck|type check|tsc)\b/.test(normalized)) return null
+  const action = /\b(typecheck|type check|tsc)\b/.test(normalized)
+    ? 'run the typecheck verification'
+    : /\blint\b/.test(normalized)
+      ? 'run the lint verification'
+      : /\btests?\b/.test(normalized) && !/\bbuild\b/.test(normalized)
+        ? 'run the test verification'
+        : 'build the selected workspace'
+  return `Understanding
+- I'll ${action} and capture the output.
 
-  return `Quick answer:
-- ${quickAnswer}
-
-Workspace angle:
-- ${workspaceAngle}
-
-Next step:
-- ${nextStep}`
+Plan
+1. Inspect package scripts
+2. Detect the package manager
+3. Run the matching verification command
+4. Capture stdout, stderr, and exit code
+5. Summarize what failed or passed
+6. Create an execution receipt`
 }
 
 function buildHelpReply(args: { workspaceLabel?: string; canDeploy: boolean }): string {

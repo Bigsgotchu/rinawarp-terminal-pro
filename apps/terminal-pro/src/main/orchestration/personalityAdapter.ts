@@ -119,11 +119,11 @@ export function classifyInteraction(input: string): InteractionType {
 
   if (hasSmallTalk) return 'small_talk'
   if (hasStatusCheck) return 'status_check'
-  if (hasTaskRequest && (hasControl || hasQuestion)) return 'mixed'
+  if (hasTaskRequest && (hasControl || hasQuestion)) return 'task_with_context'
   if (hasControl) return 'control'
   if (hasTaskRequest) return 'task_request'
   if (hasQuestion) return 'question'
-  return 'mixed'
+  return 'task_with_context'
 }
 
 export function selectInteractionMode(input: {

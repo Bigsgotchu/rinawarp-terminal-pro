@@ -175,7 +175,7 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
   if (EXECUTION_KEYWORDS.test(lower) && MIXED_ACTION_WORDS.test(lower)) {
     return {
       rawText,
-      mode: 'mixed',
+      mode: 'execute',
       turnType: 'action',
       confidence: 0.9,
       workspaceId: args.workspaceId,

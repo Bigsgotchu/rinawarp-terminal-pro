@@ -10,11 +10,11 @@ export function riskFromPlanStep(rawStep: any): PlanRisk {
   const risk = String(rawStep?.risk || '').toLowerCase()
   const riskLevel = String(rawStep?.risk_level || '').toLowerCase()
 
-  if (commandRisk === 'high-impact') return 'high-impact'
+  if (commandRisk === 'high-impact' || commandRisk === 'dangerous') return 'high-impact'
   if (commandRisk === 'safe-write') return 'safe-write'
   if (commandRisk === 'inspect' || commandRisk === 'read') return 'read'
 
-  if (risk === 'high-impact' || riskLevel === 'high') return 'high-impact'
+  if (risk === 'high-impact' || risk === 'dangerous' || riskLevel === 'high') return 'high-impact'
   if (risk === 'inspect' || risk === 'read' || riskLevel === 'low') return 'read'
   if (risk === 'safe-write' || riskLevel === 'medium') return 'safe-write'
 

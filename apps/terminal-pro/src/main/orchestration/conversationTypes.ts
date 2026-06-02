@@ -4,7 +4,6 @@ export type ConversationMode =
   | 'question'
   | 'inspect'
   | 'execute'
-  | 'mixed'
   | 'self_check'
   | 'follow_up'
   | 'recovery'
@@ -18,7 +17,7 @@ export type InteractionType =
   | 'question'
   | 'status_check'
   | 'control'
-  | 'mixed'
+  | 'task_with_context'
 
 export type TurnType = 'greeting' | 'help' | 'follow_up' | 'diagnose' | 'action' | 'explain' | 'frustration' | 'clarify_needed'
 
@@ -97,9 +96,11 @@ export type ConversationPlanStep = {
     cwd?: string
     timeoutMs?: number
   }
-  risk: 'inspect' | 'safe-write' | 'high-impact'
+  risk: 'inspect' | 'safe-write' | 'high-impact' | 'dangerous'
   risk_level: 'low' | 'medium' | 'high'
   requires_confirmation: boolean
+  requiresApproval?: boolean
+  mutation?: boolean
   description: string
 }
 

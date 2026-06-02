@@ -5,7 +5,7 @@ async function ensureProjectContext(page: import('@playwright/test').Page): Prom
   const demoButton = page.getByRole('button', { name: 'Try Demo Project' }).first()
   if (await demoButton.isVisible().catch(() => false)) {
     await demoButton.click()
-    await expect(page.getByRole('button', { name: 'Fix Project' }).first()).toBeVisible({ timeout: 30_000 })
+    await page.waitForSelector('#agent-output, .rw-recovery-strip', { state: 'visible', timeout: 30_000 })
   }
 }
 
@@ -23,9 +23,13 @@ async function triggerBuildIntent(page: import('@playwright/test').Page): Promis
 
 test('agent smoke: prompt chip adds new thread activity', async () => {
   await withApp(async ({ page }) => {
-    const thread = page.locator('#agent-output')
-    await expect(thread).toBeVisible()
+    // Ensure project context is established BEFORE checking thread visibility
+    // (recovery mode may keep thread empty until context is set)
     await ensureProjectContext(page)
+
+    const thread = page.locator('#agent-output')
+    await expect(thread).toBeAttached()
+    await expect(thread).toBeVisible()
 
     const beforeCount = await thread.locator('.rw-thread-message').count()
 
@@ -80,6 +84,11 @@ test('agent smoke: build prompt executes a real project command', async () => {
         return await thread.locator('.rw-thread-message').count()
       }, { timeout: 20000 })
       .toBeGreaterThan(beforeCount)
+
+    const newMessages = await thread.locator('.rw-thread-message').evaluateAll((nodes, previous) => {
+      return nodes.slice(previous as number).map((node) => node.textContent?.trim() || '').join('\n')
+    }, beforeCount)
+    expect(newMessages).not.toMatch(/Perform requested workspace action|May change workspace|Start with inspection/i)
 
     let runId = ''
     await expect
