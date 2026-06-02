@@ -39,6 +39,7 @@
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.cjs,.mjs --fix",
     "guard:product-realness": "node scripts/guard-product-realness.mjs",
     "guard:ui-residue": "node scripts/guard-ui-residue.mjs",
+    "product:reality-check": "node scripts/product-reality-check.mjs",
     "build:all": "npm run build:electron && npm run package:linux && npm run package:win",
     "dist": "npm run dist:linux && npm run release:metadata && npm run verify:update-artifacts",
     "package:linux": "bash ../../deploy/package-linux.sh",

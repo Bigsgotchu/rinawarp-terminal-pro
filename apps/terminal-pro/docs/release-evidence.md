@@ -20,11 +20,11 @@ v22.22.2
 
 ## Packaging Output
 ```
--rwxr-xr-x karina karina 124014452 2026-06-02 04:06:16 -0600 RinaWarp-Terminal-Pro-1.8.2-beta-linux-x86_64.AppImage
--rw-rw-r-- karina karina  85033536 2026-06-02 04:07:57 -0600 RinaWarp-Terminal-Pro-1.8.2-beta-linux-amd64.deb
--rw-rw-r-- karina karina       236 2026-06-02 04:08:46 -0600 SHASUMS256.txt
--rw-rw-r-- karina karina       410 2026-06-02 04:07:59 -0600 latest-linux.yml
--rw-rw-r-- karina karina      1034 2026-06-02 04:08:46 -0600 beta/latest.json
+-rwxr-xr-x karina karina 124014450 2026-06-02 04:27:03 -0600 RinaWarp-Terminal-Pro-1.8.2-beta-linux-x86_64.AppImage
+-rw-rw-r-- karina karina  85046870 2026-06-02 04:28:38 -0600 RinaWarp-Terminal-Pro-1.8.2-beta-linux-amd64.deb
+-rw-rw-r-- karina karina       236 2026-06-02 04:29:53 -0600 SHASUMS256.txt
+-rw-rw-r-- karina karina       410 2026-06-02 04:29:53 -0600 latest-linux.yml
+-rw-rw-r-- karina karina      1034 2026-06-02 04:29:53 -0600 beta/latest.json
 ```
 
 ## Test Results
@@ -33,6 +33,7 @@ npm --workspace apps/terminal-pro run build:electron - PASS
 npm --workspace apps/terminal-pro run release:metadata - PASS
 npm --workspace apps/terminal-pro run verify:update-artifacts - PASS
 npm --workspace apps/terminal-pro run dist - PASS
+npm --workspace apps/terminal-pro run product:reality-check - PASS
 node apps/terminal-pro/test/plan-risk.test.mjs - PASS (10/10)
 node apps/terminal-pro/test/rina-agent-safe-patch.test.mjs - PASS (13/13)
 npx playwright test apps/terminal-pro/tests/e2e/packaged-first-run.spec.ts --reporter=list - PASS (4/4)
@@ -59,6 +60,6 @@ verify:update-artifacts confirmed latest-linux.yml references the AppImage and m
 
 ## Artifact SHA256
 ```
-60ef9f5c575fb15cb899e298c54ed0ef10fa815a07a6ed9eae77ac24a1f1f4f0  RinaWarp-Terminal-Pro-1.8.2-beta-linux-x86_64.AppImage
-a8bce8576ca9eb45ce8b89217993960b970fce480a0ee54adba31b020cfabcea  RinaWarp-Terminal-Pro-1.8.2-beta-linux-amd64.deb
+2106a9a0a45768caa356f7938f5b99dc67098bad88ce6c24feec59fc7bef82f8  RinaWarp-Terminal-Pro-1.8.2-beta-linux-x86_64.AppImage
+2c5a8c288856fc324b5f067848eff84427c76682fe91b0765890c95fcf25f398  RinaWarp-Terminal-Pro-1.8.2-beta-linux-amd64.deb
 ```
