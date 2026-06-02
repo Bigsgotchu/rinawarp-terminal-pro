@@ -178,11 +178,9 @@ function writeUpdaterMetadata({ latestYml, latestLinuxYml, latestJson, checksums
   fs.writeFileSync(path.join(channelDir, 'latest-linux.yml'), latestLinuxYml, 'utf8')
   fs.writeFileSync(path.join(channelDir, 'latest.json'), JSON.stringify(latestJson, null, 2), 'utf8')
 
-  if (channel === 'stable') {
-    fs.writeFileSync(path.join(installerDir, 'latest.yml'), latestYml, 'utf8')
-    fs.writeFileSync(path.join(installerDir, 'latest-linux.yml'), latestLinuxYml, 'utf8')
-    fs.writeFileSync(path.join(installerDir, 'latest.json'), JSON.stringify(latestJson, null, 2), 'utf8')
-  }
+  fs.writeFileSync(path.join(installerDir, 'latest.yml'), latestYml, 'utf8')
+  fs.writeFileSync(path.join(installerDir, 'latest-linux.yml'), latestLinuxYml, 'utf8')
+  fs.writeFileSync(path.join(installerDir, 'latest.json'), JSON.stringify(latestJson, null, 2), 'utf8')
 }
 
 async function main() {
