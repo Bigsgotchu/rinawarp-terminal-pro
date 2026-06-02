@@ -36,8 +36,6 @@ function initEncryptionKey(): Buffer {
   return ENCRYPTION_KEY
 }
 
-const ENCRYPTION_KEY = getEncryptionKey()
-
 /**
  * CloudSync - Encrypted push/pull for persistent memory
  */
