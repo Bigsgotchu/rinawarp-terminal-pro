@@ -44,7 +44,7 @@ export const SEO_CONFIG: Record<string, SeoData> = {
   '/pricing': {
     title: 'RinaWarp Pricing | Fix Your Broken Project Automatically',
     description:
-      'See RinaWarp pricing for Free, Pro ($15/mo), Team ($40/user/mo), and One Fix ($3) checkout plans built around one promise: fix your broken project automatically with proof.',
+      'See RinaWarp pricing for Free, Pro ($29/mo), Creator ($69/mo), and Team ($99/user/mo) checkout plans built around one promise: fix your broken project automatically with proof.',
     canonical: 'https://rinawarptech.com/pricing',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'pricing, fix project, developer tool pricing, RinaWarp, AI repair, proof-backed fixes',
@@ -155,7 +155,7 @@ export function injectSeoTags(path: string): string {
   </script>
 
   <!-- Content Security Policy -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://static.cloudflareinsights.com; font-src 'self' https://fonts.gstatic.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; media-src 'self' https:; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://www.google.com https://www.googletagmanager.com https://static.cloudflareinsights.com; font-src 'self' https://fonts.gstatic.com;">
   
   <!-- Base URL for relative links -->
   <base href="/">
