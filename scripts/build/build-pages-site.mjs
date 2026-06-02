@@ -1135,9 +1135,9 @@ body[data-page="home"] {
 }
 
 [data-page="home"] header {
-  background: var(--b12-ink);
-  border-bottom-color: rgba(255, 255, 255, 0.12);
-  box-shadow: none;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom-color: rgba(16, 36, 47, 0.08);
+  box-shadow: 0 8px 30px rgba(16, 36, 47, 0.04);
 }
 
 [data-page="home"] nav {
@@ -1154,7 +1154,7 @@ body[data-page="home"] {
   gap: 4px;
   font-size: 0.72rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.78);
+  color: #48606f;
 }
 
 [data-page="home"] .nav-links a {
@@ -1164,8 +1164,8 @@ body[data-page="home"] {
 
 [data-page="home"] .nav-links a:hover,
 [data-page="home"] .nav-links a.active {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--b12-teal);
+  background: rgba(11, 124, 131, 0.08);
 }
 
 [data-page="home"] .nav-links a.nav-cta {
@@ -1182,12 +1182,10 @@ body[data-page="home"] {
 
 [data-page="home"] .hero {
   max-width: none;
-  background:
-    radial-gradient(circle at 78% 20%, rgba(22, 212, 197, 0.18), transparent 32%),
-    linear-gradient(135deg, #08121b 0%, #101d2a 100%);
-  color: #ffffff;
-  padding-top: 48px;
-  padding-bottom: 48px;
+  background: #ffffff;
+  color: #111111;
+  padding-top: 42px;
+  padding-bottom: 34px;
 }
 
 [data-page="home"] .hero-layout {
@@ -1204,7 +1202,7 @@ body[data-page="home"] {
 
 [data-page="home"] .hero h1 {
   max-width: 12ch;
-  color: #ffffff;
+  color: #111111;
   font-size: clamp(2.15rem, 4.8vw, 3.4rem);
   line-height: 1.08;
   letter-spacing: -0.025em;
@@ -1212,7 +1210,7 @@ body[data-page="home"] {
 
 [data-page="home"] .hero-copy {
   max-width: 46ch;
-  color: rgba(255, 255, 255, 0.78);
+  color: #4d6573;
   font-size: 0.9rem;
   line-height: 1.7;
 }
@@ -1237,9 +1235,9 @@ body[data-page="home"] {
 }
 
 [data-page="home"] .btn-secondary {
-  background: transparent;
-  border-color: rgba(22, 212, 197, 0.75);
-  color: #ffffff;
+  background: #ffffff;
+  border-color: #c7d9de;
+  color: #163543;
 }
 
 [data-page="home"] .hero-media {
