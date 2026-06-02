@@ -120,7 +120,7 @@ async function ensureProjectContext(page: Page): Promise<void> {
   const demoButton = page.getByRole('button', { name: 'Try Demo Project' }).first()
   if (await demoButton.isVisible().catch(() => false)) {
     await demoButton.click()
-    await expect(page.getByRole('button', { name: 'Fix Project' }).first()).toBeVisible({ timeout: 30_000 })
+    await expect(page.getByRole('button', { name: 'Build this project' }).first()).toBeVisible({ timeout: 30_000 })
   }
 }
 

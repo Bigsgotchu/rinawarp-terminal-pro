@@ -96,11 +96,11 @@ async function openSettings(page: Page): Promise<void> {
 
 async function ensureProjectContext(page: Page): Promise<void> {
   const tryDemo = page.getByRole('button', { name: 'Try Demo Project' }).first()
-  const fixProject = page.getByRole('button', { name: 'Fix Project' }).first()
-  if (await fixProject.isVisible().catch(() => false)) return
+  const buildProject = page.getByRole('button', { name: 'Build this project' }).first()
+  if (await buildProject.isVisible().catch(() => false)) return
   if (await tryDemo.isVisible().catch(() => false)) {
     await tryDemo.click()
-    await expect(fixProject).toBeVisible({ timeout: 30_000 })
+    await expect(buildProject).toBeVisible({ timeout: 30_000 })
   }
 }
 
@@ -111,7 +111,7 @@ test('visual QA captures empty state, active thread, runs, diagnostics, and sett
     await capture(page, 'agent-empty-state')
 
     await ensureProjectContext(page)
-    await page.getByRole('button', { name: 'Fix Project' }).first().click()
+    await page.getByRole('button', { name: 'Build this project' }).first().click()
     await expect
       .poll(async () => page.locator('#agent-output .rw-thread-message').count(), { timeout: 20_000 })
       .toBeGreaterThan(0)

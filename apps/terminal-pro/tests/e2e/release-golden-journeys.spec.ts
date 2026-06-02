@@ -18,7 +18,7 @@ function runsInspectorTopbarTab(page: Page) {
 
 async function ensureProjectContext(page: Page): Promise<void> {
   const buildButton = page.getByRole('button', { name: 'Build this project' }).first()
-  const fixButton = page.getByRole('button', { name: 'Fix Project' }).first()
+  const fixButton = page.getByRole('button', { name: 'Plan a fix' }).first()
   if ((await buildButton.isVisible().catch(() => false)) || (await fixButton.isVisible().catch(() => false))) return
   const tryDemo = page.getByRole('button', { name: 'Try Demo Project' }).first()
   if (await tryDemo.isVisible().catch(() => false)) {

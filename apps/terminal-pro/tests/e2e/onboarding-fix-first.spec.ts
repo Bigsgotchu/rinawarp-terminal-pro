@@ -11,8 +11,8 @@ test('first launch steers the user toward opening a project or trying the demo',
 
     await page.getByRole('button', { name: 'Try Demo Project' }).first().click()
 
-    await expect(page.locator('#status-bar')).toContainText(/Demo project ready|Click Fix Project/i, { timeout: 30_000 })
-    await expect(page.getByRole('button', { name: 'Fix Project' }).first()).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByText('Click Fix Project to repair this project.')).toBeVisible()
+    await expect(page.locator('#status-bar')).toContainText(/Demo project ready|Build project|Run tests|Plan a fix/i, { timeout: 30_000 })
+    await expect(page.getByRole('button', { name: 'Plan a fix' }).first()).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('button', { name: 'Fix Project' })).toHaveCount(0)
   })
 })
