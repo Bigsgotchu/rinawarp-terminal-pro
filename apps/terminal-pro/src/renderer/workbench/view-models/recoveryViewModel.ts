@@ -2,7 +2,7 @@ import type { AgentEmptyCardViewModel, RecoveryStripViewModel } from './agentThr
 import type { WorkbenchState } from '../store.js'
 import { formatExitState, formatProofBadge, formatRunDate, formatRunDuration, formatRunStatus } from '../renderers/format.js'
 import { formatRecoveryNarrative, getRecoveryGuidance } from '../renderers/runIntelligence.js'
-import { lastRelevantRun } from '../renderers/selectors.js'
+import { getWorkspaceContextState, lastRelevantRun } from '../renderers/selectors.js'
 import { isRunSuccessWithProof } from '../proof.js'
 
 function actionClass(role: 'primary' | 'secondary' | 'attention' | 'quiet'): string {
@@ -60,8 +60,10 @@ export function buildRecentProofCardModel(state: WorkbenchState): AgentEmptyCard
 }
 
 export function buildRecoverySummaryCardModel(state: WorkbenchState): AgentEmptyCardViewModel | null {
+  const workspaceState = getWorkspaceContextState(state)
+  if (workspaceState.status !== 'project') return null
   const restoredRuns = state.runs
-    .filter((run) => run.restored)
+    .filter((run) => run.restored && run.projectRoot && run.projectRoot === workspaceState.projectRoot)
     .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())
   const latest = restoredRuns[0]
   if (!latest) return null
@@ -80,7 +82,7 @@ export function buildRecoverySummaryCardModel(state: WorkbenchState): AgentEmpty
     ],
     actions: [
       ...(recovery.resumeSafe
-        ? [{ label: 'Resume Fix', className: actionClass('primary'), dataset: { runResume: latest.id } }]
+        ? [{ label: 'Review previous plan', className: actionClass('primary'), dataset: { runResume: latest.id } }]
         : []),
       {
         label: 'View details',
@@ -92,8 +94,10 @@ export function buildRecoverySummaryCardModel(state: WorkbenchState): AgentEmpty
 }
 
 export function buildRecoveryStripViewModel(state: WorkbenchState, compact: boolean): RecoveryStripViewModel | null {
+  const workspaceState = getWorkspaceContextState(state)
+  if (workspaceState.status !== 'project') return null
   const restoredRuns = state.runs
-    .filter((run) => run.restored)
+    .filter((run) => run.restored && run.projectRoot && run.projectRoot === workspaceState.projectRoot)
     .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())
   const latestRun = restoredRuns[0]
   if (!latestRun) return null
@@ -110,7 +114,7 @@ export function buildRecoveryStripViewModel(state: WorkbenchState, compact: bool
       : 'Everything is safe. Review the latest run before continuing.',
     actions: [
       ...(latestRecovery?.resumeSafe
-        ? [{ label: 'Resume fix', className: actionClass('primary'), dataset: { runResume: latestRun.id } }]
+        ? [{ label: 'Review previous plan', className: actionClass('primary'), dataset: { runResume: latestRun.id } }]
         : []),
       ...(!latestRecovery?.resumeSafe
         ? [

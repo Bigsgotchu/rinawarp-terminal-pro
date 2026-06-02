@@ -59,6 +59,6 @@ export function buildSuggestedActionsCardModel(state: WorkbenchState): AgentEmpt
             { label: 'Open project', className: actionClass('primary'), dataset: { pickWorkspace: 'suggested-actions' } },
             { label: 'Try demo project', className: actionClass('secondary'), dataset: { loadDemoProject: 'suggested-actions' } },
           ],
-    prompts: getStarterPromptViewModels(state),
+    prompts: workspaceState.status === 'project' ? getStarterPromptViewModels(state) : [],
   }
 }
