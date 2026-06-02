@@ -33,7 +33,6 @@ export function persistWorkbenchState(store: WorkbenchStore): void {
         workspaceKey: state.workspaceKey,
         analytics: state.analytics,
         analyticsByWorkspace,
-        runtime: state.runtime,
       })
     )
   } catch {
@@ -147,9 +146,9 @@ export function createWorkbenchStore(initialWorkspaceKey?: string): WorkbenchSto
     brain: { stats: null, events: [] },
     thinking: { active: false, message: '', stream: '' },
     runtime: {
-      mode: typeof snapshot?.runtime?.mode === 'string' ? snapshot.runtime.mode : 'explain',
-      autonomyEnabled: Boolean(snapshot?.runtime?.autonomyEnabled),
-      autonomyLevel: typeof snapshot?.runtime?.autonomyLevel === 'string' ? snapshot.runtime.autonomyLevel : 'off',
+      mode: 'explain',
+      autonomyEnabled: false,
+      autonomyLevel: 'off',
       ipcCanonicalReady: false,
       rendererCanonicalReady: false,
     },
