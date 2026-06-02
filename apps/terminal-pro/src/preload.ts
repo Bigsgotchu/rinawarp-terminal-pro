@@ -8,7 +8,9 @@ const electron = require('electron') as typeof import('electron')
 const { contextBridge, ipcRenderer, shell } = electron
 
 // ============================================================
-// MINIMAL SECURITY WHITELIST - Only verified working channels
+// Renderer bridge: all IPC is explicit allowlist only. No wildcards, no channel aliases.
+// nodeIntegration=false and sandbox=true are enforced in main for production windows.
+// Do not remove items from the allowlists unless the companion channel is fully retired.
 // ============================================================
 const ALLOWED_INVOKE_CHANNELS = new Set([
   // Core Rina (verified working)
@@ -451,3 +453,5 @@ contextBridge.exposeInMainWorld('rina', {
   // Static autonomy status until the runtime bridge is wired
   autonomy: { enabled: false, level: 'off' },
 })
+
+// preload audit: 2026-06-02 — renderer bridge is already an explicit allowlist for invoke/on/send, nodeIntegration=false, sandbox=true.
