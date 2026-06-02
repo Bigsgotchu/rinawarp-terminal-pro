@@ -1215,6 +1215,191 @@ const SITE_STYLES = `
     font-weight: 700;
     margin-bottom: 10px;
   }
+  .centered { text-align: center; margin-left: auto; margin-right: auto; }
+  .feature-band {
+    max-width: none;
+    background: #f2f6f8;
+  }
+  .feature-band > * {
+    max-width: var(--content);
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .four-up { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  .mini-card {
+    min-height: 126px;
+    padding: 18px;
+    border: 1px solid #dce9ec;
+    border-radius: 8px;
+    background: #ffffff;
+  }
+  .mini-icon,
+  .soft-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+    color: #0b7c83;
+    background: #eef9fb;
+    border: 1px solid #ccecef;
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+  .split-section {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr);
+    gap: 34px;
+    align-items: center;
+  }
+  .step-list {
+    display: grid;
+    gap: 14px;
+  }
+  .step-list article {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+  .step-list span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    color: #ffffff;
+    background: #ff3ea5;
+    font-weight: 800;
+  }
+  .screenshot-frame {
+    overflow: hidden;
+    border: 1px solid #d9e8eb;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 12px 32px rgba(16, 36, 47, 0.08);
+  }
+  .screenshot-frame img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .proof-grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+  .proof-item {
+    padding: 18px;
+    border: 1px solid #dce9ec;
+    border-radius: 8px;
+    background: #ffffff;
+  }
+  .proof-item.bad { border-color: rgba(180, 35, 58, 0.28); }
+  .proof-item.good { border-color: rgba(20, 125, 74, 0.28); }
+  .proof-item pre {
+    margin-top: 10px;
+    white-space: pre-wrap;
+    color: #10242f;
+    font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    font-size: 0.86rem;
+    line-height: 1.55;
+  }
+  .developer-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  }
+  .developer-grid article {
+    text-align: center;
+    padding: 18px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #dce9ec;
+  }
+  .accent-list {
+    list-style: none;
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .accent-list li::before {
+    content: "+";
+    color: #ff3ea5;
+    margin-right: 8px;
+    font-weight: 900;
+  }
+  .btn-light {
+    color: #ff3ea5;
+    background: #ffffff;
+  }
+  body {
+    color: #10242f;
+    background: linear-gradient(180deg, #eefafa 0, #ffffff 430px, #f7fbfc 100%);
+  }
+  header {
+    background: rgba(255, 255, 255, 0.92);
+    border-bottom-color: rgba(16, 36, 47, 0.08);
+  }
+  .nav-links a:hover,
+  .nav-links a.active {
+    color: #0b7c83;
+    background: rgba(11, 124, 131, 0.08);
+  }
+  h1,
+  .section-title,
+  .card h3,
+  .panel h3 {
+    color: #10242f;
+  }
+  .hero-copy,
+  .lede,
+  .section-copy,
+  .card p,
+  .panel p,
+  .card li,
+  .panel li {
+    color: #5f7280;
+  }
+  .card,
+  .panel {
+    background: #ffffff;
+    border-color: #dce9ec;
+    box-shadow: 0 14px 38px rgba(16, 36, 47, 0.07);
+  }
+  .trust-chip {
+    color: #48606f;
+    border-color: #dce9ec;
+    background: #ffffff;
+  }
+  .eyebrow {
+    color: #0b7c83;
+    border-color: #b8e2e3;
+    background: #ffffff;
+  }
+  .final-cta {
+    max-width: none;
+    color: #ffffff;
+    background: linear-gradient(135deg, #ff3ea5, #c83df0);
+    padding-top: 56px;
+    padding-bottom: 56px;
+  }
+  .final-cta h2,
+  .final-cta p {
+    color: #ffffff;
+  }
+  .final-cta .cta-row {
+    justify-content: center;
+  }
+  @media (max-width: 840px) {
+    .split-section,
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+  }
   .pricing-grid {
     display: grid;
     gap: 18px;
@@ -1427,6 +1612,7 @@ function renderSitemapXml(origin: string): Response {
     '/products',
     '/pricing',
     '/download',
+    '/docs',
     '/support',
     '/matter-intelligence',
     '/matter-intelligence/pricing',
@@ -1583,21 +1769,20 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
       ${hero}
       ${content}
     </main>
-    <footer>
-      <div class="footer-inner">
-        <div>© 2026 RinaWarp Technologies, LLC. One platform, two product surfaces.</div>
-        <div class="footer-links">
-          <a href="/products">Products</a>
-          <a href="/docs">Docs</a>
-          <a href="/pricing">Pricing</a>
-          <a href="/download">Download</a>
-          <a href="/support">Support</a>
-          <a href="/terms">Terms</a>
-          <a href="/privacy">Privacy</a>
-          <a href="/early-access">Early Access</a>
-        </div>
-      </div>
-    </footer>
+<footer>
+       <div class="footer-inner">
+         <div>© 2026 RinaWarp Technologies, LLC. One platform, two product surfaces.</div>
+         <div class="footer-links">
+           <a href="/products">Products</a>
+           <a href="/docs">Docs</a>
+           <a href="/pricing">Pricing</a>
+           <a href="/download">Download</a>
+           <a href="/support">Support</a>
+           <a href="/terms">Terms</a>
+           <a href="/privacy">Privacy</a>
+         </div>
+       </div>
+     </footer>
   </div>
   ${renderAnalyticsBootstrap(path)}
   ${script ? `<script>${script}</script>` : ''}
@@ -1615,17 +1800,17 @@ function renderHomepage(): Response {
     <section class="hero">
       <div class="hero-grid">
         <div class="hero-panel">
-          <span class="eyebrow">Fix Project</span>
-          <h1>Fix your broken project automatically.</h1>
-          <p class="hero-copy">RinaWarp reads your code, repairs the issue, and shows what changed, what worked, and how confident the result is.</p>
+          <span class="eyebrow">RinaWarp Terminal Pro</span>
+          <h1>Your project is broken. RinaWarp fixes it.</h1>
+          <p class="hero-copy">Upload a repository. Let RinaWarp investigate, repair, verify, and explain every change.</p>
           <div class="cta-row">
-            <a href="/download" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download now</a>
-            <a href="/pricing" class="btn btn-secondary btn-secondary-strong">See pricing</a>
+            <a href="/download" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download Free</a>
+            <a href="/#proof" class="btn btn-secondary btn-secondary-strong">Watch Demo</a>
           </div>
           <div class="trust-row">
-            <span class="trust-chip">Proof-backed repair</span>
-            <span class="trust-chip">Verified results</span>
-            <span class="trust-chip">Built for real repos</span>
+            <span class="trust-chip">Real terminal output</span>
+            <span class="trust-chip">Before-after repairs</span>
+            <span class="trust-chip">Verification attached</span>
           </div>
         </div>
         <div class="terminal-preview" aria-label="Fix Project terminal preview">
@@ -1660,159 +1845,89 @@ function renderHomepage(): Response {
   `
 
   const content = `
-    <section class="section">
-      <div class="grid three-up">
-        <article class="card">
-          <div class="kicker">What changed</div>
-          <h3>Readable repair diff</h3>
-          <p>See exactly which dependency, file, or config changed before you trust the result.</p>
-        </article>
-        <article class="card">
-          <div class="kicker">What worked</div>
-          <h3>Real verification</h3>
-          <p>Builds, tests, and follow-up checks are run after the repair so success is not just a claim.</p>
-        </article>
-        <article class="card">
-          <div class="kicker">Confidence</div>
-          <h3>Proof attached</h3>
-          <p>Every repair ends with receipts, status, and a confidence signal you can inspect without digging.</p>
-        </article>
+    <section class="section feature-band">
+      <h2 class="section-title centered">What RinaWarp Can Do</h2>
+      <p class="section-copy centered">Built for broken projects, failed builds, and messy dependency problems.</p>
+      <div class="grid four-up">
+        <article class="mini-card"><div class="mini-icon">A</div><h3>Analyze Repositories</h3><p>Find the dependency, config, and source errors blocking your project.</p></article>
+        <article class="mini-card"><div class="mini-icon">R</div><h3>Repair Broken Builds</h3><p>Apply targeted fixes across files, package scripts, and project settings.</p></article>
+        <article class="mini-card"><div class="mini-icon">V</div><h3>Verify Results</h3><p>Run builds and tests so success is proven in the terminal.</p></article>
+        <article class="mini-card"><div class="mini-icon">E</div><h3>Explain Changes</h3><p>Show exactly what changed, why it changed, and how it was verified.</p></article>
       </div>
     </section>
 
-    <section class="section">
-      <h2 class="section-title" id="demo">Watch the real fix flow</h2>
-      <p class="section-copy">This is a real RinaWarp session recorded against a genuinely broken workspace. It shows the exact moment the product should sell: broken project, one click, visible repair, proof attached.</p>
-      <div class="demo-video-shell">
-        <div class="demo-windowbar">
-          <span class="demo-dot"></span>
-          <span class="demo-dot"></span>
-          <span class="demo-dot"></span>
-          <span>Recorded in RinaWarp Terminal Pro</span>
-        </div>
-        <video class="demo-video" controls preload="metadata" poster="${DEMO_POSTER_URL}" playsinline>
-          <source src="${DEMO_WEBM_URL}" type="video/webm" />
-          <source src="${DEMO_MP4_URL}" type="video/mp4" />
-        </video>
-        <div class="demo-meta">
-          <span class="demo-chip">21 seconds</span>
-          <span class="demo-chip">Real broken workspace</span>
-          <span class="demo-chip">Playwright + OBS capture</span>
-          <span class="demo-chip">Show → Execute → Prove</span>
-        </div>
+    <section class="section split-section">
+      <div class="terminal-preview" aria-label="Terminal Pro proof preview">
+        <div class="demo-windowbar"><span class="demo-dot"></span><span class="demo-dot"></span><span class="demo-dot"></span><span>Repair proof</span></div>
+        <span class="terminal-line dim">&gt; npm run build</span>
+        <span class="terminal-line fail">Module not found: react-scripts</span>
+        <span class="terminal-line dim">&gt; rina fix --verify</span>
+        <span class="terminal-line ok">Installed missing dependency</span>
+        <span class="terminal-line ok">Updated package scripts</span>
+        <span class="terminal-line ok">Build successful</span>
+      </div>
+      <div class="step-list">
+        <h2 class="section-title">Three Steps</h2>
+        <article><span>1</span><div><h3>Scan</h3><p>Open the broken repo and let RinaWarp inspect the project, logs, config, and dependency state.</p></div></article>
+        <article><span>2</span><div><h3>Fix</h3><p>Apply focused repairs to the files and settings that are actually causing the failure.</p></div></article>
+        <article><span>3</span><div><h3>Verify</h3><p>Run the build, tests, or health checks and keep the proof attached to the repair.</p></div></article>
       </div>
     </section>
 
-    <section class="section">
-      <h2 class="section-title">How it works</h2>
-      <p class="section-copy">The whole product should make sense in one pass: find what is broken, fix it safely, then verify the result.</p>
-      <div class="how-grid">
-        <article class="step-card">
-          <div class="step-number">1</div>
-          <h3>Detect</h3>
-          <p>We scan your project, identify what is broken, and show a readable repair plan before anything risky runs.</p>
-        </article>
-        <article class="step-card">
-          <div class="step-number">2</div>
-          <h3>Fix</h3>
-          <p>Rina executes the repair flow with live narration, step tracking, and visible terminal output instead of vague AI claims.</p>
-        </article>
-        <article class="step-card">
-          <div class="step-number">3</div>
-          <h3>Verify</h3>
-          <p>We check that the project actually works, summarize what changed, and attach confidence and proof to the result.</p>
-        </article>
+    <section id="proof" class="section proof-section">
+      <h2 class="section-title centered">Before to After Repair Proof</h2>
+      <p class="section-copy centered">Developers trust terminal output. Show the fix, then show the verification.</p>
+      <div class="proof-grid">
+        <article class="proof-item bad"><div class="kicker">Before</div><h3>React build</h3><pre>npm run build
+Module not found: react-scripts</pre></article>
+        <article class="proof-item good"><div class="kicker">After</div><h3>Build successful</h3><pre>Installed missing dependency
+Updated package scripts
+Build successful</pre></article>
+        <article class="proof-item bad"><div class="kicker">Before</div><h3>TypeScript</h3><pre>error TS2322
+Type 'string' is not assignable</pre></article>
+        <article class="proof-item good"><div class="kicker">After</div><h3>Tests passing</h3><pre>Fixed type mismatch
+Build successful
+Tests passing</pre></article>
       </div>
     </section>
 
-    <section class="section">
-      <h2 class="section-title">See it fix a real project</h2>
-      <p class="section-copy">This is the conversion moment: a broken app on the left, a verified repair on the right.</p>
-      <div class="fix-before-after">
-        <article class="fix-state bad">
-          <div class="kicker">Broken React app</div>
-          <h3>Cannot find module 'react-scripts'</h3>
-          <p>The project does not build, local setup is broken, and you do not want another hour of trial and error.</p>
-          <code>npm run build
-Cannot find module 'react-scripts'</code>
-        </article>
-        <article class="fix-state good">
-          <div class="kicker">Fixed in one flow</div>
-          <h3>Dependencies installed. Build verified.</h3>
-          <p>RinaWarp installs what is missing, updates the project config, rebuilds the app, and gives you a proof-backed result instead of a shrug.</p>
-          <code>Installed missing dependencies
-Updated build config
-Build successful</code>
-        </article>
-      </div>
-      <div class="cta-row" style="margin-top:18px">
-        <a href="/download" class="btn btn-primary">Try it on your project</a>
-        <a href="/pricing" class="btn btn-secondary">See pricing</a>
+    <section class="section feature-band">
+      <h2 class="section-title centered">Built for Developers</h2>
+      <div class="developer-grid">
+        <article><div class="soft-icon">R</div><h3>React</h3></article>
+        <article><div class="soft-icon">TS</div><h3>TypeScript</h3></article>
+        <article><div class="soft-icon">N</div><h3>Node</h3></article>
+        <article><div class="soft-icon">Py</div><h3>Python</h3></article>
+        <article><div class="soft-icon">Rs</div><h3>Rust</h3></article>
+        <article><div class="soft-icon">Go</div><h3>Go</h3></article>
       </div>
     </section>
 
-    <section class="section">
-      <h2 class="section-title">Simple pricing</h2>
-      <p class="section-copy">Start free, pay when the workflow proves itself, and move up only when you need deeper repair coverage.</p>
-      <div class="pricing-grid">
-        <article class="card pricing-card">
-          <span class="pill">Free</span>
-          <div class="price">$0 <span>/ month</span></div>
-          <p>Diagnose issues, preview repair plans, and try the product on smaller projects.</p>
-          <ul class="feature-list">
-            <li>3 to 5 fixes per day</li>
-            <li>Small projects only</li>
-            <li>Safe and medium-confidence repairs</li>
-          </ul>
-        </article>
-        <article class="card pricing-card featured">
-          <span class="pill">Pro</span>
-          <div class="price">$15 <span>/ month</span></div>
-          <p>Unlimited fixes, auto-apply safe repairs, and the fastest path from broken repo to verified result.</p>
-          <ul class="feature-list">
-            <li>Unlimited Fix Project runs</li>
-            <li>High-impact fixes with approval</li>
-            <li>Faster execution and stronger repair coverage</li>
-          </ul>
-        </article>
+    <section class="section split-section">
+      <div>
+        <h2 class="section-title">Real Terminal Pro Interface</h2>
+        <p class="section-copy">Use actual repair output, build logs, and product UI. No decorative robot art, no fake dashboards.</p>
+        <ul class="accent-list">
+          <li>Real terminal screenshots</li>
+          <li>Build logs and verification output</li>
+          <li>Before and after repair examples</li>
+          <li>Readable explanations for every change</li>
+        </ul>
       </div>
-      <div class="cta-row" style="margin-top:18px">
-        <a href="/pricing" class="btn btn-primary">View plans</a>
+      <div class="terminal-preview" aria-label="Terminal Pro interface preview">
+        <div class="demo-windowbar"><span class="demo-dot"></span><span class="demo-dot"></span><span class="demo-dot"></span><span>Terminal Pro</span></div>
+        <span class="terminal-line dim">Repair report</span>
+        <span class="terminal-line ok">Files changed: package.json</span>
+        <span class="terminal-line ok">Verification: npm run build</span>
+        <span class="terminal-line ok">Result: Build successful</span>
       </div>
     </section>
 
-    <section class="section">
-      <h2 class="section-title">Works with the stack you already use</h2>
-      <p class="section-copy">Focus the trust story on common developer reality, not abstract AI features.</p>
-      <div class="trust-row">
-        <span class="trust-chip">Node</span>
-        <span class="trust-chip">React</span>
-        <span class="trust-chip">Next.js</span>
-        <span class="trust-chip">Electron</span>
-        <span class="trust-chip">TypeScript</span>
-      </div>
-    </section>
-
-    <section class="section" id="products">
-      <div class="panel">
-        <div class="kicker">Explore the product line</div>
-        <h2 class="section-title">RinaWarp now has two distinct product tracks.</h2>
-        <p class="section-copy">Terminal Pro stays focused on fixing broken projects automatically. Matter Intelligence has its own product hub, positioning, and trust surfaces so the stories never blur.</p>
-        <div class="cta-row">
-          <a href="/products" class="btn btn-secondary btn-secondary-strong">Explore RinaWarp products</a>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="panel final-cta">
-        <div class="kicker">Stop debugging. Start fixing.</div>
-        <h2 class="section-title">One button. Visible repair. Proof attached.</h2>
-        <p class="section-copy">RinaWarp exists for one moment: you click Fix Project, the product moves immediately, and your broken project comes back working.</p>
-        <div class="cta-row">
-          <a href="/download" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_final" data-analytics-prop-target="download">Fix My Project</a>
-          <a href="/#demo" class="btn btn-secondary btn-secondary-strong">Watch Demo</a>
-        </div>
+    <section class="section final-cta">
+      <h2>Ready to stop debugging and start shipping?</h2>
+      <p>Download Terminal Pro and fix the broken project blocking your next release.</p>
+      <div class="cta-row">
+        <a href="/download/" class="btn btn-light" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_final" data-analytics-prop-target="download">Download Terminal Pro</a>
       </div>
     </section>
   `
@@ -3900,8 +4015,8 @@ function renderAccount(authToken: string | null): Response {
   const hero = `
     <section class="hero">
       <span class="eyebrow">Account</span>
-      <h1>Your account</h1>
-      <p class="hero-copy">Manage billing, restore access on a new device, and complete any pending return to VS Code from one clean account surface.</p>
+      <h1>Manage your RinaWarp account</h1>
+      <p class="hero-copy">View your plan, download Terminal Pro, restore access, and manage billing.</p>
     </section>`
 
   const content = `
@@ -3910,37 +4025,44 @@ function renderAccount(authToken: string | null): Response {
         <div class="auth-card">
           <div id="account-status" class="alert alert-success" style="display:none;"></div>
           <div id="account-shell-loading">
-            <h2 class="auth-title">Loading your account</h2>
-            <p class="auth-subtitle">Checking your sign-in state, billing controls, and any pending desktop return.</p>
+            <h2 class="auth-title">Your account</h2>
+            <p class="auth-subtitle">Checking your plan status.</p>
           </div>
 
           <div id="account-shell-signed-out" style="display:none;">
-            <h2 class="auth-title">Sign in to your account</h2>
-            <p class="auth-subtitle">Sign in to manage billing, restore access, and return to VS Code when Companion is waiting for you.</p>
-            <div class="link-row" style="margin-top:16px;">
-              <a href="/login" id="account-login-link" class="btn btn-primary">Sign In</a>
-              <a href="/register" id="account-register-link" class="btn btn-secondary">Create Account</a>
+            <h2 class="auth-title">Your account</h2>
+            <div class="grid two-up" style="margin-top:16px;">
+              <article class="card"><div class="kicker">Plan</div><h3>Free</h3></article>
+              <article class="card"><div class="kicker">Subscription</div><h3>No paid subscription found</h3></article>
             </div>
-            <a href="/early-access" class="btn btn-secondary" style="width:100%; margin-top:12px;">Early Access Policy</a>
+            <div class="link-row" style="margin-top:16px;">
+              <a href="#restore" class="btn btn-primary">Restore purchase</a>
+              <a href="/download/" class="btn btn-secondary">Download Terminal Pro</a>
+              <a href="/pricing/" class="btn btn-secondary">Upgrade to Pro</a>
+            </div>
           </div>
 
           <div id="account-shell-signed-in" style="display:none;">
             <div id="account-info">
-              <h2 class="auth-title">Loading your account</h2>
-              <p class="auth-subtitle">We are verifying your signed-in account and billing state before showing live controls.</p>
+              <h2 class="auth-title">Your account</h2>
+              <p class="auth-subtitle">Checking your plan status.</p>
             </div>
 
             <div style="margin-top:24px; padding-top:24px; border-top:1px solid var(--line);">
-              <h3 style="margin-bottom:16px;">Subscription</h3>
-              <div id="subscription-info"><p style="color:var(--muted);">Checking your tier, restore status, and billing access now.</p></div>
+              <div id="subscription-info" class="grid two-up">
+                <article class="card"><div class="kicker">Plan</div><h3>Free</h3></article>
+                <article class="card"><div class="kicker">Subscription</div><h3>No paid subscription found</h3></article>
+              </div>
             </div>
 
             <div style="margin-top:24px; padding-top:24px; border-top:1px solid var(--line);">
               <div class="link-row">
-                <button id="billing-portal-btn" class="btn btn-primary" type="button">Open billing portal</button>
-                <button id="logout-btn" class="btn btn-secondary" style="width:auto;" type="button">Sign Out</button>
+                <a href="#restore" class="btn btn-primary">Restore purchase</a>
+                <a href="/download/" class="btn btn-secondary">Download Terminal Pro</a>
+                <button id="billing-portal-btn" class="btn btn-secondary" type="button" hidden>Manage billing</button>
+                <a href="/pricing/" id="account-upgrade-link" class="btn btn-secondary">Upgrade to Pro</a>
+                <button id="logout-btn" class="btn btn-secondary" style="width:auto;" type="button">Sign out</button>
               </div>
-              <p class="note">Use billing for plan changes, and use the return action below if you need to hand control back to VS Code.</p>
             </div>
           </div>
 
@@ -3948,15 +4070,27 @@ function renderAccount(authToken: string | null): Response {
         </div>
 
         <div class="auth-card">
-          <h2 class="auth-title">Restore Pro access</h2>
-          <p class="auth-subtitle" id="restore-copy">Use the same billing email from checkout to verify your access or recover on a new device.</p>
+          <h2 class="auth-title" id="restore">Restore access</h2>
+          <p class="auth-subtitle" id="restore-copy">Enter the billing email you used at checkout.</p>
           <form id="restore-form">
             <label>Billing email
-              <input type="email" name="email" placeholder="Billing email used at checkout" required>
+              <input type="email" name="email" placeholder="Billing email" required>
             </label>
-            <button type="submit" class="btn btn-primary">Check restore status</button>
+            <button type="submit" class="btn btn-primary">Restore access</button>
             <p id="restore-status" class="status-message" aria-live="polite"></p>
           </form>
+        </div>
+
+        <div class="auth-card" id="account-referral" style="display:none;">
+          <h2 class="auth-title">Referral link</h2>
+          <p class="auth-subtitle">Invite a developer and track your rewards.</p>
+          <div class="pill" style="margin-top:12px;"><span id="account-referral-code">—</span></div>
+          <label style="margin-top:16px;">Invite link
+            <input id="account-invite-link" type="text" value="" readonly>
+          </label>
+          <button class="btn btn-primary" id="copy-invite-link-btn" type="button" style="margin-top:12px;">Copy invite link</button>
+          <p id="account-referral-stats" class="auth-subtitle" style="margin-top:12px;">0 checkouts started · 0 paid conversions</p>
+          <p id="account-referral-status" class="status-message" aria-live="polite"></p>
         </div>
       </div>
     </section>`
@@ -3970,11 +4104,14 @@ function renderAccount(authToken: string | null): Response {
     const loadingShell = document.getElementById('account-shell-loading');
     const signedOutShell = document.getElementById('account-shell-signed-out');
     const signedInShell = document.getElementById('account-shell-signed-in');
-    const loginLink = document.getElementById('account-login-link');
-    const registerLink = document.getElementById('account-register-link');
     const restoreCopy = document.getElementById('restore-copy');
     const restoreForm = document.getElementById('restore-form');
     const restoreStatus = document.getElementById('restore-status');
+    const referralCard = document.getElementById('account-referral');
+    const referralCode = document.getElementById('account-referral-code');
+    const referralInput = document.getElementById('account-invite-link');
+    const referralStats = document.getElementById('account-referral-stats');
+    const referralStatus = document.getElementById('account-referral-status');
     const initialServerToken = ${JSON.stringify(authToken)};
 
     function normalizeReturnTarget(target) {
@@ -4056,15 +4193,9 @@ function renderAccount(authToken: string | null): Response {
       }
     }
 
-    function configureAuthLinks(target) {
-      if (loginLink && target) loginLink.href = '/login?return_to=' + encodeURIComponent(target);
-      if (registerLink && target) registerLink.href = '/register?return_to=' + encodeURIComponent(target);
-    }
-
     const effectiveReturnTo = returnTo || readPendingReturnTarget();
     if (effectiveReturnTo) {
       rememberReturnTarget(effectiveReturnTo);
-      configureAuthLinks(effectiveReturnTo);
     }
 
     const storedToken = localStorage.getItem('auth_token');
@@ -4098,39 +4229,65 @@ function renderAccount(authToken: string | null): Response {
         const data = await response.json();
         const user = data.user;
         setShellState('signed-in');
+        let hasPaidAccess = false;
 
         if (restoreCopy) {
-          restoreCopy.textContent = 'Use your billing email to confirm the plan attached to this account or help a second device recover access.';
+          restoreCopy.textContent = 'Enter the billing email you used at checkout.';
         }
 
         document.getElementById('account-info').innerHTML = \`
-          <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
-            <div class="user-avatar">\${(user.name || user.email || 'U').charAt(0).toUpperCase()}</div>
-            <div>
-              <h3 style="margin:0;">\${user.name || 'User'}</h3>
-              <p style="margin:4px 0 0; color:var(--muted); font-size:0.9rem;">\${user.email}</p>
-            </div>
-          </div>
+          <h2 class="auth-title">Your account</h2>
+          <h3>\${user.name || 'RinaWarp customer'}</h3>
+          <p class="auth-subtitle">\${user.email}</p>
         \`;
 
         try {
           const subData = await runRestoreLookup(user.email);
           if (subData.ok && subData.tier) {
+            hasPaidAccess = true;
             document.getElementById('subscription-info').innerHTML = \`
-              <div class="pill" style="margin-bottom:12px;">\${subData.tier.toUpperCase()}</div>
-              <p style="color:var(--muted);">Status: \${subData.status || 'active'}</p>
+              <article class="card"><div class="kicker">Plan</div><h3>\${subData.tier.toUpperCase()}</h3></article>
+              <article class="card"><div class="kicker">Subscription</div><h3>\${String(subData.status || 'active').replace(/^./, (c) => c.toUpperCase())}</h3></article>
             \`;
           } else {
             document.getElementById('subscription-info').innerHTML = \`
-              <div class="pill" style="margin-bottom:12px;">FREE</div>
-              <p style="color:var(--muted);"><a href="/pricing" style="color:var(--accent);">Upgrade to Pro</a></p>
+              <article class="card"><div class="kicker">Plan</div><h3>Free</h3></article>
+              <article class="card"><div class="kicker">Subscription</div><h3>No paid subscription found</h3></article>
             \`;
           }
         } catch (error) {
-          document.getElementById('subscription-info').innerHTML = '<p style="color:var(--muted);">Unable to load subscription right now.</p>';
+          document.getElementById('subscription-info').innerHTML = \`
+            <article class="card"><div class="kicker">Plan</div><h3>Free</h3></article>
+            <article class="card"><div class="kicker">Subscription</div><h3>No paid subscription found</h3></article>
+          \`;
         }
 
+        const billingButton = document.getElementById('billing-portal-btn');
+        const upgradeLink = document.getElementById('account-upgrade-link');
+        if (billingButton) billingButton.hidden = !hasPaidAccess;
+        if (upgradeLink) upgradeLink.hidden = hasPaidAccess;
+
+        try {
+          const referralResponse = await fetch('/api/referrals/me', {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          if (referralResponse.ok) {
+            const referral = await referralResponse.json();
+            if (referralCard) referralCard.style.display = 'block';
+            if (referralCode) referralCode.textContent = referral.code || '—';
+            if (referralInput) referralInput.value = referral.inviteUrl || '';
+            if (referralStats) {
+              referralStats.textContent =
+                String(referral.stats?.checkouts || 0) + ' checkouts started · ' + String(referral.stats?.conversions || 0) + ' paid conversions';
+            }
+          }
+        } catch {}
+
         document.getElementById('billing-portal-btn')?.addEventListener('click', async () => {
+          if (!hasPaidAccess) {
+            window.location.href = '/pricing/';
+            return;
+          }
           try {
             const response = await fetch('/api/portal', {
               method: 'POST',
@@ -4182,7 +4339,7 @@ function renderAccount(authToken: string | null): Response {
       try {
         const data = await runRestoreLookup(email);
         if (data.ok && data.tier) {
-          restoreStatus.textContent = 'Access found: ' + String(data.tier).toUpperCase() + ' (' + String(data.status || 'active') + ').';
+          restoreStatus.textContent = 'Access found: ' + String(data.tier).toUpperCase() + '. Open Terminal Pro and restore with this billing email.';
           restoreStatus.className = 'status-message success';
         } else {
           restoreStatus.textContent = 'No paid access was found for that billing email yet.';
@@ -4202,6 +4359,23 @@ function renderAccount(authToken: string | null): Response {
         showStatus('Sign in, then return to VS Code to finish connecting your Companion session.');
       }
     }
+
+    document.getElementById('copy-invite-link-btn')?.addEventListener('click', async () => {
+      const value = referralInput?.value?.trim();
+      if (!value) return;
+      try {
+        await navigator.clipboard.writeText(value);
+        if (referralStatus) {
+          referralStatus.textContent = 'Invite link copied.';
+          referralStatus.className = 'status-message success';
+        }
+      } catch {
+        if (referralStatus) {
+          referralStatus.textContent = 'Could not copy the invite link right now.';
+          referralStatus.className = 'status-message error';
+        }
+      }
+    });
   `
 
   return renderPage('/account', 'account', hero, content, script)
@@ -5070,7 +5244,7 @@ async function handleReferralAdminRequest(
       }
     )
   } catch (error) {
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Referral lookup failed.' }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Referral admin request failed.' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
     })
