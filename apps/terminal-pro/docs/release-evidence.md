@@ -4,7 +4,7 @@
 Production-candidate controlled execution desktop app.
 
 ## Final Gate Result
-**PASS** - Linux artifacts, updater metadata, packaged core loop, safe mutation, and production environment gates validated.
+**PASS** - Linux artifacts, updater metadata, packaged core loop, safe mutation, production environment, and conversation + memory reality (Gate 8) gates validated.
 
 ## OS
 Linux karina 6.19.14+kali-amd64 #1 SMP PREEMPT_DYNAMIC Kali 6.19.14-1+kali1 (2026-05-05) x86_64 GNU/Linux
@@ -36,10 +36,20 @@ npm --workspace apps/terminal-pro run dist - PASS
 npm --workspace apps/terminal-pro run product:reality-check - PASS
 node apps/terminal-pro/test/plan-risk.test.mjs - PASS (10/10)
 node apps/terminal-pro/test/rina-agent-safe-patch.test.mjs - PASS (13/13)
+node apps/terminal-pro/test/conversation-memory.test.mjs - PASS (8/8) [Gate 8]
+node apps/terminal-pro/test/memory-redaction.test.mjs - PASS (14/14) [Gate 8]
+node apps/terminal-pro/test/project-memory-learning.test.mjs - PASS (10/10) [Gate 8]
 npx playwright test apps/terminal-pro/tests/e2e/packaged-first-run.spec.ts --reporter=list - PASS (4/4)
 npx playwright test apps/terminal-pro/tests/e2e/safe-mutation.spec.ts --reporter=list - PASS (1/1)
 npx playwright test apps/terminal-pro/tests/e2e/production-env-audit.spec.ts --reporter=list - PASS (3/3)
 ```
+
+## Gate 8: Conversation + Memory Reality
+- Rina can hold conversational turns without forcing execution
+- Rina can remember user preferences and project facts
+- Rina can detect and refuse to store secrets/tokens
+- Memory works local-first through SQLite without cloud dependency
+- All 32 conversation/memory tests pass
 
 ## Smoke Result
 Packaged Electron proof path passed through Playwright with a fresh HOME/user-data path:

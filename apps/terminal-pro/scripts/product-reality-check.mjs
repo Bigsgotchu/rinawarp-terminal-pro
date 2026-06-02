@@ -72,6 +72,11 @@ const steps = [
     command: 'npm',
     args: ['run', 'verify:update-artifacts'],
   },
+  {
+    name: 'Conversation + Memory Reality (Gate 8)',
+    command: 'node',
+    args: ['--test', 'test/conversation-memory.test.mjs', 'test/memory-redaction.test.mjs', 'test/project-memory-learning.test.mjs'],
+  },
 ]
 
 function commandLine(step) {
