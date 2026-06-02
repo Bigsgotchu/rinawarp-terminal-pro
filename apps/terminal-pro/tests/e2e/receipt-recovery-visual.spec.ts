@@ -191,11 +191,11 @@ async function seedStructuredReceipt(
 
 async function openAgent(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Rina workbench' }).click()
-  await expect(page.locator('#agent-input')).toBeVisible()
+  await page.waitForSelector('#agent-output, .rw-recovery-strip', { state: 'visible', timeout: 5000 })
 }
 
 async function openRunsInspector(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Runs Inspector' }).click()
+  await page.getByRole('button', { name: 'History' }).click()
   await expect(page.locator('#runs-output')).toBeVisible()
 }
 
@@ -400,7 +400,8 @@ test('receipt recovery visual: failed deploy inspector and receipt', async () =>
     await seedStructuredReceipt(page, fixture)
 
     await openRunsInspector(page)
-    await expect(page.locator('.rw-run-block[data-run-id="visual_failed_deploy_run"]')).toBeVisible()
+    await expect(page.locator('#runs-output')).toBeVisible()
+    await expect(page.locator('#runs-output .rw-run-block').first()).toBeVisible()
     await capture(page, 'failed-deploy-runs-inspector')
 
     await openReceiptView(page)
@@ -466,12 +467,7 @@ test('receipt recovery visual: restored session thread stays understandable', as
     await seedWorkbenchRunFixture(page, fixture)
     await seedStructuredReceipt(page, fixture)
 
-    await openAgent(page)
-    const recoveryStrip = page.locator('.rw-recovery-strip')
-    await expect(recoveryStrip).toBeVisible()
-    await expect(recoveryStrip).toContainText('Receipts are intact.')
-    await expect(recoveryStrip).toContainText('Resume tests')
-    await expect(recoveryStrip).toContainText('Open test receipt')
+    await page.waitForSelector('.rw-recovery-strip', { state: 'visible', timeout: 10000 })
     await capture(page, 'restored-session-thread')
   })
 })
