@@ -11,6 +11,7 @@
 - [ ] Packaged first-run test passes
 - [ ] Safe mutation test passes
 - [ ] Production env audit passes
+- [ ] Updater discoverability passes
 
 ## Signing
 - [ ] `verify:signing` passes
