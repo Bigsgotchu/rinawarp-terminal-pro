@@ -108,3 +108,4 @@ output/doc/
 apps/rinawarp-companion/dist/
 apps/rinawarp-companion/*.vsix
 apps/rinawarp-companion/tsconfig.tsbuildinfo
+backup-*.bundle
