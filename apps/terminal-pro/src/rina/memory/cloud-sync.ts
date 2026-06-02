@@ -21,10 +21,19 @@ import { resolveRinaDataDir } from './dataRoot.js'
 
 const CLOUD_FILE = 'rina-cloud.json'
 
-// Generate a key from environment or use a default (should be overridden in production)
-const getEncryptionKey = (): Buffer => {
-  const secret = process.env.RINA_ENCRYPTION_SECRET || 'default-dev-secret-change-in-production'
+// Generate a key from environment. In production this MUST be set; otherwise sync is disabled.
+function getProductionEncryptionKey(): Buffer {
+  const secret = process.env.RINA_ENCRYPTION_SECRET
+  if (!secret || !secret.trim()) {
+    throw new Error('RINA_ENCRYPTION_SECRET is required in production')
+  }
   return crypto.createHash('sha256').update(secret).digest()
+}
+let ENCRYPTION_KEY: Buffer | null = null
+function initEncryptionKey(): Buffer {
+  if (ENCRYPTION_KEY) return ENCRYPTION_KEY
+  ENCRYPTION_KEY = getProductionEncryptionKey()
+  return ENCRYPTION_KEY
 }
 
 const ENCRYPTION_KEY = getEncryptionKey()
@@ -43,8 +52,9 @@ export class CloudSync {
    * Encrypt data using AES-256-CBC
    */
   private encrypt(data: unknown): { iv: string; data: string } {
+    const key = initEncryptionKey()
     const iv = crypto.randomBytes(16)
-    const cipher = crypto.createCipheriv('aes-256-cbc', ENCRYPTION_KEY, iv)
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv)
     let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex')
     encrypted += cipher.final('hex')
     return { iv: iv.toString('hex'), data: encrypted }
@@ -54,7 +64,8 @@ export class CloudSync {
    * Decrypt data using AES-256-CBC
    */
   private decrypt(payload: { iv: string; data: string }): PersistentEntry[] {
-    const decipher = crypto.createDecipheriv('aes-256-cbc', ENCRYPTION_KEY, Buffer.from(payload.iv, 'hex'))
+    const key = initEncryptionKey()
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, Buffer.from(payload.iv, 'hex'))
     let decrypted = decipher.update(payload.data, 'hex', 'utf8')
     decrypted += decipher.final('utf8')
     return JSON.parse(decrypted)
