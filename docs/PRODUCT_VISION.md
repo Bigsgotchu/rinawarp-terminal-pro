@@ -1,39 +1,150 @@
-# Product Vision for RinaWarp Terminal Pro
+# RinaWarp Product Vision
 
-## Core Purpose
-RinaWarp Terminal Pro is an AI-powered system diagnostic and automation agent designed to help users identify, understand, and resolve technical issues across their computing environment.
+RinaWarp is not a terminal wrapper with an AI chat panel. It is an execution agent whose primary product loop is:
 
-## Key Features Implemented
-- **AI-Powered Diagnostics:** Natural language interface for system troubleshooting
-- **Agent System:** Extensible framework for creating and sharing diagnostic/remediation agents
-- **Cross-Platform Support:** Linux, macOS, and Windows clients
-- **Enterprise Integration:** Secure communication with backend services for advanced diagnostics
-- **Workflow Automation:** Ability to create, share, and execute multi-step fix workflows
+```text
+chat -> plan -> execute -> stream -> receipt -> memory
+```
 
-## Target Audience
-- IT professionals and system administrators
-- Developers needing environment diagnostics
-- Power users seeking automated system maintenance
-- Support teams requiring standardized troubleshooting procedures
+The product succeeds when a new user can install RinaWarp, type "Rina, fix my project", approve any mutation, watch execution happen, receive proof, and trust the result without needing to operate a terminal directly.
 
-## Design Principles
-1. **Safety First:** All actions require explicit user confirmation
-2. **Transparency:** Clear visibility into what the AI is doing and why
-3. **Extensibility:** Plugin architecture for community and enterprise contributions
-4. **Privacy:** Local processing options for sensitive environments
-5. **Reliability:** Graceful degradation when AI services are unavailable
+## Primary Experience
 
-## Current Implementation Status
-The product implements a functional AI-assisted diagnostic system with:
-- Working natural language interface
-- Agent marketplace for sharing diagnostic tools
-- Cross-platform client applications
-- Backend services for agent distribution and telemetry
-- Basic workflow automation capabilities
+Agent Thread is the primary UI.
 
-## Future Directions (Planned)
-- Enhanced natural language understanding
-- More sophisticated diagnostic reasoning
-- Deeper OS-level integrations
-- Improved workflow orchestration
-- Expanded agent capabilities marketplace
+The user should live in this sequence:
+
+```text
+question
+-> plan
+-> execution stream
+-> proof
+-> receipt
+```
+
+Terminal panels, logs, debug tabs, and raw diagnostic surfaces are supporting tools. If they become the main place users work, the product has drifted back toward a terminal wrapper.
+
+## Runtime Ownership
+
+Execution must be owned by the runtime.
+
+The required flow is:
+
+```text
+user
+-> intent
+-> runtime
+-> tools
+-> proof
+-> receipt
+```
+
+The UI must not simulate completion, invent execution state, or treat renderer-local state as the source of truth for runtime behavior. Renderer state can display runtime facts, but runtime-owned execution records and receipts are the authority.
+
+## Proof Requirement
+
+Every meaningful action must produce proof.
+
+This applies to flows such as:
+
+- fix my project
+- run tests
+- deploy app
+- check ports
+- diagnose disk
+- recover a failed build
+
+Each flow must produce:
+
+- proof block
+- receipt
+- verification result
+
+No action should be considered complete because the assistant explained what it would do. Completion means Rina planned, executed or safely refused, verified, and left a receipt.
+
+## Execution Memory
+
+Memory is execution experience.
+
+RinaWarp memory should learn from work performed in a workspace, including:
+
+- project patterns
+- successful commands
+- failed commands
+- workspace structure
+- verification outcomes
+- approved and denied actions
+
+Memory is not primarily a chat transcript and is not AI personality memory. It should make future execution safer, faster, and more accurate.
+
+## Product Standard
+
+Many AI products stop at explanation:
+
+```text
+user asks
+-> AI explains
+```
+
+RinaWarp must continue through execution:
+
+```text
+user asks
+-> AI plans
+-> AI executes
+-> AI verifies
+-> AI proves
+```
+
+Features should be evaluated against the product loop:
+
+```text
+chat -> plan -> execute -> stream -> receipt -> memory
+```
+
+Anything that does not support that loop is infrastructure, supporting capability, or legacy residue that should eventually be removed, refactored, or clearly demoted.
+
+## Validation Standard
+
+The real product test is not whether the architecture sounds correct. The test is whether someone who has never seen the code can:
+
+```text
+install RinaWarp
+-> ask "Rina, fix my project"
+-> see understanding
+-> review a plan
+-> approve mutation
+-> watch execution stream
+-> inspect proof
+-> receive a receipt
+-> trust the result
+```
+
+If that works without the user touching a terminal, RinaWarp is approaching this product definition. If it does not, the missing work is product behavior, not documentation.
+
+## Current Implementation Signals
+
+The codebase should be validated against this vision with special attention to:
+
+- Agent Thread architecture
+- runtime-owned execution records
+- receipts
+- approval gates
+- persistence
+- diagnostics workflows
+- runtime trust tests
+- Electron packaging
+- updater metadata generation
+
+These are supporting signals, not proof by themselves. The product matches the vision only when the full user loop works end to end.
+
+## Known Validation Targets
+
+The following areas require ongoing validation before they can be treated as complete commercial product behavior:
+
+- professional updater channels
+- subscription entitlements
+- receipt export UX
+- runtime recovery workflows
+- commercial licensing flow
+- public beta install and update experience
