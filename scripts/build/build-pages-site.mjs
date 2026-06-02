@@ -33,7 +33,7 @@ const PUBLIC_BETA_CHECKSUMS_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/SHASUMS256.txt`;
 const PUBLIC_BETA_LATEST_JSON_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest.json`;
 const PUBLIC_BETA_LATEST_YML_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest.yml`;
 const PUBLIC_BETA_LATEST_LINUX_YML_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest-linux.yml`;
-const ASSET_VERSION = "20260602-trust-readiness";
+const ASSET_VERSION = "20260602-site-consistency";
 const GA_MEASUREMENT_ID = "G-YGX1R0MEB6";
 const SCREENSHOT_SOURCES = [
   ["agent-empty-state.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "agent-empty-state.png")],
