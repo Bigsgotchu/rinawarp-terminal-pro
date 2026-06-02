@@ -738,17 +738,17 @@ const SITE_STYLES = `
   }
   h1 {
     font-family: "Space Grotesk", "Inter", sans-serif;
-    font-size: clamp(2.2rem, 4.8vw, 4.55rem);
-    line-height: 0.98;
-    letter-spacing: -0.03em;
-    max-width: 11.5ch;
+    font-size: clamp(2.05rem, 4.4vw, 3.45rem);
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+    max-width: 14ch;
   }
   .hero-copy,
   .lede {
     color: var(--muted);
-    font-size: 1.02rem;
-    line-height: 1.7;
-    max-width: 52ch;
+    font-size: 1rem;
+    line-height: 1.65;
+    max-width: 56ch;
   }
   .cta-row,
   .link-row {
@@ -793,9 +793,10 @@ const SITE_STYLES = `
   }
   .section-title {
     font-family: "Space Grotesk", "Inter", sans-serif;
-    font-size: clamp(1.5rem, 2vw, 2.4rem);
+    font-size: clamp(1.45rem, 2.55vw, 2rem);
+    line-height: 1.16;
     margin-bottom: 10px;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.025em;
   }
   .section-copy {
     color: var(--muted);
