@@ -50,7 +50,7 @@ const appImageName = appImageCandidates[0]
 const appImagePath = requireFile(path.join(installerDir, appImageName), 'AppImage artifact')
 const debCandidates = fs
   .readdirSync(installerDir)
-  .filter((name) => new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}(?:-linux-(?:x86_64|amd64))?\\.deb$/i`).test(name))
+  .filter((name) => new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}(?:-linux-(?:x86_64|amd64))?\\.deb$`, 'i').test(name))
 const debName = debCandidates[0]
 if (!debName) {
   fail(`Missing .deb artifact for v${version} in ${installerDir}`)
