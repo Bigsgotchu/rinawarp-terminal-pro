@@ -9,8 +9,8 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(appRoot, 'package.json'
 const version = String(packageJson.version)
 
 function releaseChannelFor(version) {
-  if (/-alpha\./.test(version)) return 'alpha'
-  if (/-beta\./.test(version)) return 'beta'
+  if (/-alpha(?:\.|-|$)/.test(version)) return 'alpha'
+  if (/-beta(?:\.|-|$)/.test(version)) return 'beta'
   return 'stable'
 }
 
