@@ -195,7 +195,7 @@ async function openAgent(page: Page): Promise<void> {
 }
 
 async function openRunsInspector(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'History' }).click()
+  await page.getByRole('button', { name: 'Run history' }).click()
   await expect(page.locator('#runs-output')).toBeVisible()
 }
 
