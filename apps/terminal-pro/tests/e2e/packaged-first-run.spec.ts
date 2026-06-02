@@ -173,10 +173,10 @@ test('packaged app runs build and persists proof after restart', async () => {
     await expect(runBlock.locator('.rw-inline-runblock-command code')).toContainText(/npm run build|pnpm run build|npm build|pnpm build|build/i, { timeout: 30_000 })
     await expect(runBlock).toContainText(/exit|receipt|proof|verification/i, { timeout: 30_000 })
 
-    await runBlock.getByRole('button', { name: 'View receipt' }).click()
-    await expect(page.getByRole('button', { name: 'Export JSON' })).toBeVisible({ timeout: 20_000 })
+    await runBlock.getByRole('button', { name: /Open proof|View proof|View receipt/i }).click()
+    await expect(page.getByRole('button', { name: /Export proof JSON|Export JSON/i })).toBeVisible({ timeout: 20_000 })
     await interceptReceiptDownload(page)
-    await page.getByRole('button', { name: 'Export JSON' }).click()
+    await page.getByRole('button', { name: /Export proof JSON|Export JSON/i }).click()
     await expect.poll(async () => page.evaluate(() => String((window as any).__rinaReceiptExportText || '')), { timeout: 10_000 }).not.toBe('')
     const exported = await page.evaluate(() => JSON.parse(String((window as any).__rinaReceiptExportText || '{}')))
 
@@ -196,11 +196,11 @@ test('packaged app runs build and persists proof after restart', async () => {
   await withPackagedApp(async ({ page }) => {
     const runs = await page.evaluate(async () => await window.rina.runsList?.(20))
     expect(runs?.ok).toBe(true)
-    await expect(page.locator('#agent-output')).toContainText(/Execution receipt|Receipt/i, { timeout: 30_000 })
+    await expect(page.locator('#agent-output')).toContainText(/Execution proof|Proof/i, { timeout: 30_000 })
     await expect(page.locator('#agent-output')).toContainText(exportedReceiptId || exportedRunId, { timeout: 30_000 })
 
     await page.getByRole('button', { name: /Run history|History/i }).first().click()
-    await expect(page.locator('#runs-output')).toContainText(/build|receipt|session/i, { timeout: 30_000 })
+    await expect(page.locator('#runs-output')).toContainText(/build|proof|session/i, { timeout: 30_000 })
   }, env)
 })
 
