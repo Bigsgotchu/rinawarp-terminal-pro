@@ -385,13 +385,11 @@ a.use-case-card:hover { border-color: var(--line-strong); color: var(--accent-2)
   padding-top: 42px;
   padding-bottom: 12px;
 }
-[data-page="home"] .hero h1,
-[data-page="download"] .hero h1 {
+[data-page="home"] .hero h1 {
   max-width: 10ch;
   font-size: clamp(2.4rem, 5vw, 4.7rem);
 }
-[data-page="home"] .hero-copy,
-[data-page="download"] .hero-copy {
+[data-page="home"] .hero-copy {
   max-width: 48ch;
   font-size: 1.02rem;
 }
@@ -670,8 +668,7 @@ footer {
   .logo-wordmark { height: 24px; }
   .hero-layout { grid-template-columns: 1fr; }
   .hero-proof-strip { grid-template-columns: 1fr; }
-  [data-page="home"] .hero,
-  [data-page="download"] .hero { padding-top: 28px; }
+  [data-page="home"] .hero { padding-top: 28px; }
 }
 
 /* Bright service-site refresh inspired by polished B12-style layouts. */
@@ -752,8 +749,7 @@ nav {
   padding: 56px 24px;
 }
 
-[data-page="home"] .hero,
-[data-page="download"] .hero {
+[data-page="home"] .hero {
   padding-top: 76px;
   padding-bottom: 46px;
 }
@@ -787,7 +783,6 @@ nav {
 }
 
 [data-page="home"] .hero h1,
-[data-page="download"] .hero h1,
 .hero h1 {
   max-width: 11.5ch;
   font-size: clamp(2.75rem, 5.8vw, 5.7rem);
@@ -795,8 +790,7 @@ nav {
 }
 
 .hero-copy,
-[data-page="home"] .hero-copy,
-[data-page="download"] .hero-copy {
+[data-page="home"] .hero-copy {
   max-width: 54ch;
   color: #4d6573;
   font-size: clamp(1rem, 1.4vw, 1.2rem);
@@ -1108,7 +1102,6 @@ footer a:hover {
   }
 
   [data-page="home"] .hero h1,
-  [data-page="download"] .hero h1,
   .hero h1 {
     max-width: 12ch;
     font-size: clamp(2.5rem, 14vw, 4rem);
@@ -1507,6 +1500,43 @@ body[data-page="home"] {
 
   .developer-grid {
     gap: 24px;
+  }
+}
+
+/* Shared page typography: keep secondary pages visually consistent. */
+body:not([data-page="home"]) .hero {
+  padding-top: 54px;
+  padding-bottom: 38px;
+}
+
+body:not([data-page="home"]) .hero h1 {
+  max-width: 14ch;
+  font-size: clamp(2.05rem, 4.4vw, 3.45rem);
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+}
+
+body:not([data-page="home"]) .hero-copy {
+  max-width: 56ch;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+body:not([data-page="home"]) .section-title {
+  font-size: clamp(1.45rem, 2.55vw, 2rem);
+  line-height: 1.16;
+}
+
+body:not([data-page="home"]) .section-copy,
+body:not([data-page="home"]) p,
+body:not([data-page="home"]) li {
+  font-size: 0.96rem;
+  line-height: 1.64;
+}
+
+@media (max-width: 760px) {
+  body:not([data-page="home"]) .hero h1 {
+    font-size: clamp(2rem, 10vw, 3rem);
   }
 }
 `;
@@ -2318,21 +2348,12 @@ Type 'string' is not assignable</pre></article>
     description: "Download RinaWarp Terminal Pro for Linux (.deb and AppImage). Verify SHA256 checksums before install. Windows and macOS are not in this public beta.",
     eyebrow: "Download",
     heading: "Download RinaWarp Terminal Pro.",
-    copy: "Verify the release first, then install. Linux is available in this public beta.",
+    copy: "Get the current Linux public beta, verify the checksum, and install Terminal Pro.",
     heroActions: `
       <a href="${PUBLIC_BETA_DEB_URL}" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a>
       <a href="${PUBLIC_BETA_APPIMAGE_URL}" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a>
     `,
-    heroSupport: "Windows and macOS are not offered until installers are published and verified.",
-    heroProof: `
-      <div class="download-trust-bar" role="group" aria-label="Release verification">
-        <div><strong>Version:</strong> ${VERSION}</div>
-        <div><strong>Release date:</strong> Public beta (${PUBLIC_BETA_TAG})</div>
-        <div><strong>SHA256:</strong> <a href="${PUBLIC_BETA_CHECKSUMS_URL}">SHASUMS256.txt</a></div>
-        <div><strong>Manifest:</strong> <a href="${PUBLIC_BETA_LATEST_JSON_URL}">latest.json</a> · <a href="${GITHUB_RELEASES_BASE}/tag/${PUBLIC_BETA_TAG}">GitHub release</a></div>
-        <div><strong>Signing:</strong> Checksum-verified Linux beta; Windows code signing and macOS notarization when those platforms ship.</div>
-      </div>
-    `,
+    heroSupport: `Version ${VERSION} · Linux only in this public beta · <a href="${PUBLIC_BETA_CHECKSUMS_URL}">Verify SHA256</a>`,
     heroMedia: `
       <div class="screenshot-frame">
         <img src="/assets/img/terminal-pro-interface.png" alt="Current RinaWarp Terminal Pro interface after install" loading="eager" decoding="async">
@@ -2346,13 +2367,10 @@ Type 'string' is not assignable</pre></article>
           <div class="platform-status-row"><span>Windows</span><span class="status-unavailable">Not in this beta</span></div>
           <div class="platform-status-row"><span>macOS</span><span class="status-unavailable">Coming after signing</span></div>
         </div>
-        <div class="panel stack" style="margin-top:20px">
-          <p><strong>Version:</strong> ${VERSION} · <strong>Released:</strong> May 29, 2026 (public beta)</p>
-          <p><strong>SHA256:</strong> <a href="${PUBLIC_BETA_CHECKSUMS_URL}">SHASUMS256.txt</a></p>
-        </div>
       </section>
       <section class="section"><div class="download-grid">
-        <article class="card platform-card"><span class="pill">Linux</span><h3>Choose your Linux path</h3><p><strong>.deb</strong> is the fastest way to get running on Debian and Ubuntu. <strong>AppImage</strong> is the better choice if you want the in-app update path later.</p><div class="link-row"><a href="${PUBLIC_BETA_DEB_URL}" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a><a href="${PUBLIC_BETA_APPIMAGE_URL}" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a><a href="${PUBLIC_BETA_LATEST_JSON_URL}" class="btn btn-secondary">View manifest</a></div><p class="note"><strong>Update note:</strong> If you install with <code>.deb</code>, update with the next <code>.deb</code>. If you want automatic in-app updates, use AppImage and keep that as your main install.</p></article>
+        <article class="card platform-card"><span class="pill">Linux .deb</span><h3>Debian and Ubuntu</h3><p>Use the <code>.deb</code> for the simplest manual install path on Debian or Ubuntu desktops. Update later by installing the next published <code>.deb</code>.</p></article>
+        <article class="card platform-card"><span class="pill">Linux AppImage</span><h3>Portable Linux install</h3><p>Use AppImage when you want a portable Linux app path and future in-app update behavior.</p></article>
         <article class="card platform-card"><span class="pill">Windows</span><h3>Not in this public beta</h3><p>The current public beta release only includes Linux installers. Windows should come back once a matching <code>.exe</code> artifact is published and verified.</p><div class="link-row"><a href="/support/" class="btn btn-secondary">Ask about Windows</a></div><p class="note"><strong>Trust note:</strong> The website should not offer a Windows download until the release actually contains a Windows installer.</p></article>
         <article class="card platform-card"><span class="pill">macOS</span><h3>Coming after signing</h3><p>macOS is not live yet because we do not want to ship a rough installer path we cannot support well.</p><div class="link-row"><a href="/support/" class="btn btn-secondary">Ask about macOS</a></div></article>
       </div></section>

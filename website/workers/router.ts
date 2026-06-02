@@ -1465,6 +1465,25 @@ const SITE_STYLES = `
     gap: 18px;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
+  .platform-status {
+    display: grid;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: #ffffff;
+    box-shadow: 0 14px 38px rgba(16, 36, 47, 0.07);
+  }
+  .platform-status-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .platform-status-row:last-child { border-bottom: 0; }
+  .status-available { color: #147d4a; font-weight: 700; }
+  .status-unavailable { color: #5f7280; font-weight: 700; }
   .platform-card h3 { margin-top: 6px; }
   .note {
     color: var(--muted);
@@ -3426,50 +3445,38 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
   const latestLinuxYmlUrl = `${BETA_RELEASE_DOWNLOAD_BASE}/latest-linux.yml`
   const hero = `
     <section class="hero">
-      <span class="eyebrow">Early Access releases</span>
+      <span class="eyebrow">Download</span>
       <h1>Download RinaWarp Terminal Pro.</h1>
-      <p class="hero-copy">Choose your installer, inspect the live manifest, and verify the release before you run it.</p>
-      <div class="trust-row">
-        <span class="trust-chip">Canonical feeds</span>
-        <span class="trust-chip">Published checksums</span>
-        <span class="trust-chip">Plain platform notes</span>
+      <p class="hero-copy">Get the current Linux public beta, verify the checksum, and install Terminal Pro.</p>
+      <div class="hero-actions">
+        <a href="${linuxDebUrl}" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a>
+        <a href="${linuxAppImageUrl}" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a>
       </div>
+      <p class="hero-support">Version ${publicBeta.version} · Linux only in this public beta · <a href="${checksumsUrl}">Verify SHA256</a></p>
     </section>
   `
 
   const content = `
     <section class="section">
-      <div class="grid three-up">
-        <article class="card">
-          <div class="kicker">Current release</div>
-          <h3>Version ${publicBeta.version}</h3>
-          <p>Public beta installers and updater metadata point at the same GitHub release assets.</p>
-        </article>
-        <article class="card">
-          <div class="kicker">Best Linux path</div>
-          <h3>Choose .deb or AppImage on purpose</h3>
-          <p>Use <code>.deb</code> for the simplest manual install path. Use AppImage if you want Linux in-app update behavior.</p>
-        </article>
-        <article class="card">
-          <div class="kicker">Trust before install</div>
-          <h3>Verify first</h3>
-          <p>If the release feed, checksum, or installer story feels inconsistent, stop and verify before running anything.</p>
-        </article>
+      <h2 class="section-title">Current release — platform availability</h2>
+      <div class="platform-status">
+        <div class="platform-status-row"><span>Linux</span><span class="status-available">Available (.deb + AppImage)</span></div>
+        <div class="platform-status-row"><span>Windows</span><span class="status-unavailable">Not in this beta</span></div>
+        <div class="platform-status-row"><span>macOS</span><span class="status-unavailable">Coming after signing</span></div>
       </div>
     </section>
 
     <section class="section">
       <div class="download-grid">
         <article class="card platform-card">
-          <span class="pill">Linux</span>
-          <h3>Choose your Linux path</h3>
-          <p><strong>.deb</strong> is the recommended Debian/Ubuntu install path and the easiest way to get running on a clean machine, but updates on that path should be treated as <strong>manual .deb installs</strong>. <strong>AppImage</strong> is the Linux path for <strong>in-app automatic updates</strong>. If you want the app to check for and stage future releases inside RinaWarp, choose AppImage and keep using that install type.</p>
-          <div class="link-row">
-            <a href="${linuxDebUrl}" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a>
-            <a href="${linuxAppImageUrl}" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_linux" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a>
-            <a href="${latestJsonUrl}" class="btn btn-secondary">View manifest</a>
-          </div>
-          <p class="note"><strong>Already on .deb?</strong> Update by installing the next <code>.deb</code>. <strong>Want automatic in-app updates?</strong> Switch to AppImage and keep that as your main install. Recommended baseline: Debian 13 / Ubuntu desktop-class systems for Early Access. Minimal server images may need additional GUI/runtime packages if you choose the AppImage path.</p>
+          <span class="pill">Linux .deb</span>
+          <h3>Debian and Ubuntu</h3>
+          <p>Use the <code>.deb</code> for the simplest manual install path on Debian or Ubuntu desktops. Update later by installing the next published <code>.deb</code>.</p>
+        </article>
+        <article class="card platform-card">
+          <span class="pill">Linux AppImage</span>
+          <h3>Portable Linux install</h3>
+          <p>Use AppImage when you want a portable Linux app path and future in-app update behavior.</p>
         </article>
         <article class="card platform-card">
           <span class="pill">Windows</span>
