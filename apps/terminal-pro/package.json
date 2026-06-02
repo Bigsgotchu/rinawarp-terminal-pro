@@ -47,7 +47,8 @@
     "dist:linux": "npm run build:electron && electron-builder --linux",
     "dist:all": "npm run build:electron && electron-builder -mwl",
     "release:metadata": "node scripts/generate-update-metadata.mjs",
-    "verify:update-artifacts": "node scripts/verify-electron-update-artifacts.mjs"
+    "verify:update-artifacts": "node scripts/verify-electron-update-artifacts.mjs",
+    "verify:signing": "node scripts/verify-signing-config.mjs"
   },
   "dependencies": {
     "@rinawarp/agent": "workspace:*",

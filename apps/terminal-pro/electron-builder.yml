@@ -60,7 +60,7 @@ linux:
   category: Development
   icon: src/assets/icon.png
 
-artifactName: "RinaWarp-Terminal-Pro-${version}.${ext}"
+artifactName: "RinaWarp-Terminal-Pro-${version}-${os}-${arch}.${ext}"
 
 publish:
   provider: generic

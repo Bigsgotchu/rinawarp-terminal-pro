@@ -13,10 +13,15 @@
 - [ ] Production env audit passes
 
 ## Signing
-- [ ] macOS signing configured
-- [ ] macOS notarization configured
-- [ ] Windows signing configured
+- [ ] `verify:signing` passes
+- [ ] Local unsigned packaged build still works
+- [ ] Release mode fails if signing credentials are missing
+- [ ] macOS hardened runtime configured
+- [ ] macOS entitlements file exists
+- [ ] macOS notarization path configured
+- [ ] Windows signing path documented
 - [ ] Linux package metadata verified
+- [ ] Artifact names are path-safe
 
 ## Runtime Safety
 - [ ] E2E hooks disabled in production
