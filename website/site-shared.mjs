@@ -53,10 +53,14 @@ export const DOCS_BODY_HTML = `
       <li><strong>AppImage:</strong> Portable build with in-app update checks when configured.</li>
       <li>Launch Terminal Pro and open your repository folder.</li>
     </ol>
-    <h3>Windows</h3>
-    <p>Not included in the current public beta. The download page will list a verified <code>.exe</code> only when it ships — do not install unsigned builds from unofficial mirrors.</p>
-    <h3>macOS</h3>
-    <p>Coming after signing and notarization. Until then, use Linux for Fix Project or contact <a href="/support/">support</a> for rollout timing.</p>
+    <h3>macOS/Windows (unsigned beta preview)</h3>
+    <p><strong>Important:</strong> These beta builds may be unsigned and require OS security bypass steps. Production builds will be signed and notarized.</p>
+    <ul class="signal-list">
+      <li>Download the unsigned .dmg or .exe installer from the <a href="/download/">download page</a>.</li>
+      <li><strong>macOS:</strong> Right-click the app and select "Open" to bypass Gatekeeper on first launch.</li>
+      <li><strong>Windows:</strong> Click "More info" → "Run anyway" if SmartScreen blocks the installer.</li>
+      <li>These builds are for validation testing only — production builds will be signed.</li>
+    </ul>
     <h3>Requirements</h3>
     <ul class="signal-list">
       <li>4 GB RAM minimum; 8 GB+ recommended for large monorepos</li>

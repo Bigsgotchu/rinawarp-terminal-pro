@@ -52,6 +52,8 @@ win:
   target:
     - nsis
   icon: src/assets/icon.ico
+  # Conditional code signing - only sign if CSC_LINK points to a valid file
+  # For unsigned builds, leave CSC_LINK unset or set to empty string
 
 linux:
   target:

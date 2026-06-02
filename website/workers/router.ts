@@ -1485,6 +1485,7 @@ const SITE_STYLES = `
   .platform-status-row:last-child { border-bottom: 0; }
   .status-available { color: #147d4a; font-weight: 700; }
   .status-unavailable { color: #5f7280; font-weight: 700; }
+  .status-beta { color: #c27100; font-weight: 700; }
   .platform-card h3 { margin-top: 6px; }
   .note {
     color: var(--muted);
@@ -3448,12 +3449,12 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
     <section class="hero">
       <span class="eyebrow">Download</span>
       <h1>Download RinaWarp Terminal Pro.</h1>
-      <p class="hero-copy">Get the current Linux public beta, verify the checksum, and install Terminal Pro.</p>
+      <p class="hero-copy">Get the current release for Linux, verify the checksum, and install Terminal Pro. macOS and Windows beta previews are also available (unsigned builds pending signing).</p>
       <div class="hero-actions">
         <a href="${linuxDebUrl}" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a>
         <a href="${linuxAppImageUrl}" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a>
       </div>
-      <p class="hero-support">Version ${publicBeta.version} · Linux only in this public beta · <a href="${checksumsUrl}">Verify SHA256</a></p>
+      <p class="hero-support">Version ${publicBeta.version} · Linux production candidate · macOS/Windows unsigned beta preview · <a href="${checksumsUrl}">Verify SHA256</a></p>
     </section>
   `
 
@@ -3462,8 +3463,8 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
       <h2 class="section-title">Current release — platform availability</h2>
       <div class="platform-status">
         <div class="platform-status-row"><span>Linux</span><span class="status-available">Available (.deb + AppImage)</span></div>
-        <div class="platform-status-row"><span>Windows</span><span class="status-unavailable">Not in this beta</span></div>
-        <div class="platform-status-row"><span>macOS</span><span class="status-unavailable">Coming after signing</span></div>
+        <div class="platform-status-row"><span>Windows</span><span class="status-beta">Unsigned beta preview — signing pending</span></div>
+        <div class="platform-status-row"><span>macOS</span><span class="status-beta">Unsigned beta preview — signing pending</span></div>
       </div>
     </section>
 
@@ -3481,19 +3482,26 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
         </article>
         <article class="card platform-card">
           <span class="pill">Windows</span>
-          <h3>Not in this public beta</h3>
-          <p>The current public beta release only includes Linux installers. Windows should come back once a matching <code>.exe</code> artifact is published and verified.</p>
+          <h3>Unsigned beta preview — signing pending</h3>
+          <p>Beta builds may be unsigned and require OS security bypass steps. Production builds will be signed and notarized where applicable.</p>
+          <ul class="signal-list">
+            <li>If SmartScreen blocks the installer, click "More info" → "Run anyway"</li>
+            <li>These builds are for validation testing only</li>
+          </ul>
           <div class="link-row">
-            <a href="/support/" class="btn btn-secondary">Ask about Windows</a>
+            <a href="/support/" class="btn btn-secondary">Windows download</a>
           </div>
-          <p class="note"><strong>Plain trust note:</strong> The website should not offer a Windows download until the release actually contains a Windows installer.</p>
         </article>
         <article class="card platform-card">
           <span class="pill">macOS</span>
-          <h3>Coming after signing</h3>
-          <p>macOS signing is not enabled yet. We would rather say that plainly than ship a rough installer path we cannot support.</p>
+          <h3>Unsigned beta preview — signing pending</h3>
+          <p>Beta builds may be unsigned and require OS security bypass steps. Production builds will be signed and notarized where applicable.</p>
+          <ul class="signal-list">
+            <li>If Gatekeeper blocks, right-click the app and select "Open"</li>
+            <li>These builds are for validation testing only</li>
+          </ul>
           <div class="link-row">
-            <a href="/support" class="btn btn-secondary">Ask about macOS</a>
+            <a href="/support" class="btn btn-secondary">macOS download</a>
           </div>
         </article>
       </div>

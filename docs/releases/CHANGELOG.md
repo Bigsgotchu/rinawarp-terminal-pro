@@ -1,5 +1,15 @@
 ## Unreleased
 
+### 🚀 Features
+- Added macOS packaging with DMG and ZIP targets
+- Added Windows installer packaging with NSIS
+- Implemented macOS notarization support via Apple ID
+- Added code signing configuration for macOS and Windows
+- Created signing verification script (`scripts/verify-signing-config.mjs`)
+
+### 🐛 Fixes
+None
+
 ### 🧩 Hardening
 - stale references removed from active UI/script surfaces (legacy `/team` and `/feedback` links, dead npm script targets)
 - smoke contracts aligned to current architecture (`smoke:pages` scoped to Pages preview behavior, release feed checks explicitly gated by `REQUIRE_WINDOWS_PATHS`)
