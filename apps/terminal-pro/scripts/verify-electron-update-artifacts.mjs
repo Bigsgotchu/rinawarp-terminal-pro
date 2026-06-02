@@ -52,7 +52,10 @@ const debCandidates = fs
   .readdirSync(installerDir)
   .filter((name) => new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}(?:-linux-(?:x86_64|amd64))?\\.deb$/i`).test(name))
 const debName = debCandidates[0]
-if (debName) requireFile(path.join(installerDir, debName), '.deb artifact')
+if (!debName) {
+  fail(`Missing .deb artifact for v${version} in ${installerDir}`)
+}
+requireFile(path.join(installerDir, debName), '.deb artifact')
 
 const latestLinuxPath = requireFile(path.join(installerDir, 'latest-linux.yml'), 'latest-linux.yml')
 const latestLinux = fs.readFileSync(latestLinuxPath, 'utf8')

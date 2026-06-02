@@ -4117,6 +4117,7 @@ function renderAccount(authToken: string | null): Response {
               <article class="card"><div class="kicker">Subscription</div><h3>No paid subscription found</h3></article>
             </div>
             <div class="link-row" style="margin-top:16px;">
+              <a href="/login" id="account-return-login-link" class="btn btn-primary" style="display:none;">Continue sign-in</a>
               <a href="#restore" class="btn btn-primary">Restore purchase</a>
               <a href="/download/" class="btn btn-secondary">Download Terminal Pro</a>
               <a href="/pricing/" class="btn btn-secondary">Upgrade to Pro</a>
@@ -4188,6 +4189,7 @@ function renderAccount(authToken: string | null): Response {
     const restoreCopy = document.getElementById('restore-copy');
     const restoreForm = document.getElementById('restore-form');
     const restoreStatus = document.getElementById('restore-status');
+    const returnLoginLink = document.getElementById('account-return-login-link');
     const referralCard = document.getElementById('account-referral');
     const referralCode = document.getElementById('account-referral-code');
     const referralInput = document.getElementById('account-invite-link');
@@ -4277,6 +4279,10 @@ function renderAccount(authToken: string | null): Response {
     const effectiveReturnTo = returnTo || readPendingReturnTarget();
     if (effectiveReturnTo) {
       rememberReturnTarget(effectiveReturnTo);
+      if (returnLoginLink) {
+        returnLoginLink.href = '/login?return_to=' + encodeURIComponent(effectiveReturnTo);
+        returnLoginLink.style.display = '';
+      }
     }
 
     const storedToken = localStorage.getItem('auth_token');

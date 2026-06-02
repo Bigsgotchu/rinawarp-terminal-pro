@@ -1,9 +1,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-const root = process.cwd()
-const builderConfig = path.join(root, 'apps/terminal-pro/electron-builder.yml')
-const afterSign = path.join(root, 'apps/terminal-pro/build/afterSign.cjs')
+const appRoot = path.resolve(import.meta.dirname, '..')
+const builderConfig = path.join(appRoot, 'electron-builder.yml')
+const afterSign = path.join(appRoot, 'build/afterSign.cjs')
 
 const requiredFiles = [builderConfig, afterSign]
 
