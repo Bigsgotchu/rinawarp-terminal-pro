@@ -33,7 +33,7 @@ const PUBLIC_BETA_CHECKSUMS_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/SHASUMS256.txt`;
 const PUBLIC_BETA_LATEST_JSON_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest.json`;
 const PUBLIC_BETA_LATEST_YML_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest.yml`;
 const PUBLIC_BETA_LATEST_LINUX_YML_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest-linux.yml`;
-const ASSET_VERSION = "20260602-b12-light-home";
+const ASSET_VERSION = "20260602-terminal-screenshots";
 const GA_MEASUREMENT_ID = "G-YGX1R0MEB6";
 const SCREENSHOT_SOURCES = [
   ["agent-empty-state.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "agent-empty-state.png")],
@@ -41,6 +41,8 @@ const SCREENSHOT_SOURCES = [
   ["diagnostics-inspector.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "diagnostics-inspector.png")],
   ["settings-memory.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "settings-memory.png")],
   ["proof-after-fixed-project.png", path.join(repoRoot, "output", "playwright", "rinawarp-live-after-status.png")],
+  ["terminal-pro-interface.png", path.join(repoRoot, "website", "assets", "img", "terminal-pro-interface.png")],
+  ["terminal-pro-agent-thread.png", path.join(repoRoot, "website", "assets", "img", "terminal-pro-agent-thread.png")],
 ];
 const BRAND_MARK_PATH = path.join(repoRoot, "apps", "terminal-pro", "src", "assets", "rinawarp-mark.svg");
 const BRAND_LOGO_PATH = path.join(repoRoot, "apps", "terminal-pro", "src", "assets", "rinawarp-logo.png");
@@ -2187,7 +2189,7 @@ const pages = [
     `,
     heroMedia: `
       <div class="screenshot-frame hero-product-shot">
-        <img src="/assets/img/proof-after-fixed-project.png" alt="RinaWarp Terminal Pro interface preview" width="1356" height="697" loading="eager" decoding="async">
+        <img src="/assets/img/terminal-pro-interface.png" alt="Current RinaWarp Terminal Pro interface" width="1400" height="768" loading="eager" decoding="async">
       </div>
     `,
     content: `
@@ -2203,7 +2205,7 @@ const pages = [
       </section>
       <section class="section split-section">
         <div class="screenshot-frame">
-          <img src="/assets/img/proof-after-fixed-project.png" alt="RinaWarp workflow preview" width="1356" height="697" loading="lazy" decoding="async">
+          <img src="/assets/img/terminal-pro-agent-thread.png" alt="RinaWarp Agent Thread with current quick actions" width="1400" height="768" loading="lazy" decoding="async">
         </div>
         <div class="step-list">
           <h2 class="section-title">Three Steps</h2>
@@ -2251,7 +2253,7 @@ Type 'string' is not assignable</pre></article>
           </ul>
         </div>
         <div class="screenshot-frame">
-          <img src="/assets/img/proof-after-fixed-project.png" alt="Terminal Pro interface showing verification output" width="1356" height="697" loading="lazy" decoding="async">
+          <img src="/assets/img/terminal-pro-agent-thread.png" alt="Current Terminal Pro Agent Thread interface" width="1400" height="768" loading="lazy" decoding="async">
         </div>
       </section>
       <section class="section final-cta">
@@ -2328,7 +2330,7 @@ Type 'string' is not assignable</pre></article>
     `,
     heroMedia: `
       <div class="screenshot-frame">
-        <img src="/assets/img/proof-after-fixed-project.png" alt="Verified repair in Terminal Pro after install" loading="eager" decoding="async">
+        <img src="/assets/img/terminal-pro-interface.png" alt="Current RinaWarp Terminal Pro interface after install" loading="eager" decoding="async">
       </div>
     `,
     content: `

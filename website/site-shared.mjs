@@ -76,7 +76,7 @@ export const DOCS_BODY_HTML = `
       <li><strong>Verify in terminal</strong> — Confirm <code>npm run build</code>, tests, or boot checks show exit code 0.</li>
     </ol>
     <div class="screenshot-frame">
-      <img src="/assets/img/proof-after-fixed-project.png" alt="Terminal Pro after a verified repair showing build and test success" width="1356" height="697" loading="lazy" decoding="async">
+      <img src="/assets/img/terminal-pro-agent-thread.png" alt="Current Terminal Pro Agent Thread interface" width="1400" height="768" loading="lazy" decoding="async">
     </div>
     <p class="section-copy">If verification fails, read the failing command output and run Fix Project again with a narrower scope or after fixing network/registry access.</p>
   </article>
@@ -213,7 +213,7 @@ export function buildCaseStudyHtml(study) {
     </section>
     <section class="section">
       <div class="screenshot-frame">
-        <img src="/assets/img/proof-after-fixed-project.png" alt="Verified repair output in Terminal Pro" loading="lazy" decoding="async">
+        <img src="/assets/img/terminal-pro-agent-thread.png" alt="Current Terminal Pro Agent Thread interface" loading="lazy" decoding="async">
       </div>
       <p class="section-copy">Early Access example — identifiers anonymized. <a href="${study.relatedSeo}">Read the fix guide</a> for this problem type.</p>
       <div class="cta-row">

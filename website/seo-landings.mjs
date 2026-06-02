@@ -390,7 +390,7 @@ export function buildSeoLandingPageHtml(page) {
         </article>
       </div>
       <div class="screenshot-frame" style="margin-top:20px">
-        <img src="/assets/img/proof-after-fixed-project.png" alt="RinaWarp verification screen after a successful repair" loading="lazy" decoding="async">
+        <img src="/assets/img/terminal-pro-agent-thread.png" alt="Current RinaWarp Terminal Pro Agent Thread interface" loading="lazy" decoding="async">
       </div>
     </section>
 
