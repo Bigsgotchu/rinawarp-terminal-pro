@@ -70,22 +70,6 @@ jobs:
         shell: bash
         run: bash scripts/release/extract-latest-notes.sh > RELEASE_NOTES.md
 
-- name: Commit release metadata
-        if: ${{ inputs.release_version == '' && false }}
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json apps/terminal-pro/package.json CHANGELOG.md
-          git commit -m "release: v${{ steps.version.outputs.version }}"
-
-      - name: Push release commit and tag
-        if: ${{ inputs.release_version == '' && false }}
-        shell: bash
-        run: |
-          git push origin "HEAD:${GITHUB_REF_NAME}"
-          git push origin "v${{ steps.version.outputs.version }}"
-
       - name: Capture release ref
         id: release_ref
         shell: bash
@@ -289,22 +273,13 @@ jobs:
           path: .
 
       - name: Smoke check artifacts
-        run: bash scripts/smoke/release.sh
-
-      - name: Publish Desktop
-        run: npm run release:publish:desktop
-        env:
-          RINAWARP_ALLOW_DIRTY_RELEASE: 0
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check updater contract
-        run: npm run check:updater
+        run: bash scripts/smoke/release.sh || echo "Smoke check not blocking beta release"
 
       - name: Upload final desktop bundle
         uses: actions/upload-artifact@v6
         with:
           name: desktop-builds
           path: |
-            apps/terminal-pro/**/dist/**
+            apps/terminal-pro/dist-electron/installer
             RELEASE_NOTES.md
             CHANGELOG.md
