@@ -39,12 +39,22 @@ function sha512Base64(filePath) {
   return createHash('sha512').update(fs.readFileSync(filePath)).digest('base64')
 }
 
-const appImageName = `RinaWarp-Terminal-Pro-${version}.AppImage`
-const debName = `RinaWarp-Terminal-Pro-${version}.deb`
-const latestLinuxPath = requireFile(path.join(installerDir, 'latest-linux.yml'), 'latest-linux.yml')
+const escapedVersion = String(version).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+const appImageCandidates = fs
+  .readdirSync(installerDir)
+  .filter((name) => new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}(?:-linux-x86_64|-linux-amd64)?\\.AppImage$`, 'i').test(name))
+if (appImageCandidates.length === 0) {
+  fail(`Missing AppImage for v${version} in ${installerDir}`)
+}
+const appImageName = appImageCandidates[0]
 const appImagePath = requireFile(path.join(installerDir, appImageName), 'AppImage artifact')
-requireFile(path.join(installerDir, debName), '.deb artifact')
+const debCandidates = fs
+  .readdirSync(installerDir)
+  .filter((name) => new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}(?:-linux-(?:x86_64|amd64))?\\.deb$/i`).test(name))
+const debName = debCandidates[0]
+if (debName) requireFile(path.join(installerDir, debName), '.deb artifact')
 
+const latestLinuxPath = requireFile(path.join(installerDir, 'latest-linux.yml'), 'latest-linux.yml')
 const latestLinux = fs.readFileSync(latestLinuxPath, 'utf8')
 const metadataVersion = parseScalar(latestLinux, 'version')
 if (metadataVersion !== version) {

@@ -36,9 +36,11 @@ async function hashArtifact(filePath, algorithm, encoding) {
 function getArtifactPatterns(version) {
   const escapedVersion = version.replaceAll('.', '\\.')
   return {
-    linux: [new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}\\.AppImage$`, 'i')],
-    deb: [new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}\\.deb$`, 'i')],
-    windows: [new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}\\.exe$`, 'i')],
+    linux: [
+      new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}(?:-linux-x86_64|-linux-amd64)?\\.AppImage$`, 'i'),
+    ],
+    deb: [new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}(?:-linux-(?:x86_64|amd64))?\\.deb$`, 'i')],
+    windows: [new RegExp(`^RinaWarp-Terminal-Pro-${escapedVersion}(?:-win(?:dows)?(?:-x64|-ia32))?\\.exe$`, 'i')],
   }
 }
 
