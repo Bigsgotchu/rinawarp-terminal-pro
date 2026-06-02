@@ -1,11 +1,11 @@
 import type { StarterPromptViewModel } from './view-models/suggestedActionsViewModel.js'
 
-/** Launch empty state: three chips only, no tier/meta clutter. */
+/** Launch empty state: verification-first chips only, no tier/meta clutter. */
 export const EMPTY_STATE_PROMPTS: StarterPromptViewModel[] = [
   {
     intent: 'fix',
-    label: 'Fix my project',
-    prompt: 'Figure out what is broken and fix the safest parts first.',
+    label: 'Plan a fix',
+    prompt: 'Diagnose the project and propose a safe fix plan. Do not edit files without approval.',
     hint: '',
     tone: 'available',
   },

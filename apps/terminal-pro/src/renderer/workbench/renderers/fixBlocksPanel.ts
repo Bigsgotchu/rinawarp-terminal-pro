@@ -671,8 +671,8 @@ function renderAgentHistory(fix: FixBlockModel): HTMLElement {
 
 function renderAgentInputActions(fix: FixBlockModel): HTMLElement {
   const projectPrompt = fix.cwd && fix.cwd !== '.'
-    ? 'Figure out what is broken and fix the safest parts first.'
-    : 'Help me fix this project.'
+    ? 'Diagnose the project and propose a safe fix plan. Do not edit files without approval.'
+    : 'Diagnose this project and propose a safe fix plan. Do not edit files without approval.'
 
   return el(
     'div',
@@ -688,11 +688,11 @@ function renderAgentInputActions(fix: FixBlockModel): HTMLElement {
           dataset: {
             agentPrompt: projectPrompt,
             intentKey: 'fix',
-            tierHint: 'Start here',
+            tierHint: 'Review first',
             tierTone: 'available',
           },
         },
-        'Fix my project'
+        'Plan a fix'
       ),
       el(
         'button',

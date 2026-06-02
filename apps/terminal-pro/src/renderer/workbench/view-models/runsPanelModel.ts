@@ -159,7 +159,7 @@ export function buildRunsRunModel(state: WorkbenchState, run: RunModel): RunsRun
       ...(isInterrupted ? [{ label: recovery.resumeLabel, className: actionClass('primary'), dataset: { runResume: run.id } }] : []),
       { label: recovery.rerunLabel, className: actionClass(isInterrupted ? 'secondary' : 'primary'), disabled: !hasCommand, dataset: { runRerun: run.id } },
       ...(run.status === 'failed' || run.status === 'interrupted'
-        ? [{ label: 'Fix & retry', className: actionClass('attention'), disabled: !hasCommand, dataset: { runFix: run.id } }]
+        ? [{ label: 'Plan fix & retry', className: actionClass('attention'), disabled: !hasCommand, dataset: { runFix: run.id } }]
         : []),
       { label: recovery.receiptLabel, className: actionClass('secondary'), dataset: { runReveal: receiptLabel } },
       { label: artifactSummary ? 'Refresh artifacts' : 'Load artifacts', className: actionClass('secondary'), dataset: { runArtifacts: run.id } },

@@ -7,6 +7,12 @@ type ReceiptExportPayload = {
   receiptId: string
   timestamp: string | null
   intent: string
+  command: string
+  exitCode: number | null
+  verification: {
+    ok: boolean | null
+    results: string[]
+  }
   proofBlockIds: string[]
   verificationResult: {
     ok: boolean | null
@@ -61,6 +67,13 @@ function buildCurrentReceiptExport(store: WorkbenchStore): ReceiptExportPayload 
   const runId = pickReceiptRunId(source, store)
   const runtimeReceipt = runId ? state.executionReceiptsByRunId[runId] : null
   const command = asRecord(source.command)
+  const commandText = String(command.input || command.command || source.commandText || source.intent || '').trim()
+  const exitCode =
+    typeof command.exitCode === 'number'
+      ? command.exitCode
+      : typeof runtimeReceipt?.exitCode === 'number'
+        ? runtimeReceipt.exitCode
+        : null
   const proofBlockIds = Object.values(state.runBlocksById)
     .filter((block) => {
       const receiptMatch = block.receipts.some((item) => item.id === receiptId)
@@ -81,15 +94,16 @@ function buildCurrentReceiptExport(store: WorkbenchStore): ReceiptExportPayload 
       String(command.endedAt || command.startedAt || source.completedAt || source.startedAt || source.session?.updatedAt || '').trim() ||
       null,
     intent: String(source.intent || source.workflow || source.kind || command.input || 'unknown'),
+    command: commandText || String(source.intent || source.workflow || source.kind || 'unknown'),
+    exitCode,
+    verification: {
+      ok: typeof command.ok === 'boolean' ? command.ok : typeof exitCode === 'number' ? exitCode === 0 : null,
+      results: verificationResults,
+    },
     proofBlockIds,
     verificationResult: {
-      ok: typeof command.ok === 'boolean' ? command.ok : typeof runtimeReceipt?.exitCode === 'number' ? runtimeReceipt.exitCode === 0 : null,
-      exitCode:
-        typeof command.exitCode === 'number'
-          ? command.exitCode
-          : typeof runtimeReceipt?.exitCode === 'number'
-            ? runtimeReceipt.exitCode
-            : null,
+      ok: typeof command.ok === 'boolean' ? command.ok : typeof exitCode === 'number' ? exitCode === 0 : null,
+      exitCode,
       results: verificationResults,
     },
     runtimeReceipt: receipt,

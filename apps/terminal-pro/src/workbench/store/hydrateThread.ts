@@ -1,4 +1,4 @@
-import { loadExecutionReceipt } from '../runBlocks/receiptPersistence.js'
+import { listPersistedReceiptRunIds, loadExecutionReceipt } from '../runBlocks/receiptPersistence.js'
 import type { ExecutionReceipt, RunBlock } from '../runBlocks/types.js'
 import { buildMemorySurfaceText } from '../runBlocks/executionSummary.js'
 import type { ThreadCognitionLine, ThreadItem } from './threadTypes.js'
@@ -120,6 +120,14 @@ export function hydrateCanonicalThread(state: ThreadWorkbenchSlice, workspaceKey
     if (seenRunIds.has(runId)) continue
     seenRunIds.add(runId)
     appendRunArtifacts(items, runId, workspaceKey, state, Date.now())
+  }
+
+  for (const runId of listPersistedReceiptRunIds()) {
+    if (seenRunIds.has(runId)) continue
+    const receipt = loadExecutionReceipt(runId)
+    if (!receipt) continue
+    seenRunIds.add(runId)
+    items.push(receiptItem(receipt, workspaceKey, Date.now()))
   }
 
   return items.slice(-MAX_THREAD_ITEMS)

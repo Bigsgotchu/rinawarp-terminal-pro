@@ -112,7 +112,7 @@ export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
               <div class="rw-agent-composer-actions">
                 <button class="rw-agent-tool-btn" type="button" data-agent-prompt="Run tests" data-intent-key="test">Run tests</button>
                 <button class="rw-agent-tool-btn" type="button" data-agent-prompt="Build project" data-intent-key="build">Build project</button>
-                <button class="rw-agent-tool-btn" type="button" data-agent-prompt="Fix project" data-intent-key="fix">Fix project</button>
+                <button class="rw-agent-tool-btn" type="button" data-agent-prompt="Diagnose the project and propose a safe fix plan. Do not edit files without approval." data-intent-key="fix">Plan a fix</button>
                 <button id="agent-send" class="rw-agent-send" type="button" data-testid="rina-chat-send">Send</button>
               </div>
             </div>

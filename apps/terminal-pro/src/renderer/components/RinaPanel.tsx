@@ -171,7 +171,7 @@ function runtimeEventLabel(event: RuntimeEvent): string {
 }
 
 const EXAMPLE_PROMPTS = [
-  'Fix my project',
+  'Plan a fix',
   'Run tests',
   "What's wrong with my system?",
 ]

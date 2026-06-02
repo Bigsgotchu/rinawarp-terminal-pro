@@ -1,6 +1,7 @@
 import { WorkbenchStore, type WorkbenchState } from '../workbench/store.js'
 import { deriveDeploymentState } from '../workbench/deploymentState.js'
 import { EMPTY_EXECUTION_METRICS } from '../../workbench/store/executionMetrics.js'
+import { listPersistedReceiptRunIds, loadExecutionReceipt } from '../../workbench/runBlocks/receiptPersistence.js'
 
 const WORKBENCH_STORAGE_KEY = 'rinawarp.workbench.state.v1'
 
@@ -52,6 +53,31 @@ export function createWorkbenchStore(initialWorkspaceKey?: string): WorkbenchSto
     getSnapshotAnalyticsByWorkspace(snapshot)[activeWorkspaceKey] ||
     (typeof snapshot?.workspaceKey === 'string' && snapshot.workspaceKey === activeWorkspaceKey ? snapshot.analytics : undefined) ||
     snapshot?.analytics
+  const persistedRuns: WorkbenchState['runs'] = listPersistedReceiptRunIds()
+    .map((runId) => loadExecutionReceipt(runId))
+    .filter((receipt): receipt is NonNullable<ReturnType<typeof loadExecutionReceipt>> => Boolean(receipt))
+    .map((receipt) => {
+      const startedAt = new Date(receipt.startedAt).toISOString()
+      const endedAt = new Date(receipt.completedAt).toISOString()
+      const command = receipt.commandsExecuted[0] || receipt.actionsPerformed[0] || 'Persisted receipt'
+      return {
+        id: receipt.runId,
+        sessionId: receipt.transactionId || receipt.runId,
+        title: command,
+        command,
+        cwd: '',
+        status: receipt.exitCode === 0 && !receipt.rollbackOccurred ? 'ok' : 'failed',
+        startedAt,
+        updatedAt: endedAt,
+        endedAt,
+        exitCode: receipt.exitCode,
+        commandCount: Math.max(1, receipt.commandsExecuted.length),
+        failedCount: receipt.exitCode === 0 && !receipt.rollbackOccurred ? 0 : 1,
+        latestReceiptId: receipt.runId,
+        source: 'renderer-execution-receipt',
+        restored: true,
+      }
+    })
 
   const initialState: WorkbenchState = {
     activeTab: 'agent',
@@ -88,7 +114,7 @@ export function createWorkbenchStore(initialWorkspaceKey?: string): WorkbenchSto
     chat: [],
     executionTrace: { blocks: [] },
     fixBlocks: [],
-    runs: [],
+    runs: persistedRuns,
     thread: [],
     runBlocksById: {},
     executionReceiptsByRunId: {},
