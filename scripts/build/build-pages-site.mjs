@@ -8,7 +8,6 @@ import {
   CASE_STUDY_PAGES,
   DOCS_BODY_HTML,
   HERO_REPAIR_REPORT,
-  PRICING_ROI_HTML,
   buildCaseStudyHtml,
 } from "../../website/site-shared.mjs";
 
@@ -2291,16 +2290,15 @@ Type 'string' is not assignable</pre></article>
     copy: "Try it free. If it fixes your project, upgrade. One fix can save hours, so the next step should feel obvious.",
     content: `
       <section class="section"><div class="pricing-grid">
-        <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Try the workflow on a broken project first.</p><ul class="feature-list"><li>Fix Project workflow</li><li>Visible repair steps</li><li>Daily limits apply</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Download Free</a></article>
+        <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Try the workflow on a broken project first.</p><ul class="feature-list"><li>Limited Fix Project runs</li><li>Visible repair steps</li><li>Daily limits apply</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Start free</a></article>
          <article class="card pricing-card featured"><span class="pill">Pro</span><div class="price">$15 <span>/ month</span></div><p>Unlimited fixes with proof-backed verification.</p><ul class="feature-list"><li>Unlimited Fix Project runs</li><li>High-impact fixes with approval</li><li>Stronger repair coverage</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for checkout"><div class="link-row"><button class="btn btn-primary" data-checkout-tier="pro" type="button">Start Pro — $15/mo</button><button class="btn btn-secondary" data-checkout-tier="fix" type="button">Buy One Fix — $3</button></div><p id="checkout-status" class="status-message" aria-live="polite">Pro is $15/month. One Fix is $3. Checkout opens in Stripe.</p></div></article>
          <article class="card pricing-card"><span class="pill">Team</span><div class="price">$40 <span>/ user / month</span></div><p>Seat-based checkout for teams.</p><ul class="feature-list"><li>Everything in Pro</li><li>Team seats</li><li>Priority support</li></ul><button class="btn btn-secondary" data-checkout-tier="team" type="button">Start Team — $40/user/mo</button></article>
       </div></section>
       <section class="section"><div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Feature</th><th>Free</th><th>Pro</th><th>Team</th></tr></thead><tbody><tr><td>Fix Project</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Unlimited repairs</td><td class="mark-no">—</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Approval workflow</td><td class="mark-no">—</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Team access</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td></tr><tr><td>Priority support</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td></tr></tbody></table></div></section>
-      ${PRICING_ROI_HTML}
       <section class="section"><h2 class="section-title">Quick answers before you buy</h2><p class="section-copy">The practical questions people ask right before paying.</p><div class="faq-grid">
-        <article class="faq-item"><h3>What happens after checkout?</h3><p>Checkout returns you to RinaWarp so you can download the app, restore access if needed, and start fixing projects immediately.</p></article>
-        <article class="faq-item"><h3>How does restore work?</h3><p>Paid access is tied to your billing email. If a device loses entitlement state, use the restore path in the app or account page first.</p></article>
-        <article class="faq-item"><h3>Can I cancel later?</h3><p>Yes. Billing is handled through Stripe, and the billing portal is the place to cancel, change plans, or update payment details.</p></article>
+        <article class="faq-item"><h3>Which plan should I choose?</h3><p>Start with Free if you are evaluating one project. Choose Pro for ongoing individual repair work. Choose Team when multiple developers need seats.</p></article>
+        <article class="faq-item"><h3>Is there a one-time option?</h3><p>Yes. One Fix is a single paid repair attempt without a subscription, meant for one-off blocked projects.</p></article>
+        <article class="faq-item"><h3>Can I cancel later?</h3><p>Yes. Subscription billing is handled through Stripe and cancellation is available after purchase.</p></article>
         <article class="faq-item"><h3>What does the one-fix option do?</h3><p>It gives you a single paid repair attempt without a subscription. It is meant for one-off fixes, not ongoing usage.</p></article>
       </div></section>
     `
@@ -2351,7 +2349,9 @@ Type 'string' is not assignable</pre></article>
         <article class="card platform-card"><span class="pill">Windows</span><h3>Not in this public beta</h3><p>The current public beta release only includes Linux installers. Windows should come back once a matching <code>.exe</code> artifact is published and verified.</p><div class="link-row"><a href="/support/" class="btn btn-secondary">Ask about Windows</a></div><p class="note"><strong>Trust note:</strong> The website should not offer a Windows download until the release actually contains a Windows installer.</p></article>
         <article class="card platform-card"><span class="pill">macOS</span><h3>Coming after signing</h3><p>macOS is not live yet because we do not want to ship a rough installer path we cannot support well.</p><div class="link-row"><a href="/support/" class="btn btn-secondary">Ask about macOS</a></div></article>
       </div></section>
-      <section class="section"><div class="panel stack"><div class="card trust-note"><h3>Verification matters more than vibes</h3><p>Checksums, release feeds, and honest platform notes are the trust surface on the website. If anything about the download feels inconsistent, stop and verify before running the installer.</p></div><h2 class="section-title">How to verify your download</h2><div class="link-row"><a href="${PUBLIC_BETA_CHECKSUMS_URL}" class="btn btn-secondary">Download SHASUMS256.txt</a><a href="${PUBLIC_BETA_LATEST_JSON_URL}" class="btn btn-secondary">Open latest.json</a><a href="${PUBLIC_BETA_LATEST_YML_URL}" class="btn btn-secondary">Open latest.yml</a><a href="${PUBLIC_BETA_LATEST_LINUX_YML_URL}" class="btn btn-secondary">Open latest-linux.yml</a></div><p class="section-copy">The public beta updater feed lives on the GitHub release for <code>${PUBLIC_BETA_TAG}</code>. If the checksum does not match, do not run the file. Reach out to support instead.</p></div></section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">System requirements</h2><ul class="signal-list"><li>Linux desktop environment for this public beta</li><li>Debian/Ubuntu for the <code>.deb</code> installer, or AppImage-capable Linux desktop</li><li>4 GB RAM minimum; 8 GB+ recommended for large repositories</li><li>Git and your project package manager available in PATH</li></ul></div></section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">Install instructions</h2><ol class="signal-list"><li>Download the Linux <code>.deb</code> or AppImage.</li><li>Open <a href="${PUBLIC_BETA_CHECKSUMS_URL}">SHASUMS256.txt</a> and verify the file hash.</li><li>Install the <code>.deb</code> on Debian/Ubuntu, or mark the AppImage executable and run it.</li><li>Open your repository folder in Terminal Pro.</li></ol></div></section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">Checksums and release metadata</h2><div class="link-row"><a href="${PUBLIC_BETA_CHECKSUMS_URL}" class="btn btn-secondary">Download SHASUMS256.txt</a><a href="${PUBLIC_BETA_LATEST_JSON_URL}" class="btn btn-secondary">Open latest.json</a><a href="${PUBLIC_BETA_LATEST_YML_URL}" class="btn btn-secondary">Open latest.yml</a><a href="${PUBLIC_BETA_LATEST_LINUX_YML_URL}" class="btn btn-secondary">Open latest-linux.yml</a></div><p class="section-copy">If the checksum does not match, do not run the installer. Contact support before continuing.</p></div></section>
     `
   },
   {
@@ -2517,31 +2517,30 @@ Type 'string' is not assignable</pre></article>
      route: "support",
     path: "/support",
     page: "feedback",
-    title: "RinaWarp Support | Help, Feedback, and Contact",
-    description: "Contact RinaWarp for product support, billing help, restore issues, feedback, launch questions, and capability requests.",
-    eyebrow: "Support & feedback",
-    heading: "Tell us what happened.",
-    copy: "Billing, technical, and critical install issues — plus a feedback form when something blocked you.",
+    title: "RinaWarp Support | Contact, FAQ, Known Issues, and Billing Help",
+    description: "Contact RinaWarp for product support, billing help, known issues, and troubleshooting guidance.",
+    eyebrow: "Support",
+    heading: "Get help with RinaWarp.",
+    copy: "Contact, FAQ, known issues, and billing help in one support surface.",
     content: `
       <section class="section">
-        <h2 class="section-title">Response times</h2>
+        <h2 class="section-title">Contact</h2>
         <div class="grid three-up">
-          <article class="card"><h3>Billing</h3><p><strong>Within 24 hours</strong> (business days)</p></article>
-          <article class="card"><h3>Technical</h3><p><strong>1–2 business days</strong></p></article>
-          <article class="card"><h3>Critical</h3><p><strong>Same business day</strong> when possible</p></article>
+          <article class="card"><h3>Billing</h3><p>Email <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>. Include your billing email and what changed.</p></article>
+          <article class="card"><h3>Technical</h3><p>Send the app version, platform, installer type, failing command, and a short description of the workflow.</p></article>
+          <article class="card"><h3>Critical install issue</h3><p>If the installer or checksum looks wrong, stop before running it and contact support.</p></article>
         </div>
       </section>
       <section class="section">
-        <h2 class="section-title">Self-service</h2>
-        <div class="use-case-grid">
-          <a class="use-case-card" href="/account/#restore">Restore purchase</a>
-          <a class="use-case-card" href="/account/">Manage billing</a>
-          <a class="use-case-card" href="/docs/#troubleshooting">Restore license</a>
-          <a class="use-case-card" href="/download/">Checksums</a>
-          <a class="use-case-card" href="${GITHUB_RELEASES_BASE}">Release notes</a>
-          <a class="use-case-card" href="/docs/">Docs</a>
+        <h2 class="section-title">FAQ</h2>
+        <div class="faq-grid">
+          <article class="faq-item"><h3>My paid plan is not showing.</h3><p>Use the account restore flow with the billing email from checkout. If it still fails, email support with that billing email.</p></article>
+          <article class="faq-item"><h3>The installer failed.</h3><p>Send the installer type, Linux distribution, error text, and whether the checksum matched.</p></article>
+          <article class="faq-item"><h3>A repair did not work.</h3><p>Include the failing command, the expected result, and whether Terminal Pro showed verification output.</p></article>
+          <article class="faq-item"><h3>I need billing help.</h3><p>Billing issues are handled through Stripe records and your billing email, not public referral or diagnostic tools.</p></article>
         </div>
       </section>
+      <section class="section"><div class="panel stack"><h2 class="section-title">Known issues</h2><ul class="signal-list"><li>Linux is the only public beta installer currently offered.</li><li>Windows and macOS are not listed until signed, verified installers exist.</li><li>Minimal Linux images may need GUI/runtime packages before AppImage starts cleanly.</li><li>Package registry or network failures can block repair verification even when the code fix is correct.</li></ul></div></section>
       <section class="section"><div class="panel stack"><h2 class="section-title">Send feedback</h2><form id="feedback-form"><label>Name<input type="text" name="name" placeholder="Your name" required></label><label>Email<input type="email" name="email" placeholder="you@rinawarptech.com" required></label><label>Topic<select name="topic"><option value="support">Support</option><option value="bug">Bug report</option><option value="billing">Billing</option><option value="team">Team plan</option><option value="feature">Feature request</option><option value="launch">Launch / partnership</option></select></label><label>Rating<select name="rating"><option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Okay</option><option value="2">2 - Rough</option><option value="1">1 - Broken</option></select></label><label>Message<textarea name="message" placeholder="What happened, and what should RinaWarp Terminal Pro have done instead?" required></textarea></label><button type="submit" class="btn btn-primary">Send feedback</button><p id="feedback-status" class="status-message" aria-live="polite"></p></form></div></section>
     `
   },

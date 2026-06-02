@@ -14,6 +14,7 @@ function extractBetween(source, startMarker, endMarker, label) {
 
 const router = readFileSync("website/workers/router.ts", "utf8");
 const staticBuilder = readFileSync("scripts/build/build-pages-site.mjs", "utf8");
+const siteShared = readFileSync("website/site-shared.mjs", "utf8");
 
 const accountSurfaces = [
   {
@@ -36,6 +37,49 @@ const homeSurfaces = [
     body: extractBetween(staticBuilder, 'route: ""', 'route: "products"', "static homepage"),
   },
 ];
+
+const pageJobSurfaces = {
+  pricing: [
+    {
+      label: "worker pricing route",
+      body: extractBetween(router, "function renderPricing(", "\nfunction renderDocs", "worker pricing route"),
+    },
+    {
+      label: "static pricing page",
+      body: extractBetween(staticBuilder, 'route: "pricing"', 'route: "download"', "static pricing page"),
+    },
+  ],
+  download: [
+    {
+      label: "worker download route",
+      body: extractBetween(router, "async function renderDownload(", "\nfunction renderLogin", "worker download route"),
+    },
+    {
+      label: "static download page",
+      body: extractBetween(staticBuilder, 'route: "download"', 'route: "what-is-a-proof-first-ai-terminal"', "static download page"),
+    },
+  ],
+  docs: [
+    {
+      label: "worker docs route",
+      body: extractBetween(router, "function renderDocs(", "\nfunction renderSuccess", "worker docs route"),
+    },
+    {
+      label: "static docs body",
+      body: extractBetween(siteShared, "export const DOCS_BODY_HTML", "\nexport const CASE_STUDY_PAGES", "static docs body"),
+    },
+  ],
+  support: [
+    {
+      label: "worker support route",
+      body: extractBetween(router, "function renderFeedback(", "\nfunction renderTerms", "worker support route"),
+    },
+    {
+      label: "static support page",
+      body: extractBetween(staticBuilder, 'route: "support"', 'route: "terms"', "static support page"),
+    },
+  ],
+};
 
 const required = [
   "Manage your RinaWarp account",
@@ -124,8 +168,82 @@ for (const surface of homeSurfaces) {
   }
 }
 
+const pageJobContracts = {
+  pricing: {
+    required: ["Start Pro", "Buy One Fix", "Start Team", "Quick answers before you buy"],
+    forbidden: [
+      "Restore purchase",
+      "Restore access",
+      "Manage billing",
+      "Download Linux .deb",
+      "SHASUMS256",
+      "Install instructions",
+      "System requirements",
+      "Access and restore",
+      "Restore by billing email",
+      "portal management",
+      "Choose installer",
+    ],
+  },
+  download: {
+    required: ["Download Linux .deb", "Download AppImage", "System requirements", "Install instructions", "Checksums and release metadata"],
+    forbidden: [
+      "pricing-grid",
+      "Start Pro",
+      "Buy One Fix",
+      "Restore purchase",
+      "Referral",
+      "Plan comparison",
+      "Ready to stop debugging",
+    ],
+  },
+  docs: {
+    required: ["Installation", "First repair", "Troubleshooting", "API/reference"],
+    forbidden: [
+      "Restore license",
+      "Restore purchase",
+      "billing email",
+      "Start Pro",
+      "Buy One Fix",
+      "Quick answers before you buy",
+      "Plan comparison",
+    ],
+  },
+  support: {
+    required: ["Contact", "FAQ", "Known issues", "Billing"],
+    forbidden: [
+      "Self-service",
+      "See pricing",
+      "Download Terminal Pro",
+      "Download Linux .deb",
+      "What RinaWarp Can Do",
+      "Start Pro",
+      "Buy One Fix",
+      "Referral lookup",
+    ],
+  },
+};
+
+for (const [page, contract] of Object.entries(pageJobContracts)) {
+  for (const surface of pageJobSurfaces[page]) {
+    for (const needle of contract.required) {
+      if (!surface.body.includes(needle)) {
+        console.error(`[site-account-contract] ${surface.label} missing page-job text: ${needle}`);
+        failed = true;
+      }
+    }
+
+    for (const needle of contract.forbidden) {
+      if (surface.body.includes(needle)) {
+        console.error(`[site-account-contract] ${surface.label} contains cross-page duplicate text: ${needle}`);
+        failed = true;
+      }
+    }
+  }
+}
+
 if (failed) {
   process.exit(1);
 }
 
-console.log("[site-account-contract] public account surfaces match the customer dashboard contract");
+console.log("[site-account-contract] public site surfaces match account and page-job contracts");

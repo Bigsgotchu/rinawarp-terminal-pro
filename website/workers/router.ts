@@ -2768,36 +2768,16 @@ function renderPricing(): Response {
     <section class="hero">
       <span class="eyebrow">Fix Project pricing</span>
       <h1>Fix your broken project automatically.</h1>
-      <p class="hero-copy">One promise, three tiers, and a checkout path that stays honest about restore, billing, and proof-backed execution.</p>
+      <p class="hero-copy">Plan comparison, FAQ, and Stripe checkout for the developers who are ready to buy.</p>
       <div class="trust-row">
-        <span class="trust-chip">Visible repair</span>
-        <span class="trust-chip">Proof-backed results</span>
-        <span class="trust-chip">Restore by billing email</span>
+        <span class="trust-chip">Free</span>
+        <span class="trust-chip">Pro</span>
+        <span class="trust-chip">Team</span>
       </div>
     </section>
   `
 
   const content = `
-    <section class="section">
-      <div class="grid three-up">
-        <article class="card">
-          <div class="kicker">Start free</div>
-          <h3>Prove the workflow first</h3>
-          <p>Run the product on smaller broken repos before you pay for ongoing repair volume.</p>
-        </article>
-        <article class="card">
-          <div class="kicker">Upgrade fast</div>
-          <h3>Unlock unlimited fixes</h3>
-          <p>Move to Pro when you want faster execution, deeper repair coverage, and fewer guardrails.</p>
-        </article>
-        <article class="card">
-          <div class="kicker">Stay recoverable</div>
-          <h3>Billing stays understandable</h3>
-          <p>Checkout, restore, and portal management stay tied to the same billing-email truth.</p>
-        </article>
-      </div>
-    </section>
-
     <section class="section">
       <div class="pricing-grid">
         <article class="card pricing-card">
@@ -2805,22 +2785,20 @@ function renderPricing(): Response {
           <div class="price">$0 <span>/ month</span></div>
           <p>Try Fix Project on smaller repos and prove the workflow before you pay.</p>
           <ul class="feature-list">
-            <li>3 to 5 fixes per day</li>
-            <li>Small projects and safe repairs</li>
-            <li>Medium-confidence fixes included</li>
-            <li>No high-impact changes</li>
+            <li>Limited Fix Project runs</li>
+            <li>Visible repair steps</li>
+            <li>Daily limits apply</li>
           </ul>
-          <a href="/download" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Choose installer</a>
+          <a href="/download" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Start free</a>
         </article>
         <article class="card pricing-card featured">
           <span class="pill">Pro</span>
           <div class="price">$15 <span>/ month</span></div>
-          <p>For individual developers who want unlimited fixes, better repair coverage, and proof-backed execution that feels instant.</p>
+          <p>For individual developers who want unlimited fixes and stronger repair coverage.</p>
           <ul class="feature-list">
             <li>Unlimited Fix Project runs</li>
-            <li>High-impact fixes with explicit approval</li>
-            <li>Larger projects and stronger repair strategies</li>
-            <li>Priority execution and proof-backed summaries</li>
+            <li>High-impact fixes with approval</li>
+            <li>Stronger repair coverage</li>
           </ul>
           <div class="stack" style="gap:12px">
             <input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for checkout" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,0.04);color:var(--text)">
@@ -2832,50 +2810,36 @@ function renderPricing(): Response {
           </div>
         </article>
         <article class="card pricing-card">
-          <span class="pill">Power</span>
-          <div class="price">$40 <span>/ month</span></div>
-          <p>For heavier workflows, bigger projects, and team-grade repair depth without the friction of a full enterprise rollout.</p>
+          <span class="pill">Team</span>
+          <div class="price">$40 <span>/ user / month</span></div>
+          <p>Seat-based checkout for teams.</p>
           <ul class="feature-list">
             <li>Everything in Pro</li>
-            <li>Multi-project and larger workspace support</li>
-            <li>Advanced diagnostics and stronger repair coverage</li>
-            <li>Team-grade rollout path and priority support</li>
+            <li>Team seats</li>
+            <li>Priority support</li>
           </ul>
-          <button class="btn btn-secondary" data-checkout-tier="power" type="button">Start Power</button>
+          <button class="btn btn-secondary" data-checkout-tier="team" type="button">Start Team</button>
         </article>
       </div>
     </section>
 
-    <section class="section">
-      <div class="grid two-up">
-        <article class="panel stack">
-          <div class="kicker">Why the plans are simple</div>
-          <h2 class="section-title">The site sells one outcome, not a pricing maze.</h2>
-          <p>Free proves the repair loop. Pro is the default paid plan for serious individual use. Power exists for larger projects and heavier ongoing workflows.</p>
-        </article>
-        <article class="panel stack">
-          <div class="kicker">What changes after checkout</div>
-          <h2 class="section-title">Access, restore, and billing stay connected.</h2>
-          <p>After payment, users come back to RinaWarp, download or reopen the app, and confirm entitlement state from the account or desktop restore surface.</p>
-        </article>
-      </div>
-    </section>
+    <section class="section"><div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Feature</th><th>Free</th><th>Pro</th><th>Team</th></tr></thead><tbody><tr><td>Fix Project</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Unlimited repairs</td><td class="mark-no">—</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Approval workflow</td><td class="mark-no">—</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Team access</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td></tr><tr><td>Priority support</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td></tr></tbody></table></div></section>
 
     <section class="section">
       <h2 class="section-title">Quick answers before you buy</h2>
       <p class="section-copy">The practical questions people ask right before paying.</p>
       <div class="faq-grid">
         <article class="faq-item">
-          <h3>What happens after checkout?</h3>
-          <p>Checkout returns you to RinaWarp, where you can download the app, sign in or restore access, and confirm the paid tier from the account surface and desktop settings.</p>
+          <h3>Which plan should I choose?</h3>
+          <p>Start with Free if you are evaluating one project. Choose Pro for ongoing individual repair work. Choose Team when multiple developers need seats.</p>
         </article>
         <article class="faq-item">
-          <h3>How does restore work?</h3>
-          <p>Paid access is anchored to the billing email. If a device loses entitlement state, use the restore path in the app or account page before contacting support.</p>
+          <h3>Is there a one-time option?</h3>
+          <p>Yes. One Fix is a single paid repair attempt without a subscription, meant for one-off blocked projects.</p>
         </article>
         <article class="faq-item">
           <h3>Can I cancel later?</h3>
-          <p>Yes. Billing is handled through Stripe, and the billing portal is the canonical place to manage cancellation, plan changes, and payment method updates.</p>
+          <p>Yes. Subscription billing is handled through Stripe and cancellation is available after purchase.</p>
         </article>
         <article class="faq-item">
           <h3>What does the one-fix option do?</h3>
@@ -2931,55 +2895,64 @@ function renderPricing(): Response {
 function renderDocs(): Response {
   const hero = `
     <section class="hero">
-      <span class="eyebrow">Getting started</span>
-      <h1>Use RinaWarp Terminal Pro like a collaborator, not a command form.</h1>
-      <p class="hero-copy">The desktop app is built around one simple flow: ask in the Agent surface, let Rina inspect or act, and inspect proof only when you need more detail.</p>
+      <span class="eyebrow">Documentation</span>
+      <h1>RinaWarp Terminal Pro docs</h1>
+      <p class="hero-copy">Install, run your first repair, troubleshoot failures, and reference expected command behavior.</p>
     </section>
   `
 
   const content = `
     <section class="section">
-      <div class="grid three-up">
-        <article class="card">
-          <div class="kicker">1. Ask naturally</div>
-          <h3>Start in the Agent thread</h3>
-          <p>Use normal language. Rina can handle questions, vague asks, follow-ups, and real execution requests without forcing you into terminal-shaped commands.</p>
-        </article>
-        <article class="card">
-          <div class="kicker">2. Trust the route</div>
-          <h3>Execution only happens through the canonical path</h3>
-          <p>If Rina needs to build, test, deploy, fix, or inspect, the work goes through the trusted execution spine. That keeps proof and recovery aligned.</p>
-        </article>
-        <article class="card">
-          <div class="kicker">3. Inspect only when needed</div>
-          <h3>Runs, code, diagnostics, and terminal are inspectors</h3>
-          <p>The primary surface is the thread. Rina should explain the result there, with run IDs, receipts, and expandable output ready when you want to drill deeper.</p>
-        </article>
-      </div>
+      <nav class="docs-nav" aria-label="Documentation sections">
+        <a href="#installation">Installation</a>
+        <a href="#first-repair">First repair</a>
+        <a href="#troubleshooting">Troubleshooting</a>
+        <a href="#api-reference">API/reference</a>
+      </nav>
+    </section>
+    <section class="section">
+      <article id="installation" class="panel stack">
+        <h2 class="section-title">Installation</h2>
+        <ol class="signal-list">
+          <li>Download <code>.deb</code> or AppImage from the download page.</li>
+          <li>Verify SHA256 before install.</li>
+          <li>Install the <code>.deb</code> on Debian/Ubuntu, or mark the AppImage executable and run it.</li>
+          <li>Launch Terminal Pro and open your repository folder.</li>
+        </ol>
+      </article>
     </section>
 
     <section class="section">
-      <div class="panel stack">
-        <h2 class="section-title">Top workflows</h2>
-        <ul class="signal-list">
-          <li><strong>Build this project.</strong> Rina inspects the current workspace, runs the build, and attaches proof to the result.</li>
-          <li><strong>Run the tests and tell me what failed.</strong> Rina separates explanation from action and keeps the verified outcome grounded.</li>
-          <li><strong>Fix the last failure.</strong> Rina uses recent run context or asks one sharp clarification when the reference is ambiguous.</li>
-          <li><strong>What happened after the restart?</strong> Recovery state stays visible so restored work never feels like a ghost event.</li>
-        </ul>
-      </div>
+      <article id="first-repair" class="panel stack">
+        <h2 class="section-title">First repair</h2>
+        <ol class="signal-list">
+          <li><strong>Open the repo.</strong> Select the broken project root.</li>
+          <li><strong>Click Fix Project.</strong> Rina scans dependencies, config, and build/test output.</li>
+          <li><strong>Review the report.</strong> Read proposed file changes and the command plan.</li>
+          <li><strong>Approve when prompted.</strong> High-impact steps pause until you confirm.</li>
+          <li><strong>Verify.</strong> Confirm build, test, or boot checks show exit code 0.</li>
+        </ol>
+      </article>
     </section>
 
     <section class="section">
-      <div class="panel stack">
-        <h2 class="section-title">Access and restore</h2>
-        <p class="section-copy">Early Access access is currently purchase-and-email based, not a full username/password product account system. Keep the flow simple, visible, and recoverable.</p>
-        <ul class="signal-list">
-          <li><strong>Buy with your email.</strong> Stripe checkout uses your email as the first recovery anchor for paid access.</li>
-          <li><strong>Restore if needed.</strong> If a device loses paid state, use the restore or billing-email lookup path in the app or contact support.</li>
-          <li><strong>No fake login surface.</strong> The product should not imply a password-based account system until one actually exists.</li>
-        </ul>
-      </div>
+      <article id="troubleshooting" class="panel stack">
+        <h2 class="section-title">Troubleshooting</h2>
+        <h3>Build failures after repair</h3><p>Read the failing command in the terminal. One env var, flaky test, or remaining type error may need a narrower second pass.</p>
+        <h3>Permission errors</h3><p>Ensure the workspace is writable and package managers are not blocked by sandboxed directories.</p>
+        <h3>Broken install</h3><p>Re-verify checksums, try the other Linux artifact, or install missing GUI libraries on minimal images.</p>
+      </article>
+    </section>
+
+    <section class="section">
+      <article id="api-reference" class="panel stack">
+        <h2 class="section-title">API/reference</h2>
+        <div class="grid three-up">
+          <article class="card"><h3>Repair commands</h3><p>RinaWarp favors project-scoped build, test, package, and diagnostic commands.</p></article>
+          <article class="card"><h3>Exit codes</h3><p>A repair is complete only after the relevant command exits successfully and proof is visible.</p></article>
+          <article class="card"><h3>Support data</h3><p>Include app version, platform, installer type, failing command, and a short workflow description.</p></article>
+        </div>
+      </article>
     </section>
   `
 
@@ -3087,27 +3060,50 @@ function renderCompanionPurchaseVerification(returnTo: string = ''): Response {
 function renderFeedback(): Response {
   const hero = `
     <section class="hero">
-      <span class="eyebrow">Support & feedback</span>
-      <h1>Tell us what happened.</h1>
-      <p class="hero-copy">Launch questions, feature requests, bug reports, and capability requests are all welcome. If something broke, give us the clearest description you can and we’ll use it to tighten the product.</p>
+      <span class="eyebrow">Support</span>
+      <h1>Get help with RinaWarp.</h1>
+      <p class="hero-copy">Contact, FAQ, known issues, and billing help in one support surface.</p>
     </section>
   `
 
   const content = `
     <section class="section">
+      <h2 class="section-title">Contact</h2>
       <div class="grid three-up">
         <article class="card">
-          <h3>Support</h3>
-          <p>If you are stuck on a paid workflow or launch issue, email <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>.</p>
+          <h3>Billing</h3>
+          <p>Email <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a>. Include your billing email and what changed.</p>
         </article>
         <article class="card">
-          <h3>General contact</h3>
-          <p>For partnership, launch, or founder access questions, email <a href="mailto:hello@rinawarptech.com">hello@rinawarptech.com</a>.</p>
+          <h3>Technical</h3>
+          <p>Send the app version, platform, installer type, failing command, and a short description of the workflow.</p>
         </article>
         <article class="card">
-          <h3>Fastest useful bug report</h3>
-          <p>Tell us what you asked Rina to do, what you expected, what actually happened, and whether a run or recovery card was visible.</p>
+          <h3>Critical install issue</h3>
+          <p>If the installer or checksum looks wrong, stop before running it and contact support.</p>
         </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">FAQ</h2>
+      <div class="faq-grid">
+        <article class="faq-item"><h3>My paid plan is not showing.</h3><p>Use the account restore flow with the billing email from checkout. If it still fails, email support with that billing email.</p></article>
+        <article class="faq-item"><h3>The installer failed.</h3><p>Send the installer type, Linux distribution, error text, and whether the checksum matched.</p></article>
+        <article class="faq-item"><h3>A repair did not work.</h3><p>Include the failing command, the expected result, and whether Terminal Pro showed verification output.</p></article>
+        <article class="faq-item"><h3>I need billing help.</h3><p>Billing issues are handled through Stripe records and your billing email, not public referral or diagnostic tools.</p></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="panel stack">
+        <h2 class="section-title">Known issues</h2>
+        <ul class="signal-list">
+          <li>Linux is the only public beta installer currently offered.</li>
+          <li>Windows and macOS are not listed until signed, verified installers exist.</li>
+          <li>Minimal Linux images may need GUI/runtime packages before AppImage starts cleanly.</li>
+          <li>Package registry or network failures can block repair verification even when the code fix is correct.</li>
+        </ul>
       </div>
     </section>
 
@@ -3409,15 +3405,31 @@ async function renderDownload(env: any, origin: string): Promise<Response> {
 
     <section class="section">
       <div class="panel stack">
-        <div class="card trust-note">
-          <h3>Verification matters more than vibes</h3>
-          <p>Checksums, release feeds, and honest platform notes are the trust surface on the website. If anything about the download feels inconsistent, stop and verify before running the installer.</p>
-        </div>
-        <div class="info-bar">
-          <span class="status-ok">The canonical updater feed is served from rinawarptech.com/releases/*.</span>
-          <span class="note">Those primary-domain URLs stay aligned with the public installers and the app updater.</span>
-        </div>
-        <h2 class="section-title">How to verify your download</h2>
+        <h2 class="section-title">System requirements</h2>
+        <ul class="signal-list">
+          <li>Linux desktop environment for this public beta</li>
+          <li>Debian/Ubuntu for the <code>.deb</code> installer, or AppImage-capable Linux desktop</li>
+          <li>4 GB RAM minimum; 8 GB+ recommended for large repositories</li>
+          <li>Git and your project package manager available in PATH</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="panel stack">
+        <h2 class="section-title">Install instructions</h2>
+        <ol class="signal-list">
+          <li>Download the Linux <code>.deb</code> or AppImage.</li>
+          <li>Open <a href="${checksumsUrl}">SHASUMS256.txt</a> and verify the file hash.</li>
+          <li>Install the <code>.deb</code> on Debian/Ubuntu, or mark the AppImage executable and run it.</li>
+          <li>Open your repository folder in Terminal Pro.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="panel stack">
+        <h2 class="section-title">Checksums and release metadata</h2>
         <div class="link-row">
           <a href="${checksumsUrl}" class="btn btn-secondary">Download SHASUMS256.txt</a>
           <a href="${latestJsonUrl}" class="btn btn-secondary">Open latest.json</a>
@@ -3434,22 +3446,7 @@ curl ${latestLinuxYmlUrl}
 
 # Verify the local file hash
 sha256sum -c SHASUMS256.txt</div>
-        <p class="note">If the checksum does not match, do not run the file. Reach out to support instead.</p>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="grid two-up">
-        <article class="panel stack">
-          <div class="kicker">Release center</div>
-          <h2 class="section-title">Why this page is intentionally explicit</h2>
-          <p>Download pages for trust products should not act like generic growth pages. The job here is to make installer choice, release truth, and verification steps obvious.</p>
-        </article>
-        <article class="panel stack">
-          <div class="kicker">Need help?</div>
-          <h2 class="section-title">Get a human answer before you risk the install.</h2>
-          <p>If a release note, platform note, or updater path is unclear, contact <a href="mailto:support@rinawarptech.com">support@rinawarptech.com</a> before continuing.</p>
-        </article>
+        <p class="note">If the checksum does not match, do not run the installer. Contact support before continuing.</p>
       </div>
     </section>
   `

@@ -39,6 +39,7 @@ export const DOCS_BODY_HTML = `
     <a href="#permissions">Permissions</a>
     <a href="#security">Security model</a>
     <a href="#troubleshooting">Troubleshooting</a>
+    <a href="#api-reference">API/reference</a>
     <a href="#fix-guides">Fix guides</a>
   </nav>
 
@@ -122,10 +123,18 @@ export const DOCS_BODY_HTML = `
     <p>Read the failing command in the terminal. Often one env var, flaky test, or remaining type error needs a second Fix Project pass.</p>
     <h3>Permission errors</h3>
     <p>Ensure the workspace is writable and package managers are not blocked by sandboxed directories. On Linux, avoid running as root inside the project tree.</p>
-    <h3>Restore license</h3>
-    <p>Use the same Stripe billing email in Settings → License or <a href="/account/#restore">account restore</a>. Contact <a href="/support/">support</a> with your session id if tier is still wrong.</p>
     <h3>Broken install</h3>
     <p>Re-verify checksums, try the other Linux artifact (.deb vs AppImage), or install missing GUI libraries on minimal images.</p>
+  </article>
+
+  <article id="api-reference" class="panel stack">
+    <h2 class="section-title">API/reference</h2>
+    <p>Use these references when you need exact command, permission, or verification behavior instead of sales copy.</p>
+    <div class="grid three-up">
+      <article class="card"><h3>Repair commands</h3><p>RinaWarp favors project-scoped build, test, package, and diagnostic commands. Destructive or publishing actions require explicit approval.</p></article>
+      <article class="card"><h3>Exit codes</h3><p>A repair is not complete until the relevant build, test, install, or boot command exits successfully and the proof is visible.</p></article>
+      <article class="card"><h3>Support data</h3><p>When you contact support, include app version, platform, installer type, failing command, and a short description of the broken workflow.</p></article>
+    </div>
   </article>
 
   <article id="fix-guides" class="panel stack">
