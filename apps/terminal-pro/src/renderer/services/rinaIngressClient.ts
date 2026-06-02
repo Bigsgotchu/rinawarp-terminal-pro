@@ -29,12 +29,13 @@ export function shouldRoutePromptThroughIngress(prompt: string): boolean {
   const value = prompt.trim().toLowerCase()
   if (!value) return false
   return [
-    /\bfix\b.*\b(repo|project|build|typescript)\b/i,
-    /\b(build|typescript)\b.*\b(fail|error|broken)\b/i,
-    /\b(failed|failing)\b.*\bbuild\b/i,
+    /\b(fix|repair)\b.*\b(repo|project|build|typescript|test|test-fail)\b/i,
+    /\b(build|typescript|test)\b.*\b(fail|error|broken|explain)\b/i,
+    /\b(failed|failing)\b.*\b(build|test|project)\b/i,
     /\bcheck whether this project builds\b/i,
     /\bdebug\b/i,
     /\brefactor\b/i,
     /\badd tests?\b/i,
+    /\brun.*test|\bbuild.*project\b/i,
   ].some((pattern) => pattern.test(value))
 }

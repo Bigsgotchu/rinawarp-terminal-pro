@@ -8,6 +8,7 @@ export type NavigableWorkbenchView =
   | 'diagnostics'
   | 'execution-trace'
   | 'runs'
+  | 'receipt'
   | 'marketplace'
   | 'code'
   | 'brain'
@@ -48,7 +49,7 @@ export function createWorkbenchNavigator(
       })
     }
 
-    if (view === 'execution-trace' || view === 'runs' || view === 'marketplace' || view === 'code' || view === 'brain') {
+    if (view === 'execution-trace' || view === 'runs' || view === 'receipt' || view === 'marketplace' || view === 'code' || view === 'brain') {
       if (openDrawer === view) store.dispatch({ type: 'ui/closeDrawer' })
       else store.dispatch({ type: 'view/centerSet', view })
       return

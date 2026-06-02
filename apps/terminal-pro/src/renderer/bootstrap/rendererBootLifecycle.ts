@@ -34,6 +34,13 @@ export async function resolveInitialWorkspaceKey(
   } catch (error) {
     console.warn('Failed to resolve default workspace:', error)
   }
+  
+  // Auto-select E2E workspace for test mode
+  if (initialWorkspaceKey === '__none__' && process.env.RINAWARP_E2E_WORKSPACE) {
+    initialWorkspaceKey = normalizeWorkspaceKey(process.env.RINAWARP_E2E_WORKSPACE)
+    console.log('[ui] E2E workspace auto-selected', process.env.RINAWARP_E2E_WORKSPACE)
+  }
+  
   return initialWorkspaceKey
 }
 

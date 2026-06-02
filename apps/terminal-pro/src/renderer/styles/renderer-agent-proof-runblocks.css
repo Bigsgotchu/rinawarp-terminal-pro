@@ -1,9 +1,9 @@
 .rw-inline-runblock {
   display: grid;
-  gap: 7px;
-  inline-size: min(100%, 760px);
-  padding: 9px 10px;
-  border-radius: 11px;
+  gap: 6px;
+  inline-size: min(100%, 920px);
+  padding: 7px 9px;
+  border-radius: 9px;
   border: 1px solid var(--rw-divider);
   background: color-mix(in oklab, var(--rw-surface) 92%, transparent);
   box-shadow: none;
@@ -31,7 +31,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 7px;
+  padding-bottom: 5px;
   border-bottom: 1px solid var(--rw-divider);
 }
 
@@ -71,7 +71,7 @@
 .rw-run-live-indicator {
   display: inline-flex;
   align-items: center;
-  min-height: 20px;
+  min-height: 18px;
   border-radius: 6px;
   font-weight: 700;
 }
@@ -121,7 +121,7 @@
 }
 
 .rw-inline-runblock-title {
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   letter-spacing: -0.01em;
 }
 
@@ -139,7 +139,7 @@
   gap: 5px;
   flex-wrap: wrap;
   color: var(--rw-muted);
-  font-size: 0.68rem;
+  font-size: 0.6rem;
 }
 
 .rw-inline-label {
@@ -180,15 +180,15 @@
 
 .rw-inline-runblock-command,
 .rw-inline-runblock-output {
-  border-radius: 9px;
+  border-radius: 7px;
   border: 1px solid var(--rw-divider);
   background: color-mix(in oklab, var(--rw-black) 70%, transparent);
-  padding: 8px 10px;
+  padding: 6px 8px;
 }
 
 .rw-inline-runblock-command code {
   color: #dff5ff;
-  font-size: 0.71rem;
+  font-size: 0.62rem;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -196,7 +196,7 @@
 .rw-inline-runblock-tail {
   margin: 0;
   color: #dbe7fb;
-  font-size: 10.5px;
+  font-size: 10px;
   line-height: 1.42;
   white-space: pre-wrap;
   word-break: break-word;

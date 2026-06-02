@@ -7,7 +7,10 @@ import type {
 } from './workbenchShellFrameModel.js'
 
 function renderActivityItem(item: WorkbenchShellActivityItemModel): string {
-  return `<button class="rw-activitybtn" data-tab="${item.tab}" data-shell-owned="true" data-shell-nav="${item.tab}" data-shell-source="shell_activitybar" type="button" aria-label="${item.ariaLabel}" title="${item.label}">${item.glyph}</button>`
+  return `<button class="rw-activitybtn" data-tab="${item.tab}" data-shell-owned="true" data-shell-nav="${item.tab}" data-shell-source="shell_activitybar" type="button" aria-label="${item.ariaLabel}" title="${item.label}">
+    <span class="rw-activitybtn-glyph" aria-hidden="true">${item.glyph}</span>
+    <span class="rw-activitybtn-label">${item.label}</span>
+  </button>`
 }
 
 function renderTab(tab: WorkbenchShellTabModel): string {
@@ -58,16 +61,40 @@ function renderPanel(panel: WorkbenchShellPanelModel): string {
 export function renderWorkbenchShellFrame(model: WorkbenchShellFrameModel): string {
   const primaryActivityItems = model.activityItems.filter((item) => item.placement === 'primary')
   const footerActivityItems = model.activityItems.filter((item) => item.placement === 'footer')
+  const primarySections = [...new Set(primaryActivityItems.map((item) => item.section || 'workspace'))]
   return `
     <div id="rw-app">
       <aside class="rw-activitybar" aria-label="Workbench activity">
-        <div class="rw-activitybar-logo" aria-hidden="true">
-          <img class="rw-activitybar-logo-img" src="../assets/rinawarp-logo.png" alt="">
+        <div class="rw-sidebar-account">
+          <div class="rw-activitybar-logo" aria-hidden="true">
+            <span class="rw-activitybar-logo-mark">✦</span>
+          </div>
+          <div class="rw-sidebar-account-copy">
+            <div class="rw-sidebar-account-title">Mermaid Auth</div>
+            <div class="rw-sidebar-account-meta">Production Workspace</div>
+          </div>
         </div>
-        ${primaryActivityItems.map(renderActivityItem).join('')}
+        ${primarySections.map((section) => `
+          <div class="rw-sidebar-section" data-sidebar-section="${section}">
+            ${section === 'favorites' ? '<div class="rw-sidebar-section-title">Favorites</div>' : ''}
+            ${primaryActivityItems.filter((item) => (item.section || 'workspace') === section).map(renderActivityItem).join('')}
+          </div>
+        `).join('')}
         <div class="rw-activitybar-spacer"></div>
+        <div class="rw-sidebar-status">
+          <span class="status-dot"></span>
+          <span>Sandboxed</span>
+        </div>
+        <button class="rw-sidebar-shortcut" type="button" data-action="open-updates">Auto-approve</button>
         <div class="rw-sidebar-footer">
           ${footerActivityItems.map(renderActivityItem).join('')}
+          <div class="rw-sidebar-user">
+            <span class="rw-sidebar-user-avatar">R</span>
+            <span>
+              <strong>Rina</strong>
+              <small>mermaid@rina.dev</small>
+            </span>
+          </div>
         </div>
       </aside>
 
@@ -101,6 +128,7 @@ export function renderWorkbenchShellFrame(model: WorkbenchShellFrameModel): stri
             </button>
           </div>
           <div class="rw-workbench-topbar-actions">
+            <span class="rw-runtime-pill"><span class="status-dot"></span>Runtime Connected</span>
             ${model.actions.map(renderAction).join('')}
           </div>
         </header>

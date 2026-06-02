@@ -4,15 +4,13 @@
   block-size: 100%;
   border: 0;
   border-radius: 0;
-  background: linear-gradient(180deg, rgba(11, 15, 20, 0.74), rgba(8, 10, 14, 0.82));
+  background: linear-gradient(180deg, rgba(9, 13, 18, 0.96), rgba(6, 8, 12, 0.98));
   box-shadow: none;
   overflow: hidden;
 }
 
 .rw-right-stack .rw-panel {
-  background:
-    linear-gradient(180deg, rgba(10, 15, 18, 0.72), rgba(8, 10, 14, 0.84)),
-    rgba(7, 9, 13, 0.82);
+  background: rgba(6, 9, 13, 0.98);
 }
 
 .rw-workbench.agent-focused .rw-right-stack .rw-panel {
@@ -40,9 +38,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 8px 10px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
-  border-block-end: 1px solid rgba(255,255,255,0.05);
+  min-block-size: 39px;
+  padding: 6px 9px;
+  background: rgba(8, 12, 17, 0.94);
+  border-block-end: 1px solid rgba(255,255,255,0.065);
   backdrop-filter: blur(12px);
 }
 
@@ -77,7 +76,7 @@
 }
 
 .rw-panel-title {
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -86,7 +85,31 @@
 
 .rw-panel-subtitle {
   color: var(--rw-muted);
-  font-size: 0.62rem;
+  font-size: 0.58rem;
+}
+
+.rw-inspector-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: auto;
+}
+
+.rw-inspector-tabs button {
+  min-block-size: 22px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0 7px;
+  background: transparent;
+  color: rgba(154, 164, 178, 0.76);
+  font: 800 0.58rem/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.rw-inspector-tabs button.active {
+  border-color: rgba(255, 46, 136, 0.18);
+  background: rgba(255, 46, 136, 0.1);
+  color: #ffd4ea;
 }
 
 .rw-agent-panel-head .rw-panel-title {
@@ -131,9 +154,9 @@
 .rw-execution-trace-body {
   flex: 1;
   padding: 8px 10px;
-  background: #050505;
+  background: #05070a;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 10.5px;
   line-height: 1.42;
 }
 
@@ -160,5 +183,5 @@
 }
 
 .rw-panel-body {
-  padding: 12px 14px;
+  padding: 10px 12px;
 }

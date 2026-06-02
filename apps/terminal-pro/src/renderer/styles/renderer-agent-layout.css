@@ -1,15 +1,15 @@
 .rw-agent-body {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 10px;
   min-block-size: 0;
   block-size: 100%;
-  padding: 56px 28px 132px;
+  padding: 12px 14px 0;
   overflow: hidden;
 }
 
 .rw-workbench.agent-focused .rw-agent-body {
-  padding-inline: 28px;
+  padding-inline: 14px;
 }
 
 .rw-agent-launch-empty {
@@ -26,7 +26,7 @@
 
 .rw-agent-launch-title {
   margin: 0;
-  font-size: clamp(1.8rem, 3vw, 2.35rem);
+  font-size: clamp(1.35rem, 2.2vw, 1.8rem);
   line-height: 1.05;
   letter-spacing: -0.02em;
   color: rgba(247, 249, 253, 0.98);
@@ -34,7 +34,7 @@
 
 .rw-agent-launch-subtitle {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 0.82rem;
   color: rgba(192, 204, 219, 0.82);
 }
 
@@ -206,10 +206,10 @@
 #agent-output {
   display: grid;
   align-content: start;
-  gap: 18px;
-  inline-size: min(100%, 860px);
+  gap: 8px;
+  inline-size: min(100%, 980px);
   margin-inline: auto;
-  padding: 0 0 20px;
+  padding: 0 0 12px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -222,7 +222,7 @@
 #agent-output.is-empty-thread {
   display: grid;
   align-content: start;
-  min-block-size: 0;
+  min-block-size: 120px;
   inline-size: min(100%, 860px);
   margin-inline: auto;
   padding: 0;
@@ -231,7 +231,7 @@
   background: transparent;
   box-shadow: none;
   overflow: auto;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
 }
 
 #agent-plan-container {
@@ -245,33 +245,29 @@
 }
 
 .rw-agent-composer {
-  position: fixed;
+  position: sticky;
   bottom: 0;
-  left: 41px;
-  right: 0;
   z-index: 10;
-  background: linear-gradient(180deg, rgba(4, 7, 11, 0.94), rgba(4, 6, 10, 0.98));
+  margin-inline: -14px;
+  background: linear-gradient(180deg, rgba(8, 12, 18, 0.88), rgba(5, 8, 12, 0.98));
   backdrop-filter: blur(20px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 12px 20px 16px;
+  padding: 8px 12px 10px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 8px;
 }
 
 .rw-agent-composer > * {
-  inline-size: min(100%, 860px);
-  margin-inline: auto;
+  inline-size: auto;
+  margin-inline: 0;
 }
 
 .rw-agent-body.is-recovery-focus {
   padding-block-end: 44px;
 }
 
-.rw-agent-body.is-recovery-focus .rw-agent-hero,
-.rw-agent-body.is-recovery-focus #agent-output:empty,
-.rw-agent-body.is-recovery-focus .rw-agent-composer {
-  display: none;
-}
 
 .rw-agent-input-container {
   position: fixed;
@@ -290,14 +286,15 @@
 
 .rw-agent-input {
   flex: 1;
-  min-block-size: 56px;
+  min-block-size: 38px;
+  block-size: 38px;
   resize: none;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(124, 199, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
   color: var(--rw-fg);
-  font: 500 1rem/1.5 var(--font-ui);
-  padding: 14px 16px;
+  font: 600 0.72rem/1.35 var(--font-ui);
+  padding: 10px 12px;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
@@ -310,8 +307,8 @@
 .rw-agent-composer-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  justify-content: flex-end;
+  gap: 6px;
 }
 
 .rw-agent-hint {
@@ -321,13 +318,69 @@
 
 .rw-agent-send {
   border: 1px solid rgba(255, 79, 163, 0.36);
-  border-radius: 14px;
-  padding: 12px 16px;
+  border-radius: 8px;
+  padding: 10px 14px;
   background: linear-gradient(135deg, rgba(255, 79, 163, 0.34), rgba(255, 127, 80, 0.18));
   color: #fff7fb;
-  font: 700 0.92rem/1 var(--font-ui);
+  font: 800 0.72rem/1 var(--font-ui);
   cursor: pointer;
   transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.rw-agent-tool-btn {
+  min-block-size: 32px;
+  border: 1px solid rgba(124, 199, 255, 0.12);
+  border-radius: 7px;
+  padding: 0 9px;
+  background: rgba(255,255,255,0.025);
+  color: rgba(210, 224, 238, 0.82);
+  font: 800 0.62rem/1 var(--font-ui);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rw-agent-tool-btn[data-intent-key="fix"] {
+  border-color: rgba(255, 190, 92, 0.22);
+  color: #ffd99b;
+  background: rgba(255, 190, 92, 0.06);
+}
+
+@media (max-width: 760px) {
+  .rw-agent-body {
+    padding-inline: 10px;
+  }
+
+  .rw-agent-launch-empty {
+    justify-items: start;
+    text-align: start;
+  }
+
+  .rw-agent-launch-title {
+    max-inline-size: 100%;
+    font-size: 1.25rem;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+
+  .rw-agent-launch-subtitle {
+    max-inline-size: 100%;
+    font-size: 0.72rem;
+  }
+
+  .rw-agent-composer {
+    grid-template-columns: minmax(0, 1fr);
+    margin-inline: -10px;
+  }
+
+  .rw-agent-composer-actions {
+    justify-content: flex-end;
+    overflow: auto hidden;
+    scrollbar-width: none;
+  }
+
+  .rw-agent-tool-btn {
+    display: none;
+  }
 }
 
 .rw-agent-send:hover {
