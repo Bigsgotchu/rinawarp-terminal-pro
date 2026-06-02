@@ -4,7 +4,7 @@
   "version": "1.8.2-beta",
   "type": "module",
   "main": "dist-electron/main.js",
-  "description": "RinaWarp Terminal Pro - AI-powered system diagnostic agent",
+  "description": "RinaWarp Terminal Pro - Proof-backed AI workbench for real developer work: diagnose, fix, verify, and remember project tasks safely.",
   "author": "RinaWarp Team <team@rinawarptech.com>",
   "homepage": "https://www.rinawarptech.com",
   "bugs": {

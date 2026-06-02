@@ -1,7 +1,13 @@
 # RinaWarp Terminal Pro Release Evidence
 
-## Release Classification
-Production-candidate controlled execution desktop app.
+## Product Positioning
+**RinaWarp Terminal Pro** is a proof-backed AI workbench for real developer work. It remembers useful project context and user preferences, safely plans and executes actions through controlled tools, verifies results, and attaches proof to every meaningful run.
+
+This balances all four pillars:
+- Conversation: natural-language interface
+- Memory: project context and preference recall
+- Execution: safe, controlled tool workflows
+- Proof: receipts and verification for every run
 
 ## Final Gate Result
 **PASS** - Linux artifacts, updater metadata, packaged core loop, safe mutation, production environment, and conversation + memory reality (Gate 8) gates validated.
