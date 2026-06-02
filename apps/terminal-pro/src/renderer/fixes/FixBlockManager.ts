@@ -141,7 +141,7 @@ export class FixBlockManager {
       exitCode,
       status: 'planning',
       whatBroke: summarizeFailure(ctx.command, outputTail, exitCode),
-      whySafe: 'RinaWarp is generating the lowest-risk runnable fix plan it can justify from the failed receipt context.',
+      whySafe: 'RinaWarp is generating the lowest-risk runnable fix plan it can justify from the failed proof context.',
       steps: [],
       ts: Date.now(),
       narration: [],
@@ -222,7 +222,7 @@ export class FixBlockManager {
           <ul class="fix-upgrade-list">
             <li>Premium capability packs and agents</li>
             <li>One-click safe fixes when they are available</li>
-            <li>Receipts and support bundles stay audit-backed</li>
+            <li>Proof and support bundles stay audit-backed</li>
           </ul>
           <label class="fix-upgrade-email-label" for="fix-upgrade-email">Billing email</label>
           <input

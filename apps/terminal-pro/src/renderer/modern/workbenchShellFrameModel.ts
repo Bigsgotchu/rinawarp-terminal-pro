@@ -1,3 +1,5 @@
+import { uiFlags } from '../config/uiFlags.js'
+
 export type WorkbenchShellTabModel = {
   id: string
   label: string
@@ -49,37 +51,26 @@ export type WorkbenchShellFrameModel = {
 }
 
 export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
+  const advancedInspectors = uiFlags.showAdvancedInspectors
   return {
     activityItems: [
       { id: 'agent', label: 'Agent', glyph: '✦', ariaLabel: 'Agent thread', tab: 'agent', placement: 'primary', section: 'workspace' },
       { id: 'history', label: 'History', glyph: '◷', ariaLabel: 'History', tab: 'runs', placement: 'primary', section: 'workspace' },
-      { id: 'receipts', label: 'Receipts', glyph: '▤', ariaLabel: 'Receipts', tab: 'receipt', placement: 'primary', section: 'workspace' },
       { id: 'marketplace', label: 'Marketplace', glyph: '◇', ariaLabel: 'Marketplace', tab: 'marketplace', placement: 'primary', section: 'workspace' },
       { id: 'settings', label: 'Settings', glyph: '⚙', ariaLabel: 'Settings', tab: 'settings', placement: 'primary', section: 'workspace' },
-      { id: 'build-release', label: 'Build & Release', glyph: '⌁', ariaLabel: 'Build and release', tab: 'code', placement: 'primary', section: 'favorites' },
-      { id: 'security-audit', label: 'Security Audit', glyph: '◌', ariaLabel: 'Security audit', tab: 'diagnostics', placement: 'primary', section: 'favorites' },
-      { id: 'database-migrate', label: 'Database Migrate', glyph: '⌑', ariaLabel: 'Database migrate', tab: 'brain', placement: 'primary', section: 'favorites' },
+      ...(advancedInspectors
+        ? [
+            { id: 'workspace', label: 'Workspace', glyph: '⌁', ariaLabel: 'Workspace Inspector', tab: 'code', placement: 'primary', section: 'advanced' },
+            { id: 'diagnostics', label: 'Diagnostics', glyph: '◌', ariaLabel: 'Diagnostics', tab: 'diagnostics', placement: 'primary', section: 'advanced' },
+            { id: 'brain', label: 'Memory', glyph: '⌑', ariaLabel: 'Memory', tab: 'brain', placement: 'primary', section: 'advanced' },
+          ]
+        : []),
     ],
     tabs: [
-      { id: 'agent', label: 'Rina', ariaLabel: 'Rina workbench', tone: 'primary', active: true },
-      { id: 'runs', label: 'History', ariaLabel: 'Run history', tone: 'secondary' },
+      { id: 'agent', label: 'Agent Thread', ariaLabel: 'Agent thread', tone: 'primary', active: true },
     ],
     actions: [
       { id: 'recovery-toggle', tab: 'runs', label: 'Recovered work', ariaLabel: 'Recovered work', tone: 'secondary', hidden: true },
-      {
-        action: 'open-updates',
-        tab: 'settings',
-        label: 'Updates',
-        ariaLabel: 'Open update settings',
-        tone: 'secondary',
-      },
-      {
-        action: 'open-settings',
-        tab: 'settings',
-        label: '⚙ Settings',
-        ariaLabel: 'Open settings',
-        tone: 'primary',
-      },
     ],
     centerPanels: [
       {
@@ -123,22 +114,22 @@ export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
       {
         id: 'panel-code',
         view: 'code',
-        title: 'Workspace Inspector',
+        title: 'Workspace',
         subtitle: 'Project files and code context when you want to inspect them',
         bodyId: 'workspace-files',
       },
       {
         id: 'panel-runs',
         view: 'runs',
-        title: 'Runs Inspector',
-        subtitle: 'Receipts, sessions, and proof when you want to inspect execution.',
+        title: 'History',
+        subtitle: 'Previous runs and their proof.',
         bodyId: 'runs-output',
       },
       {
         id: 'panel-receipt',
         view: 'receipt',
-        title: 'Receipt Viewer',
-        subtitle: 'Detailed proof of execution with commands, timestamps, and next actions.',
+        title: 'Proof',
+        subtitle: 'Attached evidence for the selected run.',
         bodyId: 'receipt-output',
       },
       {
@@ -151,12 +142,12 @@ export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
       {
         id: 'panel-brain',
         view: 'brain',
-        title: 'Brain Inspector',
+        title: 'Memory',
         subtitle: 'Planning, tools, memory, and results',
         bodyId: 'brain-visualization',
         extraHeadMarkup: '<div id="brain-stats" class="rw-brain-stats"></div>',
       },
-    ],
+    ].filter((panel) => advancedInspectors || !['code', 'brain'].includes(panel.view)),
     rightPanels: [
       {
         id: 'panel-execution-trace',
@@ -175,6 +166,7 @@ export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
           <div class="rw-inspector-tabs" aria-label="Inspector views">
             <button class="active" type="button">Terminal</button>
             <button type="button">Logs</button>
+            <button type="button">Diff</button>
             <button type="button">Proof</button>
           </div>
           <div id="thinking-indicator" class="rw-thinking" style="display:none;">
@@ -190,10 +182,10 @@ export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
       {
         id: 'panel-diagnostics',
         view: 'diagnostics',
-        title: 'Diagnostics Inspector',
-        subtitle: 'Open this drawer when you want health, status, and observability details.',
+        title: 'Diagnostics',
+        subtitle: 'Health, status, and observability details.',
         bodyId: 'diagnostics-output',
       },
-    ],
+    ].filter((panel) => panel.view !== 'diagnostics' || advancedInspectors),
   }
 }

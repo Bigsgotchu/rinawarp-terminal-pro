@@ -170,7 +170,7 @@ function renderReceipt(state: WorkbenchState, item: Extract<ThreadItem, { type: 
   const runBlock = state.runBlocksById[receipt.runId]
 
   const header = el('div', { class: 'rw-receipt-card-header' })
-  header.appendChild(el('div', { class: 'rw-receipt-card-title' }, 'Execution receipt'))
+  header.appendChild(el('div', { class: 'rw-receipt-card-title' }, 'Proof'))
   header.appendChild(
     el(
       'span',
@@ -197,7 +197,6 @@ function renderReceipt(state: WorkbenchState, item: Extract<ThreadItem, { type: 
 
   const card = el('div', {
     class: ['rw-receipt-card', verified ? 'is-verified' : receipt.rollbackOccurred ? 'is-rollback' : 'is-failed'].join(' '),
-    dataset: { runId: receipt.runId, threadItem: item.type },
   })
   card.appendChild(header)
   card.appendChild(grid)

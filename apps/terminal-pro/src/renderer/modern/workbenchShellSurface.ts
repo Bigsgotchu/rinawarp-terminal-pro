@@ -58,6 +58,29 @@ function renderPanel(panel: WorkbenchShellPanelModel): string {
   `
 }
 
+function renderExtensionsCard(): string {
+  return `
+    <div class="rw-sidebar-section rw-sidebar-extensions" data-sidebar-section="extensions">
+      <div class="rw-sidebar-section-title">Extensions</div>
+      <div class="rw-sidebar-extension-card">
+        <div class="rw-sidebar-extension-title">Extensions available</div>
+        <div class="rw-sidebar-extension-copy">Discover tools, linters, and integrations to power your workflows.</div>
+        <button
+          class="rw-sidebar-extension-action"
+          data-tab="marketplace"
+          data-shell-owned="true"
+          data-shell-nav="marketplace"
+          data-shell-source="shell_extensions"
+          type="button"
+          aria-label="Browse Marketplace"
+        >
+          Browse Marketplace
+        </button>
+      </div>
+    </div>
+  `
+}
+
 export function renderWorkbenchShellFrame(model: WorkbenchShellFrameModel): string {
   const primaryActivityItems = model.activityItems.filter((item) => item.placement === 'primary')
   const footerActivityItems = model.activityItems.filter((item) => item.placement === 'footer')
@@ -76,16 +99,16 @@ export function renderWorkbenchShellFrame(model: WorkbenchShellFrameModel): stri
         </div>
         ${primarySections.map((section) => `
           <div class="rw-sidebar-section" data-sidebar-section="${section}">
-            ${section === 'favorites' ? '<div class="rw-sidebar-section-title">Favorites</div>' : ''}
+            ${section === 'advanced' ? '<div class="rw-sidebar-section-title">Dev Mode</div>' : ''}
             ${primaryActivityItems.filter((item) => (item.section || 'workspace') === section).map(renderActivityItem).join('')}
           </div>
         `).join('')}
+        ${renderExtensionsCard()}
         <div class="rw-activitybar-spacer"></div>
         <div class="rw-sidebar-status">
           <span class="status-dot"></span>
           <span>Sandboxed</span>
         </div>
-        <button class="rw-sidebar-shortcut" type="button" data-action="open-updates">Auto-approve</button>
         <div class="rw-sidebar-footer">
           ${footerActivityItems.map(renderActivityItem).join('')}
           <div class="rw-sidebar-user">

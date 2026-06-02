@@ -48,7 +48,7 @@ export function buildRecentProofCardModel(state: WorkbenchState): AgentEmptyCard
     ],
     actions: [
       ...(run.status === 'interrupted'
-        ? [{ label: 'Resume Fix', className: actionClass('primary'), dataset: { runResume: run.id } }]
+        ? [{ label: 'Review previous plan', className: actionClass('primary'), dataset: { runResume: run.id } }]
         : []),
       {
         label: 'View details',
@@ -71,7 +71,7 @@ export function buildRecoverySummaryCardModel(state: WorkbenchState): AgentEmpty
   return {
     sectionKey: 'recovery-summary',
     label: 'Recovered work',
-    title: 'Recovered your last session.',
+    title: 'Previous work is ready to review.',
     copy: `${restoredRuns.length} item${restoredRuns.length === 1 ? '' : 's'} restored. Everything looks safe to continue.`,
     className: 'rw-agent-empty-recovery',
     stats: [
@@ -104,7 +104,7 @@ export function buildRecoveryStripViewModel(state: WorkbenchState, compact: bool
   const latestRecovery = getRecoveryGuidance(latestRun)
   return {
     restoredCount: restoredRuns.length,
-    title: 'Recovered your last session',
+    title: 'Previous work is ready to review',
     badge: 'Safe to continue',
     meta: undefined,
     expanded: state.ui.recoveryExpanded,

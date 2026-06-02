@@ -88,7 +88,7 @@ export function buildRunsDeploymentModel(state: WorkbenchState): RunsDeploymentM
         : []),
       ...(state.deployment.latestRunId ? [{ label: 'Inspect deploy run', dataset: { openRun: state.deployment.latestRunId } }] : []),
       ...(state.deployment.latestRunId ? [{ label: 'Inspect output', dataset: { runArtifacts: state.deployment.latestRunId } }] : []),
-      ...(state.deployment.latestReceiptId ? [{ label: 'Open receipt', dataset: { runReveal: state.deployment.latestReceiptId } }] : []),
+      ...(state.deployment.latestReceiptId ? [{ label: 'Open proof', dataset: { runReveal: state.deployment.latestReceiptId } }] : []),
     ],
   }
 }
@@ -123,7 +123,7 @@ export function buildRunsRunModel(state: WorkbenchState, run: RunModel): RunsRun
       : run.status === 'failed' && failureAnalysis
         ? { tone: 'attention' as const, text: formatFailureNarrative(failureAnalysis) }
         : !successProof && run.status === 'ok'
-          ? { tone: 'subtle' as const, text: 'Run completed but proof is incomplete. Treat this as proof pending until receipt and exit are both present.' }
+          ? { tone: 'subtle' as const, text: 'Run completed but proof is incomplete. Treat this as proof pending until evidence and exit are both present.' }
           : run.restored
             ? { tone: 'subtle' as const, text: 'Restored from your previous session history.' }
             : undefined

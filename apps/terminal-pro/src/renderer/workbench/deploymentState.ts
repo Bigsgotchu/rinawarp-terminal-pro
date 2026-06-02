@@ -295,9 +295,9 @@ function buildNextAction(
   verification: WorkbenchState['deployment']['verification'],
   rollback: WorkbenchState['deployment']['rollback']
 ): string {
-  if (status === 'failed' || status === 'interrupted') return rollback === 'provider-supported' ? 'Open receipt and confirm rollback readiness' : 'Open receipt and choose the safest recovery'
+  if (status === 'failed' || status === 'interrupted') return rollback === 'provider-supported' ? 'Open proof and confirm rollback readiness' : 'Open proof and choose the safest recovery'
   if (verification === 'pending') return 'Run target-aware verification'
-  if (status === 'verified') return 'Keep the receipt with the deployed URL and build ID'
+  if (status === 'verified') return 'Keep the proof with the deployed URL and build ID'
   if (status === 'running') return 'Inspect the live deploy run'
   return 'Run deploy preflight'
 }

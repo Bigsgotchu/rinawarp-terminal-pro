@@ -171,9 +171,10 @@ function runtimeEventLabel(event: RuntimeEvent): string {
 }
 
 const EXAMPLE_PROMPTS = [
-  'Plan a fix',
   'Run tests',
-  "What's wrong with my system?",
+  'Build project',
+  'Inspect workspace',
+  'Plan a fix',
 ]
 
 export function RinaPanel({

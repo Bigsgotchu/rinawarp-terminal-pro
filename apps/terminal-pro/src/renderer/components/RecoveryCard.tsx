@@ -9,7 +9,7 @@ export function RecoveryCard({ onResumeFix, onViewDetails }: RecoveryCardProps) 
       await window.rina.fixProject(process.cwd())
       onResumeFix?.()
     } catch (error) {
-      console.error('Failed to resume fix:', error)
+      console.error('Failed to review previous plan:', error)
     }
   }
 
@@ -31,14 +31,14 @@ export function RecoveryCard({ onResumeFix, onViewDetails }: RecoveryCardProps) 
         <div className="flex-1">
           <div className="text-sm font-medium text-blue-400 mb-1">Session Recovered</div>
           <div className="text-sm text-zinc-300 mb-3 leading-relaxed">
-            I recovered your last session. 50 items are back and everything looks safe to continue.
+            Previous work is ready to review. Everything looks safe to continue.
           </div>
           <div className="flex gap-3">
             <button
               className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm"
               onClick={handleResumeFix}
             >
-              Resume Fix
+              Review Plan
             </button>
             <button
               className="px-4 py-2 bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-300 text-sm font-medium rounded-lg border border-zinc-700/50 transition-colors duration-200"

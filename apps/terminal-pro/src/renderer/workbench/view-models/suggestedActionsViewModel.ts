@@ -2,7 +2,7 @@ import type { AgentEmptyCardViewModel } from './agentThreadModel.js'
 import type { WorkbenchState } from '../store.js'
 import { getWorkspaceContextState } from '../renderers/selectors.js'
 
-export type StarterIntentKey = 'build' | 'test' | 'inspect' | 'receipts' | 'fix'
+export type StarterIntentKey = 'build' | 'test' | 'inspect' | 'fix'
 
 export type StarterPromptViewModel = {
   intent: StarterIntentKey
@@ -23,17 +23,16 @@ export function getStarterPromptViewModels(state: WorkbenchState): StarterPrompt
   const currentTier = String(state.license.tier || 'free').toLowerCase()
   const isStarter = currentTier === 'starter' || currentTier === 'free'
   const meta = (intent: StarterIntentKey): { hint: string; tone: 'available' | 'enhanced' } => {
-    if (intent === 'build' || intent === 'test' || intent === 'inspect' || intent === 'receipts' || intent === 'fix') {
+    if (intent === 'build' || intent === 'test' || intent === 'inspect' || intent === 'fix') {
       return { hint: isStarter ? 'Available now' : 'Included', tone: 'available' }
     }
     return { hint: isStarter ? 'Pro adds more' : 'Unlocked', tone: 'enhanced' }
   }
 
   return [
-    { intent: 'build', label: 'Build this project', prompt: 'Build this project and tell me what fails.', ...meta('build') },
+    { intent: 'build', label: 'Build project', prompt: 'Build this project and tell me what fails.', ...meta('build') },
     { intent: 'test', label: 'Run tests', prompt: 'Run the tests and summarize the failures.', ...meta('test') },
     { intent: 'inspect', label: 'Inspect workspace', prompt: 'Inspect this workspace and summarize the safest next step. Do not change files.', ...meta('inspect') },
-    { intent: 'receipts', label: 'Show receipts', prompt: 'Show recent receipts and summarize the latest proof-backed runs.', ...meta('receipts') },
     { intent: 'fix', label: 'Plan a fix', prompt: 'Diagnose the project and propose a safe fix plan. Do not edit files without approval.', ...meta('fix') },
   ]
 }

@@ -74,16 +74,16 @@ export function analyzeFailure(args: {
   let likelyCause = 'Unknown error'
   let confidence: FailureAnalysis['confidence'] = 'Low'
   let whatChanged = 'The command returned a failure path, but the visible output does not isolate the trigger yet.'
-  let safestNextMove = 'Inspect the output and receipt together before retrying.'
+  let safestNextMove = 'Inspect the output and proof together before retrying.'
   let nextActionLabel = 'Inspect output'
   let confidenceReason = 'The visible output is thin, so this is still an inference.'
 
   if (args.interrupted || args.exitCode === 130) {
     likelyCause = 'The command was interrupted before it completed'
     confidence = 'High'
-    whatChanged = 'Execution stopped mid-run, so the receipt is only partial proof.'
-    safestNextMove = intent === 'deploy' ? 'Inspect the receipt before attempting another deploy.' : 'Resume if the command is safe to continue, otherwise rerun from the same workspace.'
-    nextActionLabel = intent === 'deploy' ? 'Open failed deploy receipt' : 'Resume or rerun safely'
+    whatChanged = 'Execution stopped mid-run, so the proof is partial.'
+    safestNextMove = intent === 'deploy' ? 'Inspect the proof before attempting another deploy.' : 'Resume if the command is safe to continue, otherwise rerun from the same workspace.'
+    nextActionLabel = intent === 'deploy' ? 'Open failed deploy proof' : 'Resume or rerun safely'
     confidenceReason = 'The exit path and interruption markers agree.'
   } else if (args.exitCode === 127 || output.includes('command not found') || output.includes('not found')) {
     likelyCause = 'A command or dependency is missing'
@@ -103,7 +103,7 @@ export function analyzeFailure(args: {
     likelyCause = 'The command timed out waiting on a dependency or service'
     confidence = 'Medium'
     whatChanged = 'The run reached an external wait state and never completed in time.'
-    safestNextMove = intent === 'deploy' ? 'Inspect the receipt and confirm target state before retrying the deploy.' : 'Confirm the blocked dependency is healthy, then rerun with the same command.'
+    safestNextMove = intent === 'deploy' ? 'Inspect the proof and confirm target state before retrying the deploy.' : 'Confirm the blocked dependency is healthy, then rerun with the same command.'
     nextActionLabel = intent === 'deploy' ? 'Inspect target before retry' : 'Check dependency and rerun'
     confidenceReason = 'Timeout markers are present, but the blocked dependency may still need inspection.'
   } else if (
@@ -166,15 +166,15 @@ export function analyzeFailure(args: {
     likelyCause = 'Deploy credentials or permissions are invalid'
     confidence = 'High'
     whatChanged = 'The release target rejected the current credentials or authorization scope.'
-    safestNextMove = 'Repair credentials first, then inspect the failed deploy receipt before trying again.'
+    safestNextMove = 'Repair credentials first, then inspect the failed deploy proof before trying again.'
     nextActionLabel = 'Repair credentials'
     confidenceReason = 'The deploy target is explicitly rejecting authorization.'
   } else if (intent === 'deploy') {
     likelyCause = 'The deploy target rejected the release'
     confidence = 'Medium'
     whatChanged = 'The release path reached the target but did not complete successfully.'
-    safestNextMove = 'Open the failed deploy receipt and confirm target state before rerunning.'
-    nextActionLabel = 'Open failed deploy receipt'
+    safestNextMove = 'Open the failed deploy proof and confirm target state before rerunning.'
+    nextActionLabel = 'Open failed deploy proof'
     confidenceReason = 'The deploy failed, but the exact target-side trigger still needs inspection.'
   } else if (intent === 'build') {
     likelyCause = 'The workspace no longer builds cleanly'
@@ -236,8 +236,8 @@ export function getRecoveryGuidance(run: RunLike): RecoveryGuidance {
       rerunIdempotent: true,
       resumeLabel: 'Resume build',
       rerunLabel: 'Rerun build',
-      receiptLabel: 'Open build receipt',
-      bestNextActionLabel: run.status === 'interrupted' ? 'Resume build' : 'Open build receipt',
+      receiptLabel: 'Open build proof',
+      bestNextActionLabel: run.status === 'interrupted' ? 'Resume build' : 'Open build proof',
       bestNextActionKind: run.status === 'interrupted' ? 'resume' : 'receipt',
       resumeSummary: 'Safe to resume if the workspace has not changed under the build.',
       rerunSummary: 'Rerunning a build is usually idempotent and should not change external state.',
@@ -257,7 +257,7 @@ export function getRecoveryGuidance(run: RunLike): RecoveryGuidance {
       rerunIdempotent: true,
       resumeLabel: 'Resume tests',
       rerunLabel: 'Retry tests with same env',
-      receiptLabel: 'Open test receipt',
+      receiptLabel: 'Open test proof',
       bestNextActionLabel: 'Retry tests with same env',
       bestNextActionKind: 'rerun',
       resumeSummary: 'It is usually safe to resume if the same test environment is still intact.',
@@ -275,8 +275,8 @@ export function getRecoveryGuidance(run: RunLike): RecoveryGuidance {
       rerunIdempotent: false,
       resumeLabel: 'Resume deploy',
       rerunLabel: 'Rerun deploy carefully',
-      receiptLabel: 'Open failed deploy receipt',
-      bestNextActionLabel: 'Open failed deploy receipt',
+      receiptLabel: 'Open failed deploy proof',
+      bestNextActionLabel: 'Open failed deploy proof',
       bestNextActionKind: 'receipt',
       resumeSummary: 'Deploy resumes can be risky unless the target system explicitly supports continuation.',
       rerunSummary: 'Deploy reruns may have side effects or create duplicate target changes.',
@@ -293,15 +293,15 @@ export function getRecoveryGuidance(run: RunLike): RecoveryGuidance {
       rerunIdempotent: false,
       resumeLabel: 'Resume repair',
       rerunLabel: 'Retry repair',
-      receiptLabel: 'Open repair receipt',
-      bestNextActionLabel: run.status === 'interrupted' ? 'Resume repair' : 'Open repair receipt',
+      receiptLabel: 'Open repair proof',
+      bestNextActionLabel: run.status === 'interrupted' ? 'Resume repair' : 'Open repair proof',
       bestNextActionKind: run.status === 'interrupted' ? 'resume' : 'receipt',
       resumeSummary: 'Resume is usually safe if the repair had not started editing external systems yet.',
       rerunSummary: 'Repair reruns may repeat edits, so inspect what already changed first.',
       bestNextActionReason:
         run.status === 'interrupted'
           ? 'Resuming keeps the repair context intact.'
-          : 'The receipt is the safest place to confirm what the repair already touched.',
+          : 'The proof is the safest place to confirm what the repair already touched.',
     }
   }
 
@@ -313,15 +313,15 @@ export function getRecoveryGuidance(run: RunLike): RecoveryGuidance {
     rerunIdempotent: false,
     resumeLabel: 'Resume task',
     rerunLabel: 'Rerun task',
-    receiptLabel: 'Open receipt',
-    bestNextActionLabel: run.status === 'interrupted' ? 'Resume task' : 'Open receipt',
+    receiptLabel: 'Open proof',
+    bestNextActionLabel: run.status === 'interrupted' ? 'Resume task' : 'Open proof',
     bestNextActionKind: run.status === 'interrupted' ? 'resume' : 'receipt',
     resumeSummary: 'Resume is usually safe when the task only affected the current workspace.',
     rerunSummary: 'Reruns may repeat work, so confirm side effects first when the task was not purely local.',
     bestNextActionReason:
       run.status === 'interrupted'
         ? 'Resuming avoids losing context from the interrupted task.'
-        : 'The receipt is the quickest way to confirm what already happened.',
+        : 'The proof is the quickest way to confirm what already happened.',
   }
 }
 

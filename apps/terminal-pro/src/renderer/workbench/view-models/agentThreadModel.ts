@@ -83,7 +83,7 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
       : workspaceState.status === 'weak'
         ? 'This folder may not be the project root yet.'
         : restoredRuns.length > 0
-          ? 'Recovered your last session.'
+          ? 'Previous work is ready to review.'
           : lastRun && isRunSuccessWithProof(lastRun)
             ? 'Ready. Workspace is known and the last verified run ended cleanly.'
             : lastRun
@@ -272,7 +272,7 @@ export function buildInlineRunViewModel(state: WorkbenchState, run: RunModel): I
   } else if (!hasRunProof(run)) {
     banner = {
       tone: 'verifying',
-      text: 'The command finished, but proof is still incomplete. Treat this as verifying until the receipt and exit state agree.',
+      text: 'The command finished, but proof is still incomplete. Treat this as verifying until evidence and exit state agree.',
     }
   }
 
@@ -303,7 +303,7 @@ export function buildInlineRunViewModel(state: WorkbenchState, run: RunModel): I
     nextLabel: run.status === 'failed' || run.status === 'interrupted' ? recovery.bestNextActionLabel : undefined,
     topActions: [
       { label: 'View logs', className: 'rw-link-btn', dataset: { runToggleOutput: run.id } },
-      { label: 'View receipt', className: 'rw-link-btn', dataset: { runReveal: receiptId } },
+      { label: 'View proof', className: 'rw-link-btn', dataset: { runReveal: receiptId } },
       ...(run.status === 'interrupted'
         ? [{ label: recovery.resumeLabel, className: 'rw-link-btn', dataset: { runResume: run.id } }]
         : []),
@@ -337,7 +337,7 @@ export function buildInlineRunViewModel(state: WorkbenchState, run: RunModel): I
     ],
     overflowActions: [
       { label: 'View diff', dataset: { runDiff: run.id } },
-      { label: 'View receipt', dataset: { runReveal: receiptId } },
+      { label: 'View proof', dataset: { runReveal: receiptId } },
       { label: 'View logs', dataset: { runToggleOutput: run.id } },
       { label: 'Open workspace folder', dataset: { runFolder: run.projectRoot || run.cwd || '' } },
       { label: 'Replay run', dataset: { runRerun: run.id } },

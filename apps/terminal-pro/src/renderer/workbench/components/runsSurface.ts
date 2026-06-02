@@ -58,7 +58,7 @@ export function renderDeploymentSummary(model: RunsDeploymentModel): HTMLElement
 
 function renderArtifactSummary(summary: RunArtifactSummary | null): HTMLElement {
   if (!summary) {
-    return el('div', { class: 'rw-run-section-placeholder' }, 'No artifact summary loaded yet. Use the Artifacts action to inspect stored receipt data.')
+    return el('div', { class: 'rw-run-section-placeholder' }, 'No artifact summary loaded yet. Use the Artifacts action to inspect stored proof data.')
   }
   const metric = (label: string, value: string) => el('div', undefined, el('span', { class: 'rw-run-command-label' }, label), el('code', undefined, value))
   return el(
@@ -132,7 +132,7 @@ export function renderRunBlock(model: RunsRunModel): HTMLElement {
         { class: 'rw-run-section-body rw-run-section-grid' },
         el('div', undefined, el('span', { class: 'rw-run-command-label' }, 'Run'), el('code', undefined, model.id)),
         el('div', undefined, el('span', { class: 'rw-run-command-label' }, 'Session'), el('code', undefined, model.sessionId)),
-        el('div', undefined, el('span', { class: 'rw-run-command-label' }, 'Receipt'), el('code', undefined, model.receiptLabel)),
+        el('div', undefined, el('span', { class: 'rw-run-command-label' }, 'Proof'), el('code', undefined, model.receiptLabel)),
         el('div', undefined, el('span', { class: 'rw-run-command-label' }, 'Workspace'), el('code', undefined, model.locationLabel)),
         ...model.actions.filter((action) => action.dataset.runArtifacts).map(actionButton),
         renderArtifactSummary(model.artifactSummary)

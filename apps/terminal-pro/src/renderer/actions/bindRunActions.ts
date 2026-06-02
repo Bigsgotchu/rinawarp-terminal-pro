@@ -121,7 +121,7 @@ export function createRunActionHandler(
           if (localReceipt) {
             revealExecutionReceiptInWorkbench(store, localReceipt)
           } else {
-            store.dispatch({ type: 'ui/setStatusSummary', text: result.error || 'Failed to load receipt' })
+            store.dispatch({ type: 'ui/setStatusSummary', text: result.error || 'Failed to load proof' })
           }
         }
       }
@@ -188,7 +188,7 @@ export function createRunActionHandler(
         store.dispatch({ type: 'ui/closeDrawer' })
         store.dispatch({ type: 'view/rightSet', view: 'agent' })
         await deps.submitUserTurn(
-          `The run "${run.command}" ${run.status === 'interrupted' ? 'was interrupted' : 'failed'} with exit code ${run.exitCode ?? 'unknown'}. Analyze the receipt and output, then propose a safe fix and retry plan. Do not edit files without approval.`,
+          `The run "${run.command}" ${run.status === 'interrupted' ? 'was interrupted' : 'failed'} with exit code ${run.exitCode ?? 'unknown'}. Analyze the proof and output, then propose a safe fix and retry plan. Do not edit files without approval.`,
           'run_fix'
         )
       }
@@ -241,9 +241,9 @@ export function createRunActionHandler(
       const summary = copyReceiptSummary(store, receiptCopyBtn.dataset.receiptCopy)
       if (summary) {
         void navigator.clipboard.writeText(summary)
-        store.dispatch({ type: 'ui/setStatusSummary', text: 'Receipt summary copied.' })
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'Proof summary copied.' })
       } else {
-        store.dispatch({ type: 'ui/setStatusSummary', text: 'Receipt summary unavailable.' })
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'Proof summary unavailable.' })
       }
       return true
     }

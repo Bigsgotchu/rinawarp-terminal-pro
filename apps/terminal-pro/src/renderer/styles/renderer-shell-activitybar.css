@@ -6,9 +6,7 @@
   gap: 10px;
   min-inline-size: 0;
   padding: 12px 10px;
-  background:
-    linear-gradient(180deg, rgba(10, 14, 19, 0.98), rgba(5, 8, 12, 0.98)),
-    radial-gradient(circle at top left, rgba(255, 46, 136, 0.08), transparent 34%);
+  background: rgba(7, 10, 14, 0.98);
   border-inline-end: 1px solid rgba(255,255,255,0.08);
 }
 
@@ -19,14 +17,10 @@
 .rw-activitybar-logo {
   inline-size: 30px;
   block-size: 30px;
-  border-radius: 10px;
+  border-radius: 5px;
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(circle at 22% 22%, rgba(255, 47, 179, 0.26), transparent 56%),
-    radial-gradient(circle at 72% 28%, rgba(125, 211, 255, 0.2), transparent 56%),
-    radial-gradient(circle at 50% 78%, rgba(38, 247, 212, 0.18), transparent 60%),
-    color-mix(in oklab, var(--w-panel-2, #121621) 92%, black);
+  background: color-mix(in oklab, var(--w-panel-2, #121621) 92%, black);
   border: 1px solid var(--w-border, rgba(255,255,255,0.1));
 }
 
@@ -38,7 +32,7 @@
   place-items: center;
   color: rgba(245, 255, 252, 0.96);
   font: 900 0.86rem/1 var(--font-ui);
-  filter: drop-shadow(0 0 8px rgba(255, 47, 179, 0.24));
+  filter: none;
 }
 
 .rw-activitybtn {
@@ -49,7 +43,7 @@
   justify-content: flex-start;
   gap: 10px;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 4px;
   background: transparent;
   color: rgba(154, 164, 178, 0.78);
   font: 700 0.76rem/1 var(--font-ui);
@@ -68,9 +62,7 @@
 .rw-activitybtn.active {
   color: var(--rw-fg);
   border-color: rgba(255, 46, 136, 0.18);
-  background:
-    linear-gradient(90deg, rgba(255, 46, 136, 0.14), rgba(255, 46, 136, 0.04)),
-    rgba(255,255,255,0.035);
+  background: rgba(255, 46, 136, 0.09);
 }
 
 .rw-activitybtn.active::before {
@@ -79,8 +71,8 @@
   inset-inline-start: -11px;
   inline-size: 3px;
   block-size: 60%;
-  border-radius: 999px;
-  background: linear-gradient(180deg, var(--hot-pink), var(--teal), var(--baby-blue));
+  border-radius: 2px;
+  background: var(--hot-pink);
 }
 
 .rw-activitybtn-glyph {
@@ -105,7 +97,7 @@
   min-inline-size: 0;
   padding: 7px;
   border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 8px;
+  border-radius: 5px;
   background: rgba(255,255,255,0.025);
 }
 
@@ -146,12 +138,51 @@
   text-transform: uppercase;
 }
 
+.rw-sidebar-extensions {
+  margin-block-start: 8px;
+}
+
+.rw-sidebar-extension-card {
+  display: grid;
+  gap: 7px;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.rw-sidebar-extension-title {
+  color: rgba(247, 249, 253, 0.92);
+  font: 800 0.68rem/1.1 var(--font-ui);
+}
+
+.rw-sidebar-extension-copy {
+  color: rgba(154, 164, 178, 0.72);
+  font: 600 0.6rem/1.35 var(--font-ui);
+}
+
+.rw-sidebar-extension-action {
+  inline-size: 100%;
+  min-block-size: 26px;
+  border: 1px solid rgba(124, 199, 255, 0.14);
+  border-radius: 4px;
+  background: rgba(124, 199, 255, 0.04);
+  color: rgba(224, 236, 248, 0.86);
+  font: 700 0.6rem/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.rw-sidebar-extension-action:hover {
+  border-color: rgba(124, 199, 255, 0.24);
+  background: rgba(124, 199, 255, 0.07);
+}
+
 .rw-sidebar-status {
   display: flex;
   align-items: center;
   gap: 7px;
   padding: 7px 8px;
-  border-radius: 8px;
+  border-radius: 4px;
   background: rgba(29, 233, 182, 0.055);
   color: rgba(129, 255, 226, 0.9);
   font: 800 0.66rem/1 var(--font-ui);
@@ -162,8 +193,8 @@
   place-items: center;
   inline-size: 26px;
   block-size: 26px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(255, 46, 136, 0.95), rgba(124, 199, 255, 0.84));
+  border-radius: 5px;
+  background: rgba(255, 46, 136, 0.85);
   color: white;
   font: 900 0.72rem/1 var(--font-ui);
   flex: 0 0 auto;

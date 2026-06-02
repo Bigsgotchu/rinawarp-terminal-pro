@@ -29,7 +29,7 @@ export function buildDiagnosticsWorkbenchViewModel(state: WorkbenchState) {
       row('Rollback', state.deployment.rollback),
       row('Deploy source', state.deployment.source),
       row('Latest deploy run', state.deployment.latestRunId || 'none'),
-      row('Latest receipt', state.deployment.latestReceiptId || 'none'),
+      row('Latest proof', state.deployment.latestReceiptId || 'none'),
     ],
   }
 }

@@ -42,7 +42,10 @@ export function applyWorkbenchShellChrome(state: WorkbenchState, doc: Document =
   if (shell) shell.classList.toggle('recovery-focused', model.recoveryFocused)
 
   const statusBar = doc.getElementById('status-bar')
-  if (statusBar) statusBar.hidden = model.recoveryFocused || model.agentLaunchEmpty
+  if (statusBar) {
+    statusBar.hidden = true
+    statusBar.style.display = 'none'
+  }
 
   for (const [name, active] of Object.entries(model.activeCenterViews)) {
     doc.querySelector<HTMLElement>(`[data-view="${name}"]`)?.classList.toggle('active', active)

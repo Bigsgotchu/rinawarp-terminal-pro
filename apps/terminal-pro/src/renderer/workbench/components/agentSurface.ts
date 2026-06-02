@@ -188,7 +188,7 @@ export function renderInlineRunBlock(model: InlineRunViewModel): HTMLElement {
     el(
       'div',
       { class: 'rw-inline-runblock-detail' },
-      el('span', { class: 'rw-inline-label' }, 'receipt'),
+      el('span', { class: 'rw-inline-label' }, 'proof'),
       el('code', undefined, model.receiptId)
     )
   )

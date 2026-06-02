@@ -31,7 +31,7 @@ type ShareCardPayload = {
 
 function sanitizeReceiptFilename(receiptId: string): string {
   const safe = receiptId.replace(/[^a-z0-9._-]+/gi, '-').replace(/^-+|-+$/g, '')
-  return `rinawarp-receipt-${safe || Date.now()}.json`
+  return `rinawarp-proof-${safe || Date.now()}.json`
 }
 
 function asRecord(value: unknown): Record<string, any> {
@@ -112,7 +112,7 @@ function buildCurrentReceiptExport(store: WorkbenchStore): ReceiptExportPayload 
 
 function formatReceiptExportText(payload: ReceiptExportPayload): string {
   return [
-    `RinaWarp receipt ${payload.receiptId}`,
+    `RinaWarp proof ${payload.receiptId}`,
     `Timestamp: ${payload.timestamp || 'not recorded'}`,
     `Intent: ${payload.intent}`,
     `Proof blocks: ${payload.proofBlockIds.join(', ') || 'none recorded'}`,
@@ -353,7 +353,7 @@ export function createClipboardActionHandler(
       const receiptId = receiptReferenceForFix(store, fix)
       if (receiptId) {
         await navigator.clipboard.writeText(receiptId)
-        deps.setTransientStatusSummary(store, 'Receipt ID copied')
+        deps.setTransientStatusSummary(store, 'Proof ID copied')
       }
       return true
     }
@@ -409,25 +409,25 @@ export function createClipboardActionHandler(
     if (target.closest('[data-copy-current-receipt]')) {
       const payload = buildCurrentReceiptExport(store)
       if (!payload) {
-        deps.setTransientStatusSummary(store, 'No runtime receipt is loaded to copy.')
+        deps.setTransientStatusSummary(store, 'No runtime proof is loaded to copy.')
         return true
       }
       await navigator.clipboard.writeText(formatReceiptExportText(payload))
-      deps.setTransientStatusSummary(store, 'Receipt copied.')
+      deps.setTransientStatusSummary(store, 'Proof copied.')
       return true
     }
 
     if (target.closest('[data-export-current-receipt]')) {
       const payload = buildCurrentReceiptExport(store)
       if (!payload) {
-        deps.setTransientStatusSummary(store, 'No runtime receipt is loaded to export.')
+        deps.setTransientStatusSummary(store, 'No runtime proof is loaded to export.')
         return true
       }
       try {
         downloadReceiptJson(payload)
-        deps.setTransientStatusSummary(store, 'Receipt JSON export started.')
+        deps.setTransientStatusSummary(store, 'Proof JSON export started.')
       } catch (error) {
-        deps.setTransientStatusSummary(store, `Receipt export failed: ${error instanceof Error ? error.message : 'unknown error'}`)
+        deps.setTransientStatusSummary(store, `Proof export failed: ${error instanceof Error ? error.message : 'unknown error'}`)
       }
       return true
     }

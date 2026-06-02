@@ -20,8 +20,8 @@ export function buildExecutionHaltContent(prompt: string, reason: string | undef
   const summary = humanizeHaltReason(reason)
   const actions =
     /confirmation/i.test(String(reason || '')) || /typed YES/i.test(String(reason || ''))
-      ? [{ label: 'Open Runs', tab: 'runs' }, { label: 'Inspect execution trace', tab: 'execution-trace' }]
-      : [{ label: 'Inspect receipts', tab: 'runs' }, { label: 'Inspect execution trace', tab: 'execution-trace' }]
+      ? [{ label: 'Open History', tab: 'runs' }, { label: 'Inspect terminal', tab: 'execution-trace' }]
+      : [{ label: 'Inspect proof', tab: 'runs' }, { label: 'Inspect terminal', tab: 'execution-trace' }]
 
   return [
     ...(options?.introText?.trim() ? [copyBlock(options.introText.trim())] : []),

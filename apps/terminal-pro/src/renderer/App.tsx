@@ -6,7 +6,7 @@ function App() {
   const [showDetailsDrawer, setShowDetailsDrawer] = useState(false)
 
   const handleResumeFix = () => {
-    console.log('Resume fix triggered')
+    console.log('Review previous plan triggered')
     // Could show execution timeline here
   }
 
