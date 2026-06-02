@@ -44,7 +44,7 @@ export const SEO_CONFIG: Record<string, SeoData> = {
   '/pricing': {
     title: 'RinaWarp Pricing | Fix Your Broken Project Automatically',
     description:
-      'See RinaWarp pricing for Free, Pro ($29/mo), Creator ($69/mo), and Team ($99/user/mo) checkout plans built around one promise: fix your broken project automatically with proof.',
+      'See RinaWarp pricing for Free, One Fix, Pro, Team, and Enterprise access mapped to repair, verification, proof export, and team controls.',
     canonical: 'https://rinawarptech.com/pricing',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'pricing, fix project, developer tool pricing, RinaWarp, AI repair, proof-backed fixes',
@@ -52,10 +52,18 @@ export const SEO_CONFIG: Record<string, SeoData> = {
   '/download': {
     title: 'Download RinaWarp Terminal Pro | Verified AI Terminal Releases',
     description:
-      'Download verified RinaWarp Terminal Pro releases for Linux and Windows, inspect the live manifest, and verify integrity with published checksums.',
+      'Download verified RinaWarp Terminal Pro Linux releases, inspect the live manifest, and verify integrity with published checksums.',
     canonical: 'https://rinawarptech.com/download',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'download, RinaWarp, verified releases, checksums, AppImage, deb, exe',
+  },
+  '/trust': {
+    title: 'RinaWarp Trust & Safety | Local-First Proof-Backed AI Workbench',
+    description:
+      'Learn how RinaWarp handles local execution, approval-gated repairs, rollback, proof, privacy-safe telemetry, marketplace permissions, and current platform readiness.',
+    canonical: 'https://rinawarptech.com/trust',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    keywords: 'RinaWarp trust, developer privacy, local-first AI, approval-gated repair, proof-backed execution',
   },
   '/support': {
     title: 'RinaWarp Support | Help, Feedback, and Contact',
@@ -179,7 +187,7 @@ function buildStructuredData(path: string, seo: SeoData): string {
       '@type': 'SoftwareApplication',
       name: isMatterPage ? 'RinaWarp Matter Intelligence' : 'RinaWarp Terminal Pro',
       applicationCategory: isMatterPage ? 'BusinessApplication' : 'DeveloperApplication',
-      operatingSystem: isMatterPage ? 'Web, Desktop' : 'Windows, Linux',
+      operatingSystem: isMatterPage ? 'Web, Desktop' : 'Linux',
       url: seo.canonical,
       description: seo.description,
       publisher: {

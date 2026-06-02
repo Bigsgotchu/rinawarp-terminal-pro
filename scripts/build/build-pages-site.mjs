@@ -33,7 +33,7 @@ const PUBLIC_BETA_CHECKSUMS_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/SHASUMS256.txt`;
 const PUBLIC_BETA_LATEST_JSON_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest.json`;
 const PUBLIC_BETA_LATEST_YML_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest.yml`;
 const PUBLIC_BETA_LATEST_LINUX_YML_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest-linux.yml`;
-const ASSET_VERSION = "20260602-terminal-screenshots";
+const ASSET_VERSION = "20260602-trust-readiness";
 const GA_MEASUREMENT_ID = "G-YGX1R0MEB6";
 const SCREENSHOT_SOURCES = [
   ["agent-empty-state.png", path.join(repoRoot, "apps", "terminal-pro", "test-results", "visual-qa", "agent-empty-state.png")],
@@ -2012,7 +2012,7 @@ function buildStructuredData(path, title, description) {
       "@type": "SoftwareApplication",
       name: "RinaWarp Terminal Pro",
       applicationCategory: "DeveloperApplication",
-      operatingSystem: "Windows, Linux",
+      operatingSystem: "Linux",
       url: canonical,
       description,
       publisher: {
@@ -2098,6 +2098,7 @@ function nav(active) {
     ["/pricing/", "Pricing", "pricing"],
     ["/download/", "Download", "download"],
     ["/docs/", "Docs", "docs"],
+    ["/trust/", "Trust", "trust"],
     ["/support/", "Support", "feedback"],
     ["/account/", "Account", "account"],
   ];
@@ -2158,6 +2159,7 @@ function shell({ path, page, title, description, eyebrow, heading, copy, heroAct
           <a href="/pricing/">Pricing</a>
           <a href="/download/">Download</a>
           <a href="/support/">Support</a>
+          <a href="/trust/">Trust</a>
           <a href="/case-studies/">Case studies</a>
           <a href="/fix-typescript-errors/">Fix guides</a>
           <a href="/about/">About</a>
@@ -2286,22 +2288,25 @@ Type 'string' is not assignable</pre></article>
     path: "/pricing",
     page: "pricing",
     title: "RinaWarp Terminal Pro Pricing | AI Terminal Plans",
-    description: "See RinaWarp Terminal Pro pricing for individual and team plans with trusted execution, receipts, recovery, and proof-backed repair workflows.",
+    description: "See RinaWarp Terminal Pro pricing for Free, One Fix, Pro, Team, and Enterprise access mapped to repair, verification, proof export, and team controls.",
     eyebrow: "Pricing",
-    heading: "Start fixing your projects for free.",
-    copy: "Try it free. If it fixes your project, upgrade. One fix can save hours, so the next step should feel obvious.",
+    heading: "Plans mapped to real product access.",
+    copy: "Choose the level of repair, verification, and team control you need. Pricing stays focused on buying RinaWarp, not repeating the whole product tour.",
     content: `
       <section class="section"><div class="pricing-grid">
-        <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Try the workflow on a broken project first.</p><ul class="feature-list"><li>Limited Fix Project runs</li><li>Visible repair steps</li><li>Daily limits apply</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Start free</a></article>
-         <article class="card pricing-card featured"><span class="pill">Pro</span><div class="price">$15 <span>/ month</span></div><p>Unlimited fixes with proof-backed verification.</p><ul class="feature-list"><li>Unlimited Fix Project runs</li><li>High-impact fixes with approval</li><li>Stronger repair coverage</li></ul><div class="stack"><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for checkout"><div class="link-row"><button class="btn btn-primary" data-checkout-tier="pro" type="button">Start Pro — $15/mo</button><button class="btn btn-secondary" data-checkout-tier="fix" type="button">Buy One Fix — $3</button></div><p id="checkout-status" class="status-message" aria-live="polite">Pro is $15/month. One Fix is $3. Checkout opens in Stripe.</p></div></article>
-         <article class="card pricing-card"><span class="pill">Team</span><div class="price">$40 <span>/ user / month</span></div><p>Seat-based checkout for teams.</p><ul class="feature-list"><li>Everything in Pro</li><li>Team seats</li><li>Priority support</li></ul><button class="btn btn-secondary" data-checkout-tier="team" type="button">Start Team — $40/user/mo</button></article>
+        <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Evaluate RinaWarp on a broken project before you pay.</p><ul class="feature-list"><li>Chat with Rina</li><li>Inspect workspace</li><li>Limited build/test runs</li><li>Local memory</li><li>Limited proof history</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Start free</a></article>
+        <article class="card pricing-card"><span class="pill">One Fix</span><div class="price">$3 <span>/ repair</span></div><p>Use one approval-gated repair when a single project is blocking you.</p><ul class="feature-list"><li>One approval-gated repair</li><li>Verification run</li><li>Proof export</li></ul><button class="btn btn-secondary" data-checkout-tier="fix" type="button">Buy One Fix — $3</button></article>
+        <article class="card pricing-card featured"><span class="pill">Pro</span><div class="price">$15 <span>/ month</span></div><p>For individual developers who want ongoing proof-backed repair work.</p><ul class="feature-list"><li>Unlimited local proof-backed runs</li><li>Safe mutation approvals</li><li>Marketplace packs</li><li>Proof export</li><li>Local memory</li><li>Priority updates</li></ul><button class="btn btn-primary" data-checkout-tier="pro" type="button">Start Pro — $15/mo</button></article>
+        <article class="card pricing-card"><span class="pill">Team</span><div class="price">$40 <span>/ user / month</span></div><p>Seat-based checkout for teams that need shared controls.</p><ul class="feature-list"><li>Team seats</li><li>Shared policy controls</li><li>Shared project memory later</li><li>Admin controls</li><li>Shared proof history</li></ul><button class="btn btn-secondary" data-checkout-tier="team" type="button">Start Team — $40/user/mo</button></article>
       </div></section>
-      <section class="section"><div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Feature</th><th>Free</th><th>Pro</th><th>Team</th></tr></thead><tbody><tr><td>Fix Project</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Unlimited repairs</td><td class="mark-no">—</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Approval workflow</td><td class="mark-no">—</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Team access</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td></tr><tr><td>Priority support</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td></tr></tbody></table></div></section>
+      <section class="section"><article class="panel stack"><h2 class="section-title">Secure checkout</h2><p class="section-copy">Enter the email that should own the license, then choose One Fix, Pro, or Team.</p><input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for checkout"><p id="checkout-status" class="status-message" aria-live="polite">One Fix is $3. Pro is $15/month. Team is $40/user/month. Checkout opens in Stripe.</p></article></section>
+      <section class="section"><div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Feature</th><th>Free</th><th>One Fix</th><th>Pro</th><th>Team</th></tr></thead><tbody><tr><td>Workspace inspection</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Approval-gated repair</td><td class="mark-no">Limited</td><td class="mark-yes">1</td><td class="mark-yes">Unlimited</td><td class="mark-yes">Unlimited</td></tr><tr><td>Verification and proof export</td><td class="mark-no">Limited</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Marketplace packs</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Shared policy controls</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td></tr></tbody></table></div></section>
+      <section class="section"><article class="panel stack"><span class="pill">Enterprise</span><h2 class="section-title">Need enterprise controls?</h2><p class="section-copy">Enterprise adds SSO/SAML, custom model or BYOK options, audit logs, admin command policies, private marketplace access, and data retention controls.</p><a href="/support/" class="btn btn-secondary">Contact support</a></article></section>
       <section class="section"><h2 class="section-title">Quick answers before you buy</h2><p class="section-copy">The practical questions people ask right before paying.</p><div class="faq-grid">
         <article class="faq-item"><h3>Which plan should I choose?</h3><p>Start with Free if you are evaluating one project. Choose Pro for ongoing individual repair work. Choose Team when multiple developers need seats.</p></article>
         <article class="faq-item"><h3>Is there a one-time option?</h3><p>Yes. One Fix is a single paid repair attempt without a subscription, meant for one-off blocked projects.</p></article>
         <article class="faq-item"><h3>Can I cancel later?</h3><p>Yes. Subscription billing is handled through Stripe and cancellation is available after purchase.</p></article>
-        <article class="faq-item"><h3>What does the one-fix option do?</h3><p>It gives you a single paid repair attempt without a subscription. It is meant for one-off fixes, not ongoing usage.</p></article>
+        <article class="faq-item"><h3>What has to work before access is production-grade?</h3><p>Paid access depends on Stripe webhook signature verification, secure sessions, entitlement refresh, and license checks that do not fall back to a development user.</p></article>
       </div></section>
     `
   },
@@ -2468,6 +2473,45 @@ Type 'string' is not assignable</pre></article>
           <a href="/pricing/" class="btn btn-secondary">See pricing</a>
           <a href="/what-is-a-proof-first-ai-terminal/" class="btn btn-secondary">Define proof-first AI terminal</a>
         </div>
+      </div></section>
+    `
+  },
+  {
+    route: "trust",
+    path: "/trust",
+    page: "trust",
+    title: "RinaWarp Trust & Safety | Local-First Proof-Backed AI Workbench",
+    description: "Learn how RinaWarp handles local execution, approval-gated repairs, rollback, proof, privacy-safe telemetry, marketplace permissions, and current platform readiness.",
+    eyebrow: "Trust & Safety",
+    heading: "How RinaWarp keeps developer work inspectable.",
+    copy: "RinaWarp is built for real repositories, real commands, and real verification. The product should show what it inspected, ask before high-impact changes, and keep proof attached to every repair.",
+    heroActions: `
+      <a href="/download/" class="btn btn-primary">Download Terminal Pro</a>
+      <a href="/docs/" class="btn btn-secondary">Read docs</a>
+    `,
+    content: `
+      <section class="section"><article class="panel stack">
+        <span class="pill">Current production status</span>
+        <h2 class="section-title">Linux production candidate. macOS and Windows pending.</h2>
+        <p class="section-copy">The current public release is available for Linux as a checksum-verified .deb and AppImage. macOS and Windows are pending signed, notarized, and smoke-tested installers before they return to the download page.</p>
+      </article></section>
+      <section class="section"><div class="grid three-up">
+        <article class="card"><h3>Local-first execution</h3><p>RinaWarp runs developer work from the selected workspace and keeps repository inspection tied to the local project context.</p></article>
+        <article class="card"><h3>Workspace boundaries</h3><p>Repairs should stay scoped to the project you opened. High-impact actions must be visible before they run.</p></article>
+        <article class="card"><h3>Approval before mutation</h3><p>File changes, install steps, and risky commands should require clear approval instead of happening silently.</p></article>
+      </div></section>
+      <section class="section"><div class="grid three-up">
+        <article class="card"><h3>Rollback and recovery</h3><p>Repair work should preserve a recovery path so developers can understand and undo changes when a fix is not right.</p></article>
+        <article class="card"><h3>Proof-backed results</h3><p>Build, test, and health-check output should stay attached to the repair so success is evidence-based.</p></article>
+        <article class="card"><h3>Secret redaction</h3><p>Logs and telemetry should avoid secrets, tokens, file contents, command output, and private paths unless they are safely redacted or hashed.</p></article>
+      </div></section>
+      <section class="section"><div class="grid two-up">
+        <article class="panel stack"><h2 class="section-title">Memory and data controls</h2><p>Local memory should help RinaWarp remember project context without turning private code into a public profile. Cloud sync is optional, not the default. Developers should be able to export or delete saved memory.</p></article>
+        <article class="panel stack"><h2 class="section-title">Marketplace permissions</h2><p>Capability packs need a manifest, publisher, version, permissions, risk level, install approval, disable control, changelog, and proof of what ran. Packs should not bypass Agent Thread, policy, execution, verification, and proof.</p></article>
+      </div></section>
+      <section class="section"><div class="grid two-up">
+        <article class="panel stack"><h2 class="section-title">Download verification</h2><p>Installers are linked through public release metadata and checksums. If the SHA256 checksum does not match the published file, do not run the installer.</p><a href="/download/" class="btn btn-secondary">Verify downloads</a></article>
+        <article class="panel stack"><h2 class="section-title">Privacy-safe telemetry</h2><p>RinaWarp should measure activation events like install, first launch, first scan, first proof, fix approval, proof export, marketplace install, memory saved, memory cleared, and crash report creation. It should not collect source files, terminal output, secrets, tokens, or private paths.</p><a href="/privacy/" class="btn btn-secondary">Read privacy policy</a></article>
       </div></section>
     `
   },
@@ -2844,6 +2888,7 @@ const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
   <url><loc>https://rinawarptech.com/pricing/</loc></url>
   <url><loc>https://rinawarptech.com/download/</loc></url>
   <url><loc>https://rinawarptech.com/docs/</loc></url>
+  <url><loc>https://rinawarptech.com/trust/</loc></url>
   <url><loc>https://rinawarptech.com/support/</loc></url>
   <url><loc>https://rinawarptech.com/early-access/</loc></url>
   <url><loc>https://rinawarptech.com/terms/</loc></url>

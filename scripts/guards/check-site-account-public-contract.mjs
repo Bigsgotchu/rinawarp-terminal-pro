@@ -42,7 +42,7 @@ const pageJobSurfaces = {
   pricing: [
     {
       label: "worker pricing route",
-      body: extractBetween(router, "function renderPricing(", "\nfunction renderDocs", "worker pricing route"),
+      body: extractBetween(router, "function renderPricing(", "\nfunction renderTrust", "worker pricing route"),
     },
     {
       label: "static pricing page",
@@ -77,6 +77,16 @@ const pageJobSurfaces = {
     {
       label: "static support page",
       body: extractBetween(staticBuilder, 'route: "support"', 'route: "terms"', "static support page"),
+    },
+  ],
+  trust: [
+    {
+      label: "worker trust route",
+      body: extractBetween(router, "function renderTrust(", "\nfunction renderDocs", "worker trust route"),
+    },
+    {
+      label: "static trust page",
+      body: extractBetween(staticBuilder, 'route: "trust"', 'route: "docs"', "static trust page"),
     },
   ],
 };
@@ -170,7 +180,14 @@ for (const surface of homeSurfaces) {
 
 const pageJobContracts = {
   pricing: {
-    required: ["Start Pro", "Buy One Fix", "Start Team", "Quick answers before you buy"],
+    required: [
+      "Chat with Rina",
+      "One approval-gated repair",
+      "Unlimited local proof-backed runs",
+      "Shared policy controls",
+      "Enterprise",
+      "Quick answers before you buy",
+    ],
     forbidden: [
       "Restore purchase",
       "Restore access",
@@ -220,6 +237,26 @@ const pageJobContracts = {
       "Start Pro",
       "Buy One Fix",
       "Referral lookup",
+    ],
+  },
+  trust: {
+    required: [
+      "Trust & Safety",
+      "Linux production candidate. macOS and Windows pending.",
+      "Local-first execution",
+      "Approval before mutation",
+      "Secret redaction",
+      "Marketplace permissions",
+      "Privacy-safe telemetry",
+    ],
+    forbidden: [
+      "Start Pro",
+      "Buy One Fix",
+      "Restore purchase",
+      "Manage billing",
+      "Referral lookup",
+      "Download Linux .deb",
+      "Install instructions",
     ],
   },
 };

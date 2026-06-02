@@ -594,6 +594,7 @@ type SitePage =
   | 'pricing'
   | 'download'
   | 'docs'
+  | 'trust'
   | 'agents'
   | 'feedback'
   | 'legal'
@@ -1609,6 +1610,7 @@ function renderSitemapXml(origin: string): Response {
     '/pricing',
     '/download',
     '/docs',
+    '/trust',
     '/support',
     '/matter-intelligence',
     '/matter-intelligence/pricing',
@@ -1755,6 +1757,7 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
           ${navLink('/pricing', 'Pricing', active, 'pricing')}
           ${navLink('/download', 'Download', active, 'download')}
           ${navLink('/docs', 'Docs', active, 'docs')}
+          ${navLink('/trust', 'Trust', active, 'trust')}
           ${navLink('/agents', 'Agents', active, 'agents')}
           ${navLink('/support', 'Support', active, 'feedback')}
           ${navAccountLink(active)}
@@ -1773,6 +1776,7 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
            <a href="/docs">Docs</a>
            <a href="/pricing">Pricing</a>
            <a href="/download">Download</a>
+           <a href="/trust">Trust</a>
            <a href="/support">Support</a>
            <a href="/terms">Terms</a>
            <a href="/privacy">Privacy</a>
@@ -2767,12 +2771,14 @@ function renderPricing(): Response {
   const hero = `
     <section class="hero">
       <span class="eyebrow">Fix Project pricing</span>
-      <h1>Fix your broken project automatically.</h1>
-      <p class="hero-copy">Plan comparison, FAQ, and Stripe checkout for the developers who are ready to buy.</p>
+      <h1>Plans mapped to real product access.</h1>
+      <p class="hero-copy">Choose the level of repair, verification, and team control you need. Pricing stays focused on buying RinaWarp, not repeating the whole product tour.</p>
       <div class="trust-row">
         <span class="trust-chip">Free</span>
+        <span class="trust-chip">One Fix</span>
         <span class="trust-chip">Pro</span>
         <span class="trust-chip">Team</span>
+        <span class="trust-chip">Enterprise</span>
       </div>
     </section>
   `
@@ -2783,47 +2789,76 @@ function renderPricing(): Response {
         <article class="card pricing-card">
           <span class="pill">Free</span>
           <div class="price">$0 <span>/ month</span></div>
-          <p>Try Fix Project on smaller repos and prove the workflow before you pay.</p>
+          <p>Evaluate RinaWarp on a broken project before you pay.</p>
           <ul class="feature-list">
-            <li>Limited Fix Project runs</li>
-            <li>Visible repair steps</li>
-            <li>Daily limits apply</li>
+            <li>Chat with Rina</li>
+            <li>Inspect workspace</li>
+            <li>Limited build/test runs</li>
+            <li>Local memory</li>
+            <li>Limited proof history</li>
           </ul>
           <a href="/download" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Start free</a>
+        </article>
+        <article class="card pricing-card">
+          <span class="pill">One Fix</span>
+          <div class="price">$3 <span>/ repair</span></div>
+          <p>Use one approval-gated repair when a single project is blocking you.</p>
+          <ul class="feature-list">
+            <li>One approval-gated repair</li>
+            <li>Verification run</li>
+            <li>Proof export</li>
+          </ul>
+          <button class="btn btn-secondary" data-checkout-tier="fix" type="button">Buy One Fix</button>
         </article>
         <article class="card pricing-card featured">
           <span class="pill">Pro</span>
           <div class="price">$15 <span>/ month</span></div>
-          <p>For individual developers who want unlimited fixes and stronger repair coverage.</p>
+          <p>For individual developers who want ongoing proof-backed repair work.</p>
           <ul class="feature-list">
-            <li>Unlimited Fix Project runs</li>
-            <li>High-impact fixes with approval</li>
-            <li>Stronger repair coverage</li>
+            <li>Unlimited local proof-backed runs</li>
+            <li>Safe mutation approvals</li>
+            <li>Marketplace packs</li>
+            <li>Proof export</li>
+            <li>Local memory</li>
+            <li>Priority updates</li>
           </ul>
-          <div class="stack" style="gap:12px">
-            <input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for checkout" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,0.04);color:var(--text)">
-            <div style="display:flex;gap:12px;flex-wrap:wrap">
-              <button class="btn btn-primary" data-checkout-tier="pro" type="button">Start Pro</button>
-              <button class="btn btn-secondary" data-checkout-tier="fix" type="button">Buy One Fix</button>
-            </div>
-            <div class="note" id="checkout-status" aria-live="polite">Pro is $15/month. One Fix is $3. Checkout opens in Stripe.</div>
-          </div>
+          <button class="btn btn-primary" data-checkout-tier="pro" type="button">Start Pro</button>
         </article>
         <article class="card pricing-card">
           <span class="pill">Team</span>
           <div class="price">$40 <span>/ user / month</span></div>
-          <p>Seat-based checkout for teams.</p>
+          <p>Seat-based checkout for teams that need shared controls.</p>
           <ul class="feature-list">
-            <li>Everything in Pro</li>
             <li>Team seats</li>
-            <li>Priority support</li>
+            <li>Shared policy controls</li>
+            <li>Shared project memory later</li>
+            <li>Admin controls</li>
+            <li>Shared proof history</li>
           </ul>
           <button class="btn btn-secondary" data-checkout-tier="team" type="button">Start Team</button>
         </article>
       </div>
     </section>
 
-    <section class="section"><div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Feature</th><th>Free</th><th>Pro</th><th>Team</th></tr></thead><tbody><tr><td>Fix Project</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Unlimited repairs</td><td class="mark-no">—</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Approval workflow</td><td class="mark-no">—</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Team access</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td></tr><tr><td>Priority support</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td></tr></tbody></table></div></section>
+    <section class="section">
+      <article class="panel stack">
+        <h2 class="section-title">Secure checkout</h2>
+        <p class="section-copy">Enter the email that should own the license, then choose One Fix, Pro, or Team.</p>
+        <input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for checkout" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,0.04);color:var(--text)">
+        <div class="note" id="checkout-status" aria-live="polite">One Fix is $3. Pro is $15/month. Team is $40/user/month. Checkout opens in Stripe.</div>
+      </article>
+    </section>
+
+    <section class="section"><div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Feature</th><th>Free</th><th>One Fix</th><th>Pro</th><th>Team</th></tr></thead><tbody><tr><td>Workspace inspection</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Approval-gated repair</td><td class="mark-no">Limited</td><td class="mark-yes">1</td><td class="mark-yes">Unlimited</td><td class="mark-yes">Unlimited</td></tr><tr><td>Verification and proof export</td><td class="mark-no">Limited</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Marketplace packs</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Shared policy controls</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td></tr></tbody></table></div></section>
+
+    <section class="section">
+      <article class="panel stack">
+        <span class="pill">Enterprise</span>
+        <h2 class="section-title">Need enterprise controls?</h2>
+        <p class="section-copy">Enterprise adds SSO/SAML, custom model or BYOK options, audit logs, admin command policies, private marketplace access, and data retention controls.</p>
+        <a href="/support" class="btn btn-secondary">Contact support</a>
+      </article>
+    </section>
 
     <section class="section">
       <h2 class="section-title">Quick answers before you buy</h2>
@@ -2842,8 +2877,8 @@ function renderPricing(): Response {
           <p>Yes. Subscription billing is handled through Stripe and cancellation is available after purchase.</p>
         </article>
         <article class="faq-item">
-          <h3>What does the one-fix option do?</h3>
-          <p>It gives you a single paid repair attempt without a subscription. It is meant for one-off fixes and onboarding, not ongoing usage.</p>
+          <h3>What has to work before access is production-grade?</h3>
+          <p>Paid access depends on Stripe webhook signature verification, secure sessions, entitlement refresh, and license checks that do not fall back to a development user.</p>
         </article>
       </div>
     </section>
@@ -2890,6 +2925,59 @@ function renderPricing(): Response {
   `
 
   return renderPage('/pricing', 'pricing', hero, content, script)
+}
+
+function renderTrust(): Response {
+  const hero = `
+    <section class="hero">
+      <span class="eyebrow">Trust & Safety</span>
+      <h1>How RinaWarp keeps developer work inspectable.</h1>
+      <p class="hero-copy">RinaWarp is built for real repositories, real commands, and real verification. The product should show what it inspected, ask before high-impact changes, and keep proof attached to every repair.</p>
+      <div class="trust-row">
+        <span class="trust-chip">Local-first execution</span>
+        <span class="trust-chip">Approval before mutation</span>
+        <span class="trust-chip">Proof-backed results</span>
+      </div>
+    </section>
+  `
+
+  const content = `
+    <section class="section">
+      <article class="panel stack">
+        <span class="pill">Current production status</span>
+        <h2 class="section-title">Linux production candidate. macOS and Windows pending.</h2>
+        <p class="section-copy">The current public release is available for Linux as a checksum-verified .deb and AppImage. macOS and Windows are pending signed, notarized, and smoke-tested installers before they return to the download page.</p>
+      </article>
+    </section>
+    <section class="section">
+      <div class="grid three-up">
+        <article class="card"><h3>Local-first execution</h3><p>RinaWarp runs developer work from the selected workspace and keeps repository inspection tied to the local project context.</p></article>
+        <article class="card"><h3>Workspace boundaries</h3><p>Repairs should stay scoped to the project you opened. High-impact actions must be visible before they run.</p></article>
+        <article class="card"><h3>Approval before mutation</h3><p>File changes, install steps, and risky commands should require clear approval instead of happening silently.</p></article>
+      </div>
+    </section>
+    <section class="section">
+      <div class="grid three-up">
+        <article class="card"><h3>Rollback and recovery</h3><p>Repair work should preserve a recovery path so developers can understand and undo changes when a fix is not right.</p></article>
+        <article class="card"><h3>Proof-backed results</h3><p>Build, test, and health-check output should stay attached to the repair so success is evidence-based.</p></article>
+        <article class="card"><h3>Secret redaction</h3><p>Logs and telemetry should avoid secrets, tokens, file contents, command output, and private paths unless they are safely redacted or hashed.</p></article>
+      </div>
+    </section>
+    <section class="section">
+      <div class="grid two-up">
+        <article class="panel stack"><h2 class="section-title">Memory and data controls</h2><p>Local memory should help RinaWarp remember project context without turning private code into a public profile. Cloud sync is optional, not the default. Developers should be able to export or delete saved memory.</p></article>
+        <article class="panel stack"><h2 class="section-title">Marketplace permissions</h2><p>Capability packs need a manifest, publisher, version, permissions, risk level, install approval, disable control, changelog, and proof of what ran. Packs should not bypass Agent Thread, policy, execution, verification, and proof.</p></article>
+      </div>
+    </section>
+    <section class="section">
+      <div class="grid two-up">
+        <article class="panel stack"><h2 class="section-title">Download verification</h2><p>Installers are linked through public release metadata and checksums. If the SHA256 checksum does not match the published file, do not run the installer.</p><a href="/download" class="btn btn-secondary">Verify downloads</a></article>
+        <article class="panel stack"><h2 class="section-title">Privacy-safe telemetry</h2><p>RinaWarp should measure activation events like install, first launch, first scan, first proof, fix approval, proof export, marketplace install, memory saved, memory cleared, and crash report creation. It should not collect source files, terminal output, secrets, tokens, or private paths.</p><a href="/privacy" class="btn btn-secondary">Read privacy policy</a></article>
+      </div>
+    </section>
+  `
+
+  return renderPage('/trust', 'trust', hero, content)
 }
 
 function renderDocs(): Response {
@@ -4572,6 +4660,10 @@ export default {
       // Pricing page
       if (path === '/pricing' || path === '/pricing/') {
         return renderPricing()
+      }
+
+      if (path === '/trust' || path === '/trust/') {
+        return renderTrust()
       }
 
       // Support page
