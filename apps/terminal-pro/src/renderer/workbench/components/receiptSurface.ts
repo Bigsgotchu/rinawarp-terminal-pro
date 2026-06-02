@@ -2,6 +2,15 @@ import { el, mount } from '../dom.js'
 import type { ReceiptPanelModel } from '../view-models/receiptPanelModel.js'
 import { renderProofEmptyState, renderProofHero, renderProofKeyValueGrid, renderProofSection, renderProofTagList } from './proofSurface.js'
 
+function renderReceiptActions(): HTMLElement {
+  return el(
+    'div',
+    { class: 'rw-receipt-chip-row' },
+    el('button', { class: 'rw-link-btn', dataset: { copyCurrentReceipt: '1' } }, 'Copy receipt'),
+    el('button', { class: 'rw-link-btn', dataset: { exportCurrentReceipt: 'json' } }, 'Export JSON')
+  )
+}
+
 export function mountReceiptPanel(root: HTMLElement, model: ReceiptPanelModel): void {
   if (model.state === 'empty') {
     const empty = renderProofEmptyState('No Receipt Loaded', 'Select a run to view its receipt.')
@@ -20,6 +29,7 @@ export function mountReceiptPanel(root: HTMLElement, model: ReceiptPanelModel): 
           title: 'Receipt payload',
           copy: 'This receipt did not match the structured proof format yet, so it is shown as raw data.',
         }),
+        renderReceiptActions(),
         el('pre', { class: 'rw-receipt-content' }, JSON.stringify(model.payload, null, 2))
       )
     )
@@ -37,6 +47,7 @@ export function mountReceiptPanel(root: HTMLElement, model: ReceiptPanelModel): 
         copy: `${model.intentLabel} receipt showing intent, command, workspace, timestamps, exit path, evidence, and the safest next move.`,
         chips: model.chipRows,
       }),
+      renderReceiptActions(),
       renderProofSection('Receipt Summary', renderProofKeyValueGrid(model.summaryRows)),
       model.deployRows ? renderProofSection('Deploy State', renderProofKeyValueGrid(model.deployRows)) : null,
       renderProofSection(

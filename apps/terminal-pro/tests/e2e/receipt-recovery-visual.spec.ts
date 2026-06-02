@@ -102,11 +102,51 @@ async function seedStructuredReceipt(
   page: Page,
   args: SeededRunArgs & {
     receiptId: string
+    seedRuntimeProof?: boolean
   }
 ): Promise<void> {
-  await page.evaluate(({ run, artifactSummary, receiptId }) => {
+  await page.evaluate(({ run, artifactSummary, receiptId, seedRuntimeProof }) => {
     const bridge = (window as unknown as { __rinaE2EWorkbench?: { dispatch: (action: unknown) => void } }).__rinaE2EWorkbench
     if (!bridge) throw new Error('E2E workbench bridge unavailable')
+    if (seedRuntimeProof) {
+      const startedAt = Date.parse(run.startedAt) || Date.now()
+      const completedAt = Date.parse(run.endedAt || run.updatedAt) || startedAt
+      const verificationResults = [
+        run.status === 'ok' ? 'Command exited successfully.' : `Command exited with code ${run.exitCode ?? 'unknown'}.`,
+        artifactSummary?.stderrPreview || artifactSummary?.stdoutPreview || 'Receipt evidence captured.',
+      ]
+      bridge.dispatch({
+        type: 'runBlocks/upsert',
+        block: {
+          id: `proof:${run.id}`,
+          runId: run.id,
+          title: run.title,
+          summary: artifactSummary?.metaPreview || run.command,
+          command: run.command,
+          cwd: run.cwd,
+          status: run.status === 'ok' ? 'success' : run.status === 'failed' ? 'failed' : run.status === 'interrupted' ? 'failed' : 'running',
+          startedAt,
+          completedAt,
+          exitCode: run.exitCode,
+          receipts: [{ id: receiptId, label: 'Runtime receipt' }],
+          timeline: [],
+        },
+      })
+      bridge.dispatch({
+        type: 'executionReceipts/upsert',
+        receipt: {
+          runId: run.id,
+          actionsPerformed: [run.command],
+          filesChanged: artifactSummary?.changedFiles || [],
+          commandsExecuted: [run.command],
+          verificationResults,
+          rollbackOccurred: false,
+          exitCode: run.exitCode ?? (run.status === 'ok' ? 0 : 1),
+          startedAt,
+          completedAt,
+        },
+      })
+    }
     bridge.dispatch({
       type: 'receipt/set',
       receipt: {
@@ -169,7 +209,7 @@ async function openReceiptView(page: Page): Promise<void> {
 }
 
 test('receipt recovery visual: failed build thread and receipt', async () => {
-  await withApp(async ({ page }) => {
+  await withApp(async ({ app, page }) => {
     const now = new Date().toISOString()
     const fixture = {
       run: {
@@ -206,6 +246,7 @@ test('receipt recovery visual: failed build thread and receipt', async () => {
         content: [{ type: 'bubble', text: 'The build failed, and I kept the proof attached.' }],
       },
       receiptId: 'receipt_visual_failed_build',
+      seedRuntimeProof: true,
     }
 
     await seedWorkbenchRunFixture(page, fixture)
@@ -216,6 +257,42 @@ test('receipt recovery visual: failed build thread and receipt', async () => {
     await capture(page, 'failed-build-thread')
 
     await openReceiptView(page)
+    await expect(page.getByRole('button', { name: 'Copy receipt' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Export JSON' })).toBeVisible()
+
+    await app.evaluate(({ clipboard }) => clipboard.clear())
+    await page.getByRole('button', { name: 'Copy receipt' }).click()
+    await expect
+      .poll(async () => app.evaluate(({ clipboard }) => clipboard.readText()), { timeout: 10_000 })
+      .toContain('RinaWarp receipt receipt_visual_failed_build')
+
+    await page.evaluate(() => {
+      ;(window as any).__rinaReceiptExportText = ''
+      ;(window as any).__rinaReceiptExportDownload = ''
+      URL.createObjectURL = (blob: Blob) => {
+        void blob.text().then((text) => {
+          ;(window as any).__rinaReceiptExportText = text
+        })
+        return 'blob:rina-receipt-export'
+      }
+      HTMLAnchorElement.prototype.click = function () {
+        ;(window as any).__rinaReceiptExportDownload = this.download
+      }
+    })
+    await page.getByRole('button', { name: 'Export JSON' }).click()
+    await expect.poll(async () => page.evaluate(() => String((window as any).__rinaReceiptExportText || '')), { timeout: 10_000 }).not.toBe('')
+    const exported = await page.evaluate(() => {
+      const text = String((window as any).__rinaReceiptExportText || '')
+      return JSON.parse(text)
+    })
+    expect(exported.receiptId).toBe('receipt_visual_failed_build')
+    expect(exported.timestamp).toBe(now)
+    expect(exported.intent).toBe('structured_command_receipt')
+    expect(exported.proofBlockIds).toContain('proof:visual_failed_build_run')
+    expect(exported.verificationResult.results).toContain('Command exited with code 1.')
+    expect(exported.runtimeReceipt.id).toBe('receipt_visual_failed_build')
+    expect(await page.evaluate(() => (window as any).__rinaReceiptExportDownload)).toBe('rinawarp-receipt-receipt_visual_failed_build.json')
+
     await capture(page, 'failed-build-receipt')
   })
 })
