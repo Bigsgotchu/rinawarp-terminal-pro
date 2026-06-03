@@ -29,6 +29,7 @@ export type OperationalTelemetrySettings = {
   installId: string
   installPingSent: boolean
   lastActivePingDate?: string | null
+  counters?: Partial<Record<OperationalTelemetryEvent, number>>
 }
 
 type AppLike = {
@@ -113,10 +114,21 @@ function readSettings(
       installId: typeof parsed.installId === 'string' && parsed.installId ? parsed.installId : crypto.randomUUID(),
       installPingSent: parsed.installPingSent === true,
       lastActivePingDate: typeof parsed.lastActivePingDate === 'string' ? parsed.lastActivePingDate : null,
+      counters: isRecord(parsed.counters) ? sanitizeCounters(parsed.counters) : {},
     }
   } catch {
     return defaultSettings()
   }
+}
+
+function sanitizeCounters(input: Record<string, unknown>): Partial<Record<OperationalTelemetryEvent, number>> {
+  const counters: Partial<Record<OperationalTelemetryEvent, number>> = {}
+  for (const [event, value] of Object.entries(input)) {
+    if (!isOperationalTelemetryEvent(event)) continue
+    const count = Number(value)
+    counters[event] = Number.isFinite(count) && count > 0 ? Math.floor(count) : 0
+  }
+  return counters
 }
 
 export class OperationalTelemetry {
@@ -182,11 +194,23 @@ export class OperationalTelemetry {
   }
 
   async recordCounter(event: OperationalTelemetryEvent): Promise<OperationalTelemetrySendResult> {
+    this.incrementCounter(event)
     return this.post('/v1/telemetry/event', {
       ...this.basePayload(),
       event,
       count: 1,
     })
+  }
+
+  getCounterSnapshot(): Partial<Record<OperationalTelemetryEvent, number>> {
+    return { ...(this.getMutableSettings().counters || {}) }
+  }
+
+  private incrementCounter(event: OperationalTelemetryEvent): void {
+    const settings = this.getMutableSettings()
+    settings.counters = settings.counters || {}
+    settings.counters[event] = Number(settings.counters[event] || 0) + 1
+    this.persist()
   }
 
   private getMutableSettings(): OperationalTelemetrySettings {

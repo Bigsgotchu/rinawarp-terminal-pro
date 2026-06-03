@@ -25,7 +25,7 @@ export function renderDiagnosticsPanelShell(): string {
   return `
     <div class="rw-panel-head">
       <h2 id="rw-diag-title">Diagnostics</h2>
-      <p class="rw-sub">Copy system info for support and verify packaged paths.</p>
+      <p class="rw-sub">Export support-safe diagnostics and verify packaged paths.</p>
     </div>
 
     <div class="rw-card rw-flex rw-gap">
@@ -33,7 +33,7 @@ export function renderDiagnosticsPanelShell(): string {
         <button id="rw-diag-refresh" class="rw-btn">Refresh</button>
         <button id="rw-diag-copy" class="rw-btn rw-btn-ghost">Copy JSON</button>
         <button id="rw-diag-receipt" class="rw-btn rw-btn-ghost">Copy bug receipt</button>
-        <button id="rw-diag-bundle" class="rw-btn rw-btn-ghost">Export debug bundle</button>
+        <button id="rw-diag-bundle" class="rw-btn rw-btn-ghost">Export diagnostic bundle</button>
         <div id="rw-diag-status" class="rw-muted"></div>
       </div>
 

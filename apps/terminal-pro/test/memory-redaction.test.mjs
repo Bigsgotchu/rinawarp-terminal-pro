@@ -1,5 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import {
+  buildRedactedDiagnosticBundleFiles,
+  buildRedactedDiagnosticManifest,
+  redactDiagnosticText,
+} from '../dist-electron/main/diagnostics/redactedDiagnosticBundle.js'
 
 // Patterns match the actual implementation in memoryExtractor.ts
 const SENSITIVE_PATTERNS = [
@@ -116,4 +121,92 @@ test('memory redaction - can clear all memory', () => {
 
   memories.length = 0
   assert.equal(memories.length, 0)
+})
+
+test('diagnostic bundle redaction - redacts secrets and private paths', () => {
+  const redacted = redactDiagnosticText(
+    'failed at /home/karina/private/project with token=sk_live_123 and password=hunter2',
+  )
+  assert.match(redacted, /\[REDACTED_PATH:/)
+  assert.match(redacted, /\[REDACTED_SECRET\]/)
+  assert.equal(redacted.includes('/home/karina/private/project'), false)
+  assert.equal(redacted.includes('sk_live_123'), false)
+  assert.equal(redacted.includes('hunter2'), false)
+})
+
+test('diagnostic bundle manifest - includes IDs and counters without raw workspace or commands', () => {
+  const manifest = buildRedactedDiagnosticManifest({
+    generatedAt: '2026-06-03T00:00:00.000Z',
+    appVersion: '1.8.2-beta',
+    platform: 'linux',
+    arch: 'x64',
+    installId: 'anon-install-id',
+    workspaceIdentity: '/home/karina/private/project',
+    telemetryCounters: { first_proof_generated: 1, workspace_selected: 2 },
+    snapshot: {
+      mode: 'explain',
+      activeView: { primary: 'settings' },
+      lastRun: { id: 'run-last', receiptId: 'proof-last' },
+      recentRuns: [
+        {
+          id: 'run-1',
+          command: 'cat /home/karina/private/project/.env && echo sk_live_123',
+          title: 'secret build',
+          status: 'failed',
+          receiptId: 'proof-1',
+        },
+      ],
+      recentErrors: [
+        {
+          category: 'error',
+          name: 'renderer.error',
+          detail: { message: 'Could not open /home/karina/private/project with bearer abc.def' },
+        },
+      ],
+      recentEvents: [
+        {
+          ts: '2026-06-03T00:00:01.000Z',
+          category: 'ui',
+          name: 'workspace.selected',
+          detail: { path: '/home/karina/private/project' },
+        },
+      ],
+    },
+  })
+
+  const serialized = JSON.stringify(manifest)
+  assert.deepEqual(manifest.recentRunIds, ['run-1', 'run-last'])
+  assert.deepEqual(manifest.recentProofIds, ['proof-1', 'proof-last'])
+  assert.equal(manifest.telemetryCounters.first_proof_generated, 1)
+  assert.match(manifest.workspaceIdentity.redacted, /^\[REDACTED_WORKSPACE:/)
+  assert.equal(serialized.includes('/home/karina/private/project'), false)
+  assert.equal(serialized.includes('cat /home/karina/private/project/.env'), false)
+  assert.equal(serialized.includes('sk_live_123'), false)
+  assert.equal(serialized.includes('bearer abc.def'), false)
+})
+
+test('diagnostic bundle files - export only support-safe artifacts', () => {
+  const files = buildRedactedDiagnosticBundleFiles({
+    generatedAt: '2026-06-03T00:00:00.000Z',
+    appVersion: '1.8.2-beta',
+    platform: 'linux',
+    arch: 'x64',
+    installId: 'anon-install-id',
+    workspaceIdentity: 'C:\\Users\\karina\\Secret\\Project',
+    snapshot: {
+      recentErrors: [{ detail: { message: 'private_key=abc at C:\\Users\\karina\\Secret\\Project' } }],
+    },
+    telemetryCounters: { crash_report_created: 1 },
+  })
+
+  assert.deepEqual(files.map((file) => file.name), [
+    'diagnostic-manifest.json',
+    'sanitized-log-snippets.txt',
+    'telemetry-counters.json',
+  ])
+  const combined = Buffer.concat(files.map((file) => file.data)).toString('utf8')
+  assert.equal(combined.includes('C:\\Users\\karina\\Secret\\Project'), false)
+  assert.equal(combined.includes('private_key=abc'), false)
+  assert.match(combined, /\[REDACTED_PATH:/)
+  assert.match(combined, /\[REDACTED_SECRET\]/)
 })

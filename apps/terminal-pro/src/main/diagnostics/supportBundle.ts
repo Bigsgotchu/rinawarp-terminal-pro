@@ -2,6 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import { createRequire } from 'node:module'
+import { getOperationalTelemetry } from '../telemetry/operationalTelemetry.js'
+import { buildRedactedDiagnosticBundleFiles } from './redactedDiagnosticBundle.js'
 const require = createRequire(import.meta.url)
 const electron = require('electron/main') as typeof import('electron')
 const { app } = electron
@@ -123,66 +125,24 @@ export async function supportBundleForIpcWithSnapshot(
 ) {
   const diagnostics = diagnosticsPathsForIpc(deps)
   const snapshot = sanitizeSnapshot(rendererSnapshot)
+  const telemetry = getOperationalTelemetry()
+  const telemetrySettings = telemetry?.getSettings()
   const defaultPath = path.join(app.getPath('downloads'), `rinawarp-support-bundle-${Date.now()}.zip`)
   const save = await deps.showSaveDialogForBundle(defaultPath)
   if (save.canceled || !save.filePath) {
     return { ok: false, error: 'Canceled' }
   }
 
-  const files: Array<{ name: string; data: Buffer }> = [
-    {
-      name: 'app-info.json',
-      data: Buffer.from(JSON.stringify(diagnostics, null, 2), 'utf8'),
-    },
-    {
-      name: 'summary.txt',
-      data: Buffer.from(
-        [
-          `Workspace root: ${String(snapshot?.workspaceRoot || deps.getDefaultCwd() || '')}`,
-          `App path: ${diagnostics.app.appPath}`,
-          `Resources path: ${diagnostics.app.resourcesPath}`,
-          `App version: ${snapshot?.appVersion || app.getVersion()}`,
-          `Active view: ${String(snapshot?.activeView || 'unknown')}`,
-          `Mode: ${String(snapshot?.mode || 'unknown')}`,
-          `Last run: ${String(snapshot?.lastRun?.id || 'none')} ${String(snapshot?.lastRun?.status || 'unknown')}`,
-          `Policy path: ${String(diagnostics.active.policyYamlPath || 'unknown')}`,
-          `Theme path: ${String(diagnostics.active.themeRegistryPath || 'unknown')}`,
-        ].join('\n'),
-        'utf8',
-      ),
-    },
-  ]
-
-  if (snapshot) {
-    files.push({
-      name: 'renderer-debug.json',
-      data: Buffer.from(JSON.stringify(snapshot, null, 2), 'utf8'),
-    })
-    if (snapshot.bugReceipt) {
-      files.push({
-        name: 'bug-receipt.json',
-        data: Buffer.from(JSON.stringify(snapshot.bugReceipt, null, 2), 'utf8'),
-      })
-    }
-    if (snapshot.recentEvents) {
-      files.push({
-        name: 'recent-events.json',
-        data: Buffer.from(JSON.stringify(snapshot.recentEvents, null, 2), 'utf8'),
-      })
-    }
-    if (snapshot.recentIpcCalls) {
-      files.push({
-        name: 'ipc-trace.json',
-        data: Buffer.from(JSON.stringify(snapshot.recentIpcCalls, null, 2), 'utf8'),
-      })
-    }
-    if (snapshot.recentRuns) {
-      files.push({
-        name: 'recent-runs.json',
-        data: Buffer.from(JSON.stringify(snapshot.recentRuns, null, 2), 'utf8'),
-      })
-    }
-  }
+  const files = buildRedactedDiagnosticBundleFiles({
+    generatedAt: new Date().toISOString(),
+    appVersion: snapshot?.appVersion || app.getVersion(),
+    platform: diagnostics.app.platform,
+    arch: diagnostics.app.arch,
+    installId: telemetrySettings?.installId || null,
+    workspaceIdentity: snapshot?.workspaceRoot || deps.getDefaultCwd(),
+    snapshot: snapshot as Record<string, unknown> | null,
+    telemetryCounters: telemetry?.getCounterSnapshot() || {},
+  })
 
   const bundle = deps.zipFiles(files)
 
