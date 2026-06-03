@@ -126,7 +126,8 @@ jobs:
       - name: Package Linux
         run: |
           echo "Building Linux packages..."
-          pnpm exec electron-builder --linux --publish never --config.compression=maximum
+          cd apps/terminal-pro
+          npx electron-builder --linux --publish never --config.compression=maximum
 
       - name: Packaged policy diagnostics proof
         run: bash apps/terminal-pro/scripts/run-electron-playwright.sh e2e/policy-diagnostics-proof.spec.ts
@@ -177,7 +178,8 @@ jobs:
         shell: bash
         run: |
           echo "Building Windows packages (will be unsigned without certificates)"
-          pnpm exec electron-builder --win --publish never --config.compression=maximum
+          cd apps/terminal-pro
+          npx electron-builder --win --publish never --config.compression=maximum
 
       - name: Upload Windows installers
         uses: actions/upload-artifact@v6
@@ -217,7 +219,8 @@ jobs:
       - name: Package macOS (unsigned if no certs)
         run: |
           echo "Building macOS packages (will be unsigned without certificates)"
-          pnpm exec electron-builder --mac --publish never --config.compression=maximum
+          cd apps/terminal-pro
+          npx electron-builder --mac --publish never --config.compression=maximum
 
       - name: Upload macOS installers
         uses: actions/upload-artifact@v6
