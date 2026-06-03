@@ -1,4 +1,6 @@
-# Private Beta Testing Guide - v1.8.2-beta
+# RinaWarp Terminal Pro v1.8.2 Beta Tester Guide
+
+RinaWarp Terminal Pro v1.8.2 beta now has Linux, macOS, and Windows beta artifacts. Linux is production-candidate validated; macOS and Windows are unsigned beta builds for tester validation. Production signing/notarization remains pending.
 
 ## ⚠️ Important: Unsigned Beta Builds
 
@@ -16,6 +18,14 @@ This beta focuses on cross-platform packaging and core activation flow.
 2. **macOS** (packaging ready, needs validation) - Secondary platform
 3. **Windows** (packaging ready, needs validation) - Tertiary platform
 
+### Artifact Names
+
+- Linux AppImage: `RinaWarp-Terminal-Pro-1.8.2-beta-linux-x86_64.AppImage`
+- Linux Debian package: `RinaWarp-Terminal-Pro-1.8.2-beta-linux-amd64.deb`
+- macOS DMG: `RinaWarp-Terminal-Pro-1.8.2-beta-mac-arm64.dmg`
+- macOS ZIP: `RinaWarp-Terminal-Pro-1.8.2-beta-mac-arm64.zip`
+- Windows installer: `RinaWarp-Terminal-Pro-1.8.2-beta-win-x64.exe`
+
 ### Critical User Journeys to Validate
 
 | Journey | Steps | Expected Outcome |
@@ -32,8 +42,8 @@ This beta focuses on cross-platform packaging and core activation flow.
 
 **Linux:**
 ```bash
-chmod +x RinaWarp-Terminal-Pro-1.8.2-beta.AppImage
-./RinaWarp-Terminal-Pro-1.8.2-beta.AppImage
+chmod +x RinaWarp-Terminal-Pro-1.8.2-beta-linux-x86_64.AppImage
+./RinaWarp-Terminal-Pro-1.8.2-beta-linux-x86_64.AppImage
 ```
 
 **macOS:**
@@ -52,7 +62,7 @@ chmod +x RinaWarp-Terminal-Pro-1.8.2-beta.AppImage
 1. Launch RinaWarp Terminal Pro
 2. When prompted, select a project folder (e.g., a Node.js or React project)
 3. Ask Rina: "What is this project?"
-4. Click "Build this project" and tell me what fails
+4. Ask Rina: "Build this project and tell me what fails"
 5. See stream/run output
 6. See proof appear
 7. **Success criterion:** Proof shows verification status within 90 seconds
@@ -127,6 +137,4 @@ Before full public production:
 
 ## Current Classification
 
-**Linux:** Production candidate validated.
-**macOS/Windows:** Unsigned beta builds ready for tester validation.
-**Full production:** Pending signing/notarization and beta feedback.
+RinaWarp Terminal Pro v1.8.2 beta now has Linux, macOS, and Windows beta artifacts. Linux is production-candidate validated; macOS and Windows are unsigned beta builds for tester validation. Production signing/notarization remains pending.
