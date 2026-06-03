@@ -8,14 +8,15 @@ Start with three testers before expanding to 10-25.
 - Beta feedback: https://www.rinawarptech.com/beta-feedback
 - Artifact inventory: `apps/terminal-pro/docs/releases/v1.8.2-beta-artifacts.md`
 - Tester checklist: `apps/terminal-pro/docs/releases/tester-kit/TESTER_CHECKLIST.md`
+- Tester invite: `apps/terminal-pro/docs/releases/tester-kit/TESTER_INVITE.md`
 
 ## Tester Slots
 
-| Slot | OS | Tester | Artifact | Sent | Installed | First proof | Proof exported | Restart persistence | Safe-fix understood | Feedback received | Blocker |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | Linux |  | AppImage or deb |  |  |  |  |  |  |  |  |
-| 2 | macOS |  | DMG or ZIP unsigned preview |  |  |  |  |  |  |  |  |
-| 3 | Windows |  | Windows unsigned installer |  |  |  |  |  |  |  |  |
+| Slot | OS | Tester | Artifact | Sent | Install success | Security warning experience | Workspace selected | First proof generated | Time to first proof | Proof exported | Restart persistence | Safe-fix understood | Feedback received | Would use again | Would pay | Blocker |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Linux |  | AppImage or deb |  |  |  |  |  |  |  |  |  |  |  |  |
+| 2 | macOS |  | DMG or ZIP unsigned preview |  |  |  |  |  |  |  |  |  |  |  |  |
+| 3 | Windows |  | Windows unsigned installer |  |  |  |  |  |  |  |  |  |  |  |  |
 
 ## Test Script
 
@@ -23,14 +24,34 @@ Ask each tester to:
 
 1. Download the artifact for their OS.
 2. Follow any unsigned-build security bypass instructions.
-3. Open a real project workspace.
+3. Open a test project workspace first, not a sensitive production repo.
 4. Ask: `Build this project and tell me what fails.`
-5. Confirm proof appears.
-6. Export proof.
-7. Quit and reopen.
-8. Confirm history/proof persists.
-9. Ask: `Plan a fix safely.`
-10. Submit feedback at https://www.rinawarptech.com/beta-feedback.
+5. Confirm Rina streams the run.
+6. Confirm proof appears.
+7. Export proof.
+8. Quit and reopen.
+9. Confirm history/proof persists.
+10. Ask: `Plan a fix safely.`
+11. Submit feedback at https://www.rinawarptech.com/beta-feedback.
+
+## What To Record
+
+For each tester, record:
+
+- OS
+- artifact used
+- install success
+- security warning experience
+- workspace selected
+- first proof generated
+- time to first proof
+- proof exported
+- restart persistence
+- safe-fix approval understood
+- confusing UI moments
+- crashes/errors
+- would use again
+- would pay
 
 ## Expansion Rule
 
@@ -53,4 +74,3 @@ During Round 1, fix only beta-blocking issues:
 - proof export fails
 - restart loses proof/history
 - safe-fix approval is confusing enough to break trust
-
