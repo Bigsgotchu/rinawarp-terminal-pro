@@ -1,0 +1,149 @@
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const appRoot = path.resolve(__dirname, '..')
+const rendererRoot = path.join(appRoot, 'src/renderer')
+
+const requiredIndexPath = path.join(rendererRoot, 'index.html')
+const productionBootFiles = [
+  path.join(rendererRoot, 'index.ts'),
+  path.join(rendererRoot, 'bootstrap/initRenderer.ts'),
+  path.join(rendererRoot, 'modern/initWorkbenchShellRenderer.ts'),
+  path.join(rendererRoot, 'workbench/render.ts'),
+]
+
+const removedFiles = [
+  'main.tsx',
+  'components/App.tsx',
+  'index-conversation.html',
+  'index-original.html',
+  'components/conversation',
+  'components/intent',
+  'components/terminal',
+  'components/layout',
+]
+
+const blockedRendererStrings = [
+  'id="root"',
+  "id='root'",
+  'main.tsx',
+  'App.tsx',
+  'ChatScreen',
+  'Ask Rina anything...',
+  'legacy fallback',
+  'legacyRendererFallback',
+  'resolveLegacyRendererFallbackEnabled',
+  'Receipt Viewer',
+  'Runs Inspector',
+  'Brain Inspector',
+  'Diagnostics Inspector',
+  'Execution Trace',
+  'Resume fix',
+  'Fix project button',
+  'one-click Build project',
+  'one-click Run tests',
+]
+
+let failed = false
+
+function fail(message) {
+  failed = true
+  console.error(`- ${message}`)
+}
+
+function readText(filePath) {
+  return fs.readFileSync(filePath, 'utf8')
+}
+
+function walkFiles(dir) {
+  if (!fs.existsSync(dir)) return []
+
+  const entries = fs.readdirSync(dir, { withFileTypes: true })
+  const files = []
+
+  for (const entry of entries) {
+    const entryPath = path.join(dir, entry.name)
+    if (entry.isDirectory()) {
+      files.push(...walkFiles(entryPath))
+    } else if (/\.(html|ts|tsx|js|mjs|css)$/.test(entry.name)) {
+      files.push(entryPath)
+    }
+  }
+
+  return files
+}
+
+function relative(filePath) {
+  return path.relative(appRoot, filePath)
+}
+
+function assertIndexContract() {
+  if (!fs.existsSync(requiredIndexPath)) {
+    fail('src/renderer/index.html is missing')
+    return
+  }
+
+  const indexHtml = readText(requiredIndexPath)
+  if (!indexHtml.includes('src="./index.ts"')) {
+    fail('src/renderer/index.html must load ./index.ts')
+  }
+  if (indexHtml.includes('id="root"') || indexHtml.includes("id='root'")) {
+    fail('src/renderer/index.html must not contain a React #root host')
+  }
+  if (indexHtml.includes('./main.tsx')) {
+    fail('src/renderer/index.html must not load ./main.tsx')
+  }
+}
+
+function assertProductionBootContract() {
+  for (const filePath of productionBootFiles) {
+    if (!fs.existsSync(filePath)) {
+      fail(`${relative(filePath)} is missing`)
+      continue
+    }
+
+    const content = readText(filePath)
+    if (
+      content.includes('legacy fallback') ||
+      content.includes('legacyRendererFallback') ||
+      content.includes('resolveLegacyRendererFallbackEnabled')
+    ) {
+      fail(`${relative(filePath)} uses legacy fallback`)
+    }
+  }
+}
+
+function assertRemovedFiles() {
+  for (const file of removedFiles) {
+    const filePath = path.join(rendererRoot, file)
+    if (fs.existsSync(filePath)) {
+      fail(`removed React renderer path still exists: src/renderer/${file}`)
+    }
+  }
+}
+
+function assertBlockedStrings() {
+  for (const filePath of walkFiles(rendererRoot)) {
+    const content = readText(filePath)
+    for (const blockedString of blockedRendererStrings) {
+      if (content.includes(blockedString)) {
+        fail(`${relative(filePath)} contains blocked renderer string: ${blockedString}`)
+      }
+    }
+  }
+}
+
+assertIndexContract()
+assertProductionBootContract()
+assertRemovedFiles()
+assertBlockedStrings()
+
+if (failed) {
+  console.error('Canonical renderer guard failed.')
+  process.exit(1)
+}
+
+console.log('Canonical renderer guard passed.')

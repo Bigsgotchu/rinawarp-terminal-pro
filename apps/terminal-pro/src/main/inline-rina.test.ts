@@ -311,7 +311,7 @@ test("architecture project question summarizes top-level project structure", asy
     (dir) => {
       fs.mkdirSync(path.join(dir, "src", "renderer"), { recursive: true });
       fs.mkdirSync(path.join(dir, "services", "api"), { recursive: true });
-      fs.writeFileSync(path.join(dir, "src", "renderer", "App.tsx"), "export function App() { return null }\n");
+      fs.writeFileSync(path.join(dir, "src", "renderer", "Shell.tsx"), "export function Shell() { return null }\n");
       fs.writeFileSync(path.join(dir, "services", "api", "index.ts"), "export {}\n");
       fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({
         name: "architecture-demo",

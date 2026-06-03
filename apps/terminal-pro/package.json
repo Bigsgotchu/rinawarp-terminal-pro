@@ -4,7 +4,7 @@
   "version": "1.8.2-beta",
   "type": "module",
   "main": "dist-electron/main.js",
-  "description": "RinaWarp Terminal Pro - Proof-backed AI workbench for real developer work: diagnose, fix, verify, and remember project tasks safely.",
+  "description": "RinaWarp Terminal Pro - Natural-language AI copilot for real computer work: diagnose, fix, verify, and remember project tasks safely.",
   "author": "RinaWarp Team <team@rinawarptech.com>",
   "homepage": "https://www.rinawarptech.com",
   "bugs": {
@@ -39,6 +39,7 @@
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.cjs,.mjs --fix",
     "guard:product-realness": "node scripts/guard-product-realness.mjs",
     "guard:ui-residue": "node scripts/guard-ui-residue.mjs",
+    "guard:canonical-renderer": "node scripts/guard-canonical-renderer.mjs",
     "product:reality-check": "node scripts/product-reality-check.mjs",
     "build:all": "npm run build:electron && npm run package:mac && npm run package:win && npm run package:linux",
     "dist": "npm run dist:linux && npm run release:metadata && npm run verify:update-artifacts",

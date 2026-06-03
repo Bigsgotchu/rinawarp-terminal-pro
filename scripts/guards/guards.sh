@@ -3,6 +3,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
+# Canonical renderer guard
+node "$ROOT/apps/terminal-pro/scripts/guard-canonical-renderer.mjs"
+
 # Renderer/workbench must not use innerHTML (store-only)
 rg -n --hidden --glob '!**/dist/**' --glob '!**/build/**' \
   "innerHTML\s*=|insertAdjacentHTML|outerHTML" \

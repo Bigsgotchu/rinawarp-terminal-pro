@@ -33,7 +33,7 @@ function copyDir(srcDir, destDir) {
   }
 }
 
-// Canonical desktop shell. Copy Vite-built React app
+// Canonical desktop shell. Copy the Vite-built Agent Shell boot host.
 const srcRendererDir = path.join(projectRoot, 'dist-renderer')
 const outRendererDir = path.join(outDir, 'renderer')
 
@@ -51,7 +51,7 @@ copyDir(path.join(projectRoot, 'src', 'assets'), path.join(outDir, 'assets'))
 copyDir(path.join(projectRoot, 'themes'), path.join(outDir, 'themes'))
 copyDir(path.join(repoRoot, 'policy'), path.join(outDir, 'policy'))
 
-// Copy only the legacy renderer style assets we still reference at runtime.
+// Copy only the compatibility style assets we still reference at runtime.
 copyOptional(path.join(projectRoot, 'src', 'renderer', 'renderer.css'), path.join(outRendererDir, 'renderer.css'))
 copyOptional(path.join(projectRoot, 'src', 'renderer', 'styles.css'), path.join(outRendererDir, 'styles.css'))
 copyDir(path.join(projectRoot, 'src', 'renderer', 'styles'), path.join(outRendererDir, 'styles'))

@@ -73,9 +73,19 @@ const steps = [
     args: ['run', 'verify:update-artifacts'],
   },
   {
-    name: 'Conversation + Memory Reality (Gate 8)',
+    name: 'Conversation memory reality',
     command: 'node',
-    args: ['--test', 'test/conversation-memory.test.mjs', 'test/memory-redaction.test.mjs', 'test/project-memory-learning.test.mjs'],
+    args: ['test/conversation-memory.test.mjs'],
+  },
+  {
+    name: 'Memory redaction reality',
+    command: 'node',
+    args: ['test/memory-redaction.test.mjs'],
+  },
+  {
+    name: 'Project memory learning reality',
+    command: 'node',
+    args: ['test/project-memory-learning.test.mjs'],
   },
 ]
 

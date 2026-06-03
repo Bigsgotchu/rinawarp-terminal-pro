@@ -35,8 +35,17 @@ const packagedRenderer = readIfExists(packagedRendererPath)
 if (!packagedRenderer) {
   fail(`missing packaged renderer: ${packagedRendererPath}`)
 } else {
-  if (!packagedRenderer.includes('id="root"')) {
-    fail('packaged renderer is not the Vite/React shell.')
+  if (!packagedRenderer.includes('Boot host for canonical Agent Shell')) {
+    fail('packaged renderer is not the canonical Agent Shell boot host.')
+  }
+  if (!packagedRenderer.includes('<script type="module" crossorigin src="./assets/')) {
+    fail('packaged renderer does not load the generated Vite module bundle.')
+  }
+  if (packagedRenderer.includes('id="root"') || packagedRenderer.includes("id='root'")) {
+    fail('packaged renderer contains a legacy React #root host.')
+  }
+  if (packagedRenderer.includes('main.tsx')) {
+    fail('packaged renderer references the legacy React entrypoint.')
   }
   if (packagedRenderer.includes('executeStepStream') || packagedRenderer.includes('doctorPlan')) {
     fail('packaged renderer contains legacy runtime API references.')
@@ -55,4 +64,4 @@ if (missing.length > 0) {
 }
 
 if (process.exitCode) process.exit(process.exitCode)
-console.log('[guard:product-realness] renderer shell and preload API references are clean.')
+console.log('[guard:product-realness] canonical Agent Shell and preload API references are clean.')
