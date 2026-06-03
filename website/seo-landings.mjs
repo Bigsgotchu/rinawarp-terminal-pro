@@ -32,7 +32,7 @@ export const SEO_LANDING_PAGES = [
       'Stale build artifacts or missing `tsc --build` clean step',
     ],
     rinaApproach: [
-      'Scan the workspace and group errors by root cause (config vs code vs deps)',
+      'Scan the project and group errors by root cause (config vs code vs deps)',
       'Propose and apply fixes with visible diffs — high-impact changes wait for approval',
       'Run `npm run build` / `tsc` and your test script to confirm recovery',
       'Attach verification output (build passed, tests passed, exit code 0)',
@@ -118,7 +118,7 @@ vitest — 48 passed`,
       'ESLint or TypeScript step fails in CI before deploy',
     ],
     commonCauses: [
-      'transpilePackages / experimental settings not listing workspace deps',
+      'transpilePackages / experimental settings not listing project deps',
       'Incorrect `outputFileTracing` or standalone output paths',
       'Breaking changes after Next.js major upgrade',
       'Mixed default and named exports across package boundaries',
@@ -135,7 +135,7 @@ Error: Failed to collect page data for /dashboard
 Error: Cannot find module '@acme/ui'
 Build failed`,
     afterLabel: 'After verification',
-    afterOutput: `Added workspace package to transpilePackages
+    afterOutput: `Added project package to transpilePackages
 Fixed package.json exports in @acme/ui
 next build — completed
 exit code 0`,
@@ -211,7 +211,7 @@ exit code 0`,
       'Patch/minor bump pulled incompatible transitive deps',
     ],
     commonCauses: [
-      'Peer dependency range too loose across workspace packages',
+      'Peer dependency range too loose across project packages',
       'Mixing package managers or stale lockfile',
       'Overrides/resolutions missing for known conflicts',
       'Optional deps required at runtime but not installed',
@@ -228,7 +228,7 @@ npm ERR! ERESOLVE could not resolve
 peer react@"^18" from package-a
 peer react@"^19" from package-b`,
     afterLabel: 'After verification',
-    afterOutput: `Aligned react peer across workspace packages
+    afterOutput: `Aligned react peer across project packages
 Regenerated lockfile
 npm ci — success
 npm run build — exit 0`,

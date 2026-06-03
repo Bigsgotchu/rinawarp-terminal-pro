@@ -3414,7 +3414,7 @@ function renderBetaFeedback(): Response {
     <section class="hero">
       <span class="eyebrow">Beta feedback</span>
       <h1>Tell us if Terminal Pro reached first proof.</h1>
-      <p class="hero-copy">This form is for beta testers after they install RinaWarp Terminal Pro, select a workspace, run the first proof-backed workflow, and try the safe-fix approval path.</p>
+      <p class="hero-copy">This form is for beta testers after they install RinaWarp Terminal Pro, select a project, run the first proof-backed workflow, and try the safe-fix approval path.</p>
       <div class="hero-actions">
         <a href="#feedback" class="btn btn-primary">Submit feedback</a>
         <a href="/beta" class="btn btn-secondary">Join beta</a>
@@ -3427,7 +3427,7 @@ function renderBetaFeedback(): Response {
     <section class="section">
       <div class="grid three-up">
         <article class="card"><h3>Install</h3><p>Tell us whether the artifact opened, whether security warnings were clear, and which platform you tested.</p></article>
-        <article class="card"><h3>First proof</h3><p>Record whether you selected a workspace, generated proof, exported it, and saw persistence after restart.</p></article>
+        <article class="card"><h3>First proof</h3><p>Record whether you selected a project, generated proof, exported it, and saw persistence after restart.</p></article>
         <article class="card"><h3>Trust signal</h3><p>Share whether safe-fix approval made sense, what felt confusing, and whether you would use or pay for this.</p></article>
       </div>
     </section>

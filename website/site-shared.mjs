@@ -73,7 +73,7 @@ export const DOCS_BODY_HTML = `
   <article id="first-repair" class="panel stack">
     <h2 class="section-title">First repair (step by step)</h2>
     <ol class="signal-list">
-      <li><strong>Open the repo</strong> — File → Open workspace (or equivalent) and select the broken project root.</li>
+      <li><strong>Open the repo</strong> — File → Open project (or equivalent) and select the broken project root.</li>
       <li><strong>Click Fix Project</strong> — Rina scans dependencies, config, and build/test output.</li>
       <li><strong>Review the repair report</strong> — Read proposed file changes and the command plan before approving high-impact steps.</li>
       <li><strong>Approve when prompted</strong> — Destructive or high-impact commands pause until you confirm.</li>
@@ -104,7 +104,7 @@ export const DOCS_BODY_HTML = `
   <article id="permissions" class="panel stack">
     <h2 class="section-title">Permissions</h2>
     <h3>What files can Rina modify?</h3>
-    <p>Files inside the opened workspace and paths required to fix it (lockfiles, config, generated types). Rina should not modify arbitrary paths outside the project.</p>
+    <p>Files inside the opened project and paths required to fix it (lockfiles, config, generated types). Rina should not modify arbitrary paths outside the project.</p>
     <h3>What commands can it run?</h3>
     <p>Package managers, compilers, test runners, and diagnostics relevant to the repair (<code>npm</code>, <code>pnpm</code>, <code>tsc</code>, <code>vite build</code>, <code>docker compose build</code>, etc.).</p>
     <h3>Approval workflow</h3>
@@ -126,7 +126,7 @@ export const DOCS_BODY_HTML = `
     <h3>Build failures after repair</h3>
     <p>Read the failing command in the terminal. Often one env var, flaky test, or remaining type error needs a second Fix Project pass.</p>
     <h3>Permission errors</h3>
-    <p>Ensure the workspace is writable and package managers are not blocked by sandboxed directories. On Linux, avoid running as root inside the project tree.</p>
+    <p>Ensure the project is writable and package managers are not blocked by sandboxed directories. On Linux, avoid running as root inside the project tree.</p>
     <h3>Broken install</h3>
     <p>Re-verify checksums, try the other Linux artifact (.deb vs AppImage), or install missing GUI libraries on minimal images.</p>
   </article>
