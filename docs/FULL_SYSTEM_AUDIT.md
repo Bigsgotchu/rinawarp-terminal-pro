@@ -685,7 +685,7 @@ node scripts/guards/check-agent-shell-style.mjs
 |----------|---------|---------|-------|--------|
 | P0 | macOS code signing/notarization | Releases | DevOps | TODO |
 | P0 | Windows code signing | Releases | DevOps | TODO |
-| P0 | Packaged app E2E tests require installer/build artifact | Proof Layer | QA | ⚠️ Blocked (display env) |
+| P0 | Packaged app E2E tests (display env) | Proof Layer | QA | Blocked |
 | P2 | Enable R2 bucket for releases | Infrastructure | DevOps | TODO |
 | P2 | Production gating of dev-user fallback | Billing/Auth | Backend | ✅ DONE |
 
@@ -782,7 +782,52 @@ ls -la dist-electron/installer/
 
 ---
 
-## 20. Launch Decision
+## 20. Gate 21: Release Artifact Hosting
+
+**Status:** yellow — R2 not enabled, GitHub Releases as source of truth
+
+**Evidence:**
+- Release feed exists: `https://rinawarptech.com/releases/latest.json`
+- Version: 1.8.2-beta
+- Artifacts built and present in `dist-electron/installer/`
+- R2 bucket not yet enabled in `website/wrangler.toml` (lines 272-277)
+
+**Current State:**
+- Release feed configured and returns correct version
+- Checksums present in release feed
+- Artifacts exist locally but not hosted publicly
+- Download links return 404 (artifacts not uploaded)
+
+**Commands to enable R2:**
+1. Enable R2 bucket in Cloudflare dashboard
+2. Uncomment R2 configuration in `website/wrangler.toml`:
+```toml
+[[r2_buckets]]
+binding = "RINAWARP_CDN"
+bucket_name = "rinawarp-cdn"
+```
+3. Upload artifacts to R2 bucket
+4. Update release feed paths to point to R2
+
+**Alternative: GitHub Releases**
+- Can use GitHub Releases as interim artifact host
+- Update `website/workers/router.ts` to redirect to GitHub Releases
+- Or configure worker routes to serve from GitHub Releases
+
+**Owner:**
+- DevOps
+
+**Audit checklist:**
+- [ ] R2 bucket enabled in Cloudflare
+- [ ] R2 configuration uncommented in wrangler.toml
+- [ ] Artifacts uploaded to R2
+- [ ] Release feed paths updated to R2
+- [ ] Download links return 200 OK
+- [ ] Checksums accessible
+
+---
+
+## 21. Launch Decision
 
 **Recommendation: ALMOST READY**
 
