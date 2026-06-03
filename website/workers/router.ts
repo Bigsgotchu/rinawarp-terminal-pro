@@ -592,6 +592,7 @@ type SitePage =
   | 'home'
   | 'products'
   | 'beta'
+  | 'beta-feedback'
   | 'pricing'
   | 'download'
   | 'docs'
@@ -1630,6 +1631,7 @@ function renderSitemapXml(origin: string): Response {
     '/',
     '/products',
     '/beta',
+    '/beta-feedback',
     '/pricing',
     '/download',
     '/docs',
@@ -3405,6 +3407,195 @@ function renderBetaSignup(): Response {
   return renderPage('/beta', 'beta', hero, content, script)
 }
 
+function renderBetaFeedback(): Response {
+  const hero = `
+    <section class="hero">
+      <span class="eyebrow">Beta feedback</span>
+      <h1>Tell us if Terminal Pro reached first proof.</h1>
+      <p class="hero-copy">This form is for beta testers after they install RinaWarp Terminal Pro, select a workspace, run the first proof-backed workflow, and try the safe-fix approval path.</p>
+      <div class="hero-actions">
+        <a href="#feedback" class="btn btn-primary">Submit feedback</a>
+        <a href="/beta" class="btn btn-secondary">Join beta</a>
+      </div>
+      <p class="hero-support">Do not include secrets, tokens, private keys, raw source code, private terminal output, or confidential file contents.</p>
+    </section>
+  `
+
+  const content = `
+    <section class="section">
+      <div class="grid three-up">
+        <article class="card"><h3>Install</h3><p>Tell us whether the artifact opened, whether security warnings were clear, and which platform you tested.</p></article>
+        <article class="card"><h3>First proof</h3><p>Record whether you selected a workspace, generated proof, exported it, and saw persistence after restart.</p></article>
+        <article class="card"><h3>Trust signal</h3><p>Share whether safe-fix approval made sense, what felt confusing, and whether you would use or pay for this.</p></article>
+      </div>
+    </section>
+
+    <section id="feedback" class="section">
+      <div class="panel stack">
+        <h2 class="section-title">Beta feedback intake</h2>
+        <p class="section-copy">Use this after a real test session. Short, specific answers are more useful than long logs.</p>
+        <form id="beta-feedback-form">
+          <label for="feedback-name">Name
+            <input type="text" id="feedback-name" name="name" placeholder="Your name" required>
+          </label>
+          <label for="feedback-email">Email
+            <input type="email" id="feedback-email" name="email" placeholder="you@company.com" required>
+          </label>
+          <label for="feedback-os">OS
+            <select id="feedback-os" name="os" required>
+              <option value="">Choose one</option>
+              <option value="linux">Linux</option>
+              <option value="macos">macOS</option>
+              <option value="windows">Windows</option>
+              <option value="multiple">Multiple platforms</option>
+            </select>
+          </label>
+          <label for="feedback-artifact">Artifact used
+            <input type="text" id="feedback-artifact" name="artifact" placeholder="AppImage, deb, macOS DMG, macOS ZIP, Windows installer" required>
+          </label>
+          <label for="feedback-install">Install success
+            <select id="feedback-install" name="installSuccess" required>
+              <option value="">Choose one</option>
+              <option value="yes">Yes</option>
+              <option value="with-help">Yes, with help</option>
+              <option value="blocked">No, blocked</option>
+            </select>
+          </label>
+          <label for="feedback-security">Security warning experience
+            <textarea id="feedback-security" name="securityWarning" placeholder="Gatekeeper, SmartScreen, Linux permission prompt, or no warning" required></textarea>
+          </label>
+          <label for="feedback-workspace">Workspace selected
+            <select id="feedback-workspace" name="workspaceSelected" required>
+              <option value="">Choose one</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <label for="feedback-proof">First proof generated
+            <select id="feedback-proof" name="firstProofGenerated" required>
+              <option value="">Choose one</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <label for="feedback-proof-time">Time to first proof
+            <input type="text" id="feedback-proof-time" name="timeToFirstProof" placeholder="Example: 4 minutes, or blocked before proof" required>
+          </label>
+          <label for="feedback-export">Proof exported
+            <select id="feedback-export" name="proofExported" required>
+              <option value="">Choose one</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="not-found">Could not find export</option>
+            </select>
+          </label>
+          <label for="feedback-persistence">Restart persistence
+            <select id="feedback-persistence" name="restartPersistence" required>
+              <option value="">Choose one</option>
+              <option value="worked">Worked</option>
+              <option value="partial">Partially worked</option>
+              <option value="failed">Failed</option>
+              <option value="not-tested">Not tested</option>
+            </select>
+          </label>
+          <label for="feedback-safe-fix">Safe-fix approval understood
+            <select id="feedback-safe-fix" name="safeFixUnderstood" required>
+              <option value="">Choose one</option>
+              <option value="yes">Yes</option>
+              <option value="mostly">Mostly</option>
+              <option value="no">No</option>
+              <option value="not-tested">Not tested</option>
+            </select>
+          </label>
+          <label for="feedback-confusing">Confusing UI moments
+            <textarea id="feedback-confusing" name="confusingMoments" placeholder="What slowed you down or made you uncertain?"></textarea>
+          </label>
+          <label for="feedback-errors">Crashes/errors
+            <textarea id="feedback-errors" name="crashesErrors" placeholder="What happened? Do not paste private logs or source code."></textarea>
+          </label>
+          <label for="feedback-use">Would use again
+            <select id="feedback-use" name="wouldUseAgain" required>
+              <option value="">Choose one</option>
+              <option value="yes">Yes</option>
+              <option value="maybe">Maybe</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <label for="feedback-pay">Would pay
+            <select id="feedback-pay" name="wouldPay" required>
+              <option value="">Choose one</option>
+              <option value="yes">Yes</option>
+              <option value="maybe">Maybe</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <label for="feedback-notes">Additional notes
+            <textarea id="feedback-notes" name="additionalNotes" placeholder="Anything else we should know?"></textarea>
+          </label>
+          <button type="submit" class="btn btn-primary">Send beta feedback</button>
+          <p id="beta-feedback-status" class="status-message" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  `
+
+  const script = `
+    const form = document.getElementById("beta-feedback-form");
+    const status = document.getElementById("beta-feedback-status");
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(form));
+      const message = [
+        "Beta feedback report",
+        "",
+        "OS: " + String(data.os || ""),
+        "Artifact used: " + String(data.artifact || ""),
+        "Install success: " + String(data.installSuccess || ""),
+        "Security warning experience: " + String(data.securityWarning || ""),
+        "Workspace selected: " + String(data.workspaceSelected || ""),
+        "First proof generated: " + String(data.firstProofGenerated || ""),
+        "Time to first proof: " + String(data.timeToFirstProof || ""),
+        "Proof exported: " + String(data.proofExported || ""),
+        "Restart persistence: " + String(data.restartPersistence || ""),
+        "Safe-fix approval understood: " + String(data.safeFixUnderstood || ""),
+        "Confusing UI moments: " + String(data.confusingMoments || ""),
+        "Crashes/errors: " + String(data.crashesErrors || ""),
+        "Would use again: " + String(data.wouldUseAgain || ""),
+        "Would pay: " + String(data.wouldPay || ""),
+        "Additional notes: " + String(data.additionalNotes || ""),
+      ].join("\\n");
+
+      status.textContent = "Sending beta feedback...";
+      status.className = "status-message";
+      try {
+        const response = await fetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            topic: "beta-feedback",
+            rating: data.firstProofGenerated === "yes" ? "5" : "3",
+            message,
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload.error || "Beta feedback could not be sent.");
+        }
+        form.reset();
+        status.textContent = "Thanks. Your beta feedback is in.";
+        status.className = "status-message success";
+      } catch (error) {
+        status.textContent = error instanceof Error ? error.message : "Beta feedback could not be sent right now. Please email support@rinawarptech.com.";
+        status.className = "status-message error";
+      }
+    });
+  `
+
+  return renderPage('/beta-feedback', 'beta-feedback', hero, content, script)
+}
+
 function renderTerms(): Response {
   const hero = `
     <section class="hero">
@@ -4771,6 +4962,10 @@ export default {
 
       if (path === '/beta' || path === '/beta/') {
         return renderBetaSignup()
+      }
+
+      if (path === '/beta-feedback' || path === '/beta-feedback/') {
+        return renderBetaFeedback()
       }
 
       if (path === '/matter-intelligence' || path === '/matter-intelligence/') {

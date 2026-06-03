@@ -1787,6 +1787,53 @@ if (page === 'beta') {
   });
 }
 
+if (page === 'beta-feedback') {
+  document.getElementById('beta-feedback-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    const message = [
+      'Beta feedback report',
+      '',
+      'OS: ' + String(data.os || ''),
+      'Artifact used: ' + String(data.artifact || ''),
+      'Install success: ' + String(data.installSuccess || ''),
+      'Security warning experience: ' + String(data.securityWarning || ''),
+      'Workspace selected: ' + String(data.workspaceSelected || ''),
+      'First proof generated: ' + String(data.firstProofGenerated || ''),
+      'Time to first proof: ' + String(data.timeToFirstProof || ''),
+      'Proof exported: ' + String(data.proofExported || ''),
+      'Restart persistence: ' + String(data.restartPersistence || ''),
+      'Safe-fix approval understood: ' + String(data.safeFixUnderstood || ''),
+      'Confusing UI moments: ' + String(data.confusingMoments || ''),
+      'Crashes/errors: ' + String(data.crashesErrors || ''),
+      'Would use again: ' + String(data.wouldUseAgain || ''),
+      'Would pay: ' + String(data.wouldPay || ''),
+      'Additional notes: ' + String(data.additionalNotes || ''),
+    ].join('\\n');
+
+    setStatus('beta-feedback-status', 'Sending beta feedback...');
+    try {
+      await withJson(await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          topic: 'beta-feedback',
+          rating: data.firstProofGenerated === 'yes' ? '5' : '3',
+          message,
+        }),
+      }));
+      form.reset();
+      setStatus('beta-feedback-status', 'Thanks. Your beta feedback is in.', 'success');
+    } catch (error) {
+      setStatus('beta-feedback-status', error instanceof Error ? error.message : 'Beta feedback could not be sent right now.', 'error');
+    }
+  });
+}
+
 if (page === 'login') {
   document.getElementById('login-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -2425,6 +2472,137 @@ Type 'string' is not assignable</pre></article>
       </section>
     `
   },
+  {
+    route: "beta-feedback",
+    path: "/beta-feedback",
+    page: "beta-feedback",
+    title: "RinaWarp Beta Feedback | Terminal Pro",
+    description: "Submit structured RinaWarp Terminal Pro beta feedback covering install, first proof, proof export, persistence, safe-fix approval, and use/pay signal.",
+    eyebrow: "Beta feedback",
+    heading: "Tell us if Terminal Pro reached first proof.",
+    copy: "This form is for beta testers after they install RinaWarp Terminal Pro, select a workspace, run the first proof-backed workflow, and try the safe-fix approval path.",
+    heroActions: `
+      <a href="#feedback" class="btn btn-primary">Submit feedback</a>
+      <a href="/beta/" class="btn btn-secondary">Join beta</a>
+    `,
+    heroSupport: "Do not include secrets, tokens, private keys, raw source code, private terminal output, or confidential file contents.",
+    content: `
+      <section class="section">
+        <div class="grid three-up">
+          <article class="card"><h3>Install</h3><p>Tell us whether the artifact opened, whether security warnings were clear, and which platform you tested.</p></article>
+          <article class="card"><h3>First proof</h3><p>Record whether you selected a workspace, generated proof, exported it, and saw persistence after restart.</p></article>
+          <article class="card"><h3>Trust signal</h3><p>Share whether safe-fix approval made sense, what felt confusing, and whether you would use or pay for this.</p></article>
+        </div>
+      </section>
+      <section id="feedback" class="section">
+        <div class="panel stack">
+          <h2 class="section-title">Beta feedback intake</h2>
+          <p class="section-copy">Use this after a real test session. Short, specific answers are more useful than long logs.</p>
+          <form id="beta-feedback-form">
+            <label>Name
+              <input type="text" name="name" placeholder="Your name" required>
+            </label>
+            <label>Email
+              <input type="email" name="email" placeholder="you@company.com" required>
+            </label>
+            <label>OS
+              <select name="os" required>
+                <option value="">Choose one</option>
+                <option value="linux">Linux</option>
+                <option value="macos">macOS</option>
+                <option value="windows">Windows</option>
+                <option value="multiple">Multiple platforms</option>
+              </select>
+            </label>
+            <label>Artifact used
+              <input type="text" name="artifact" placeholder="AppImage, deb, macOS DMG, macOS ZIP, Windows installer" required>
+            </label>
+            <label>Install success
+              <select name="installSuccess" required>
+                <option value="">Choose one</option>
+                <option value="yes">Yes</option>
+                <option value="with-help">Yes, with help</option>
+                <option value="blocked">No, blocked</option>
+              </select>
+            </label>
+            <label>Security warning experience
+              <textarea name="securityWarning" placeholder="Gatekeeper, SmartScreen, Linux permission prompt, or no warning" required></textarea>
+            </label>
+            <label>Workspace selected
+              <select name="workspaceSelected" required>
+                <option value="">Choose one</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+            <label>First proof generated
+              <select name="firstProofGenerated" required>
+                <option value="">Choose one</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+            <label>Time to first proof
+              <input type="text" name="timeToFirstProof" placeholder="Example: 4 minutes, or blocked before proof" required>
+            </label>
+            <label>Proof exported
+              <select name="proofExported" required>
+                <option value="">Choose one</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+                <option value="not-found">Could not find export</option>
+              </select>
+            </label>
+            <label>Restart persistence
+              <select name="restartPersistence" required>
+                <option value="">Choose one</option>
+                <option value="worked">Worked</option>
+                <option value="partial">Partially worked</option>
+                <option value="failed">Failed</option>
+                <option value="not-tested">Not tested</option>
+              </select>
+            </label>
+            <label>Safe-fix approval understood
+              <select name="safeFixUnderstood" required>
+                <option value="">Choose one</option>
+                <option value="yes">Yes</option>
+                <option value="mostly">Mostly</option>
+                <option value="no">No</option>
+                <option value="not-tested">Not tested</option>
+              </select>
+            </label>
+            <label>Confusing UI moments
+              <textarea name="confusingMoments" placeholder="What slowed you down or made you uncertain?"></textarea>
+            </label>
+            <label>Crashes/errors
+              <textarea name="crashesErrors" placeholder="What happened? Do not paste private logs or source code."></textarea>
+            </label>
+            <label>Would use again
+              <select name="wouldUseAgain" required>
+                <option value="">Choose one</option>
+                <option value="yes">Yes</option>
+                <option value="maybe">Maybe</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+            <label>Would pay
+              <select name="wouldPay" required>
+                <option value="">Choose one</option>
+                <option value="yes">Yes</option>
+                <option value="maybe">Maybe</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+            <label>Additional notes
+              <textarea name="additionalNotes" placeholder="Anything else we should know?"></textarea>
+            </label>
+            <button type="submit" class="btn btn-primary">Send beta feedback</button>
+            <p id="beta-feedback-status" class="status-message" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+    `
+  },
    {
      route: "pricing",
     path: "/pricing",
@@ -3016,6 +3194,7 @@ const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
   <url><loc>https://rinawarptech.com/</loc></url>
   <url><loc>https://rinawarptech.com/products/</loc></url>
   <url><loc>https://rinawarptech.com/beta/</loc></url>
+  <url><loc>https://rinawarptech.com/beta-feedback/</loc></url>
   <url><loc>https://rinawarptech.com/pricing/</loc></url>
   <url><loc>https://rinawarptech.com/download/</loc></url>
   <url><loc>https://rinawarptech.com/docs/</loc></url>

@@ -41,6 +41,14 @@ export const SEO_CONFIG: Record<string, SeoData> = {
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'RinaWarp beta, Terminal Pro beta, AI developer workbench, proof-backed execution',
   },
+  '/beta-feedback': {
+    title: 'RinaWarp Beta Feedback | Terminal Pro',
+    description:
+      'Submit structured RinaWarp Terminal Pro beta feedback covering install, first proof, proof export, persistence, safe-fix approval, and use/pay signal.',
+    canonical: 'https://rinawarptech.com/beta-feedback',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    keywords: 'RinaWarp beta feedback, Terminal Pro tester feedback, first proof, proof export',
+  },
   '/agents': {
     title: 'RinaWarp Packs | Capability Packs for RinaWarp Terminal Pro',
     description:
