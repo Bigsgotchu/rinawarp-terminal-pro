@@ -6,10 +6,15 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const appRoot = path.resolve(__dirname, '..')
 const rendererRoot = path.join(appRoot, 'src/renderer')
+const builtRendererRoot = path.join(appRoot, 'dist-electron/renderer')
 
 const requiredIndexPath = path.join(rendererRoot, 'index.html')
+const requiredIndexTsPath = path.join(rendererRoot, 'index.ts')
+const requiredIndexCssPath = path.join(rendererRoot, 'index.css')
+const requiredRendererCssPath = path.join(rendererRoot, 'renderer.css')
+const requiredBuiltRendererPath = path.join(builtRendererRoot, 'renderer.html')
 const productionBootFiles = [
-  path.join(rendererRoot, 'index.ts'),
+  requiredIndexTsPath,
   path.join(rendererRoot, 'bootstrap/initRenderer.ts'),
   path.join(rendererRoot, 'modern/initWorkbenchShellRenderer.ts'),
   path.join(rendererRoot, 'workbench/render.ts'),
@@ -98,6 +103,41 @@ function assertIndexContract() {
   }
 }
 
+function assertStyleContract() {
+  if (!fs.existsSync(requiredIndexTsPath)) {
+    fail('src/renderer/index.ts is missing')
+    return
+  }
+  if (!fs.existsSync(requiredIndexCssPath)) {
+    fail('src/renderer/index.css is missing')
+    return
+  }
+  if (!fs.existsSync(requiredRendererCssPath)) {
+    fail('src/renderer/renderer.css is missing')
+    return
+  }
+
+  const indexTs = readText(requiredIndexTsPath)
+  if (!indexTs.includes("import './index.css'") && !indexTs.includes('import "./index.css"')) {
+    fail('src/renderer/index.ts must import ./index.css')
+  }
+
+  const indexCss = readText(requiredIndexCssPath)
+  if (!indexCss.includes("@import './renderer.css'") && !indexCss.includes('@import "./renderer.css"')) {
+    fail('src/renderer/index.css must import ./renderer.css')
+  }
+
+  const rendererCss = readText(requiredRendererCssPath)
+  if (!rendererCss.includes('./styles/renderer-agent.css')) {
+    fail('src/renderer/renderer.css must include Agent Shell CSS')
+  }
+
+  const agentCss = readText(path.join(rendererRoot, 'styles/renderer-agent-layout.css'))
+  if (!agentCss.includes('.rw-agent-composer') || !agentCss.includes('.rw-agent-launch-empty')) {
+    fail('Agent Shell CSS classes are missing from src/renderer/styles/renderer-agent-layout.css')
+  }
+}
+
 function assertProductionBootContract() {
   for (const filePath of productionBootFiles) {
     if (!fs.existsSync(filePath)) {
@@ -136,10 +176,40 @@ function assertBlockedStrings() {
   }
 }
 
+function assertBuiltRendererContract() {
+  if (!fs.existsSync(requiredBuiltRendererPath)) {
+    fail('dist-electron/renderer/renderer.html is missing; run build:electron before guard:canonical-renderer')
+    return
+  }
+
+  const builtRendererHtml = readText(requiredBuiltRendererPath)
+  if (builtRendererHtml.includes('id="root"') || builtRendererHtml.includes("id='root'")) {
+    fail('dist-electron/renderer/renderer.html must not contain a React #root host')
+  }
+  if (!/<link\b[^>]+rel=["']stylesheet["'][^>]+\.css/.test(builtRendererHtml)) {
+    fail('dist-electron/renderer/renderer.html must link built CSS')
+  }
+
+  const builtFiles = walkFiles(builtRendererRoot)
+  const cssFiles = builtFiles.filter((filePath) => filePath.endsWith('.css'))
+  if (cssFiles.length === 0) {
+    fail('dist-electron/renderer must contain CSS assets')
+  }
+
+  for (const filePath of builtFiles) {
+    const content = readText(filePath)
+    if (content.includes('id="root"') || content.includes("id='root'")) {
+      fail(`${relative(filePath)} must not contain a React #root host`)
+    }
+  }
+}
+
 assertIndexContract()
+assertStyleContract()
 assertProductionBootContract()
 assertRemovedFiles()
 assertBlockedStrings()
+assertBuiltRendererContract()
 
 if (failed) {
   console.error('Canonical renderer guard failed.')

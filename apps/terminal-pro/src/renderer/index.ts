@@ -6,6 +6,7 @@
  * provides the current implementation.
  */
 
+import './index.css'
 import { initRenderer } from './bootstrap/initRenderer.js'
 
 void initRenderer()

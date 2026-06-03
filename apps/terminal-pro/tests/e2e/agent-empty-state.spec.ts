@@ -95,6 +95,9 @@ test('agent empty state shows safe setup UI before a project is selected', async
   await withApp(async ({ page }) => {
     await agentTopbarTab(page).click()
 
+    const bodyBackground = await page.locator('body').evaluate((el) => getComputedStyle(el).backgroundColor)
+    expect(bodyBackground).not.toBe('rgb(255, 255, 255)')
+
     await expect(page.locator('.rw-agent-launch-title')).toHaveText('RinaWarp Terminal Pro', { timeout: 15_000 })
     await expect(page.locator('.rw-agent-launch-subtitle')).toHaveText('What would you like me to do?')
     await expect(page.locator('#agent-input')).toBeVisible()
