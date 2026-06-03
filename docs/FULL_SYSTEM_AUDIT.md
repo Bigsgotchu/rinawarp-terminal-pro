@@ -56,6 +56,7 @@ npm run founder:check-repo
 - `docs/PRODUCT_LOCK.md` confirms: "RinaWarp Terminal Pro is a natural-language AI copilot for real computer work"
 - All product language verified: "AI copilot", "Agent Shell", "Agent Thread"
 - No production-facing placeholder/dummy language found
+- Terminology locked: "Project" (not "Workspace"), "Proof" (not "Receipt"), "Inspect" (not "Workbench")
 
 **Commands run:**
 ```bash
@@ -88,7 +89,7 @@ npm run guard:product-constraint-contract
 
 ## 3. Desktop App / Agent Shell
 
-**Status:** green — canonical dark Agent Shell verified
+**Status:** green — professional dark Agent Shell verified
 
 **Evidence:**
 - Renderer builds successfully
@@ -138,6 +139,10 @@ npx playwright test apps/terminal-pro/tests/e2e/agent-empty-state.spec.ts --repo
 - [x] left nav visible
 - [x] Inspect rail visible
 - [x] No white document view
+- [x] Border radii ≤8px (no bubble cards)
+- [x] No "workbench" jargon in visible UI
+- [x] "Runtime Connected" → "Rina ready"
+- [x] "Workspace" → "Project" terminology
 
 ---
 
@@ -637,6 +642,43 @@ npm run smoke:prod
 
 ---
 
+## 18. Agent Shell Visual Lock
+
+**Status:** green — Gate 18 complete
+
+**Evidence:**
+- All border radii reduced to 6-8px maximum (cards/panels)
+- Status indicators retain 999px for circular appearance
+- Style guard `check-agent-shell-style.mjs` passes
+- No "workbench" terminology in visible UI
+- Product language: Agent Thread, Inspect, Proof, Project, Run, Plan, Verify, Approve
+
+**Commands run:**
+```bash
+node scripts/guards/check-agent-shell-style.mjs
+```
+
+**Files checked:**
+- `apps/terminal-pro/src/renderer/styles/*.css`
+- `apps/terminal-pro/src/renderer/modern/workbenchShellSurface.ts`
+
+**Remaining work:**
+- None
+
+**Owner:**
+- Design team
+
+**Audit checklist:**
+- [x] Border radii ≤8px for cards/panels
+- [x] Status indicators retain 999px
+- [x] Style guard passes
+- [x] No "workbench" in UI
+- [x] "Workspace" → "Project" terminology
+- [x] "Runtime Connected" → "Rina ready"
+- [x] Audit docs updated
+
+---
+
 ## 16. Open Blockers
 
 | Priority | Blocker | Section | Owner | Status |
@@ -653,7 +695,27 @@ npm run smoke:prod
 
 ---
 
-## 17. Launch Decision
+## 17. Release Secrets Required
+
+**Status:** yellow — production secrets not yet configured
+
+**Required Environment Variables:**
+- `AUTH_SECRET` - Used for session signing in auth
+- `STRIPE_WEBHOOK_SECRET` - For Stripe webhook signature verification
+- `SENDGRID_API_KEY` - For beta feedback email notifications
+- `BETA_ADMIN_TOKEN` - For accessing `/api/beta-admin/digest`
+
+**Commands to set secrets (Cloudflare):**
+```bash
+wrangler secret put AUTH_SECRET --env production
+wrangler secret put STRIPE_WEBHOOK_SECRET --env production
+wrangler secret put SENDGRID_API_KEY --env production
+wrangler secret put BETA_ADMIN_TOKEN --env production
+```
+
+---
+
+## 18. Launch Decision
 
 **Recommendation: NOT READY**
 
