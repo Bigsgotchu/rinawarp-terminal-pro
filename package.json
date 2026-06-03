@@ -84,6 +84,7 @@
     "smoke:stripe": "bash scripts/smoke/stripe.sh https://www.rinawarptech.com https://www.rinawarptech.com",
     "audit:stripe-success": "bash scripts/audit/stripe-success.sh",
     "report:revenue-daily": "bash scripts/ops/revenue-daily-report.sh",
+    "deploy:add-twilio-dns": "bash scripts/deploy/add-twilio-dns-record.sh",
     "demo:record:fix-project": "npm --workspace apps/terminal-pro run build:electron && bash scripts/ops/record-fix-project-demo.sh",
     "verify:appimage:ci": "bash deploy/verify-appimage-ci.sh",
     "release:desktop": "bash deploy/release-runner.sh",
