@@ -1,6 +1,7 @@
 import type { WorkbenchActionControllerDeps } from './actionController.js'
 import { WorkbenchStore } from '../workbench/store.js'
 import { recordDebugEvent } from '../services/debugEvidence.js'
+import { recordActivationTelemetry } from '../services/rendererTelemetry.js'
 
 export type NavigableWorkbenchView =
   | 'agent'
@@ -47,6 +48,10 @@ export function createWorkbenchNavigator(
         source,
         workspace_key: store.getState().workspaceKey,
       })
+    }
+
+    if (view === 'marketplace') {
+      void recordActivationTelemetry('marketplace_opened')
     }
 
     if (view === 'execution-trace' || view === 'runs' || view === 'receipt' || view === 'marketplace' || view === 'code' || view === 'brain') {

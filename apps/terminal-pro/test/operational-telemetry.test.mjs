@@ -52,6 +52,28 @@ describe('OperationalTelemetry', () => {
     assert.equal(result.degraded, true)
   })
 
+  it('records activation counters without private workflow details', async () => {
+    const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-telemetry-'))
+    const calls = []
+    const telemetry = new OperationalTelemetry({
+      app: makeApp(userData),
+      baseUrl: 'https://telemetry.example.test',
+      fetchImpl: async (url, init) => {
+        calls.push({ url, body: JSON.parse(init.body) })
+      },
+    })
+
+    const result = await telemetry.recordCounter('first_proof_generated')
+    assert.equal(result.accepted, true)
+    assert.equal(calls.length, 1)
+    assert.equal(calls[0].url, 'https://telemetry.example.test/v1/telemetry/event')
+    assert.deepEqual(Object.keys(calls[0].body).sort(), ['arch', 'count', 'event', 'installId', 'platform', 'version'])
+    assert.equal(calls[0].body.event, 'first_proof_generated')
+    assert.equal(calls[0].body.count, 1)
+    assert.equal(JSON.stringify(calls[0].body).includes('/home/'), false)
+    assert.equal(JSON.stringify(calls[0].body).includes('sk_live_'), false)
+  })
+
   it('does not send when opted out', async () => {
     const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-telemetry-'))
     let calls = 0

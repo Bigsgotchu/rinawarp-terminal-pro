@@ -1,6 +1,7 @@
 import type { WorkbenchStore } from '../workbench/store.js'
 import { normalizeWorkspaceKey } from '../services/rendererCoreHelpers.js'
 import { recordDebugEvent } from '../services/debugEvidence.js'
+import { recordActivationTelemetry } from '../services/rendererTelemetry.js'
 
 type WorkspaceRefreshers = {
   refreshRuns: (store: WorkbenchStore) => Promise<void>
@@ -31,6 +32,7 @@ export async function requestWorkspaceSelection(options?: {
       selection_method: 'picker',
       workspace_present: true,
     })
+    void recordActivationTelemetry('workspace_selected')
     options?.onStatus?.('Workspace updated.')
     window.dispatchEvent(
       new CustomEvent('rina:workspace-selected', {
@@ -61,6 +63,7 @@ export async function requestDemoWorkspaceSelection(options?: {
     }
     const path = String(result.path)
     recordDebugEvent('ui', 'workspace.selected.demo', { path, source })
+    void recordActivationTelemetry('workspace_selected')
     options?.onStatus?.('Demo project ready.')
     window.dispatchEvent(
       new CustomEvent('rina:workspace-selected', {

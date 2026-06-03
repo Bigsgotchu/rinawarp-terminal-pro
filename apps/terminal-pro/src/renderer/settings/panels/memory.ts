@@ -8,6 +8,7 @@ import {
   renderMemoryPanelShell,
   renderWorkspaceSummary,
 } from './memorySurface.js'
+import { recordActivationTelemetry } from '../../services/rendererTelemetry.js'
 
 type MemoryState = {
   owner: {
@@ -361,6 +362,7 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
       likes: splitLines(likesInput.value),
       dislikes: splitLines(dislikesInput.value),
     })
+    void recordActivationTelemetry('memory_saved')
     setFeedback('Owner profile memory saved.')
     await render()
   })
@@ -373,6 +375,7 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
       preferredProofStyle: splitLines(proofStyleInput.value),
       conventions: parseConventions(conventionsInput.value),
     })
+    void recordActivationTelemetry('memory_saved')
     setFeedback('Workspace memory saved.')
     await render()
   })

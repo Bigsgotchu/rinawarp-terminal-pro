@@ -5,6 +5,7 @@ import type { FixPlanResponse, FixPlanStep, PlanCapabilityRequirement } from '..
 import type { RinaReplyResult } from '../replies/renderRinaReply.js'
 import { type WorkbenchStore, type WorkbenchState, type MessageBlock } from '../workbench/store.js'
 import type { FixProjectResult } from '../../main/assistant/fixProjectFlow.js'
+import { recordActivationTelemetry } from './rendererTelemetry.js'
 
 type ExecutionResult = {
   ok?: boolean
@@ -15,6 +16,10 @@ type ExecutionResult = {
   error?: string
   code?: string
   retrySuggestion?: string
+}
+
+function isBuildExecution(input: string): boolean {
+  return /\b(npm|pnpm|yarn|bun)\s+(run\s+)?build\b|\bnext\s+build\b|\btsc\b/i.test(input)
 }
 
 type ConversationRouteResult = {
@@ -128,13 +133,15 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
     const runStarted = deps.didExecutionStart(execResult)
     if (!runStarted || !execResult.runId) return false
     store.dispatch({ type: 'chat/linkRun', messageId: args.messageId, runId: execResult.runId })
+    const command =
+      args.command || args.planSteps.map((step) => String(step.input?.command || '')).filter(Boolean).join(' && ') || args.prompt
     store.dispatch({
       type: 'runs/upsert',
       run: {
         id: execResult.runId,
         sessionId: execResult.planRunId || execResult.runId,
         title: args.title || args.prompt,
-        command: args.command || args.planSteps.map((step) => String(step.input?.command || '')).filter(Boolean).join(' && ') || args.prompt,
+        command,
         cwd: args.workspaceRoot,
         status: 'running',
         startedAt: new Date().toISOString(),
@@ -147,6 +154,9 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
         originMessageId: args.messageId,
       },
     })
+    if (isBuildExecution(command)) {
+      void recordActivationTelemetry('first_build_run')
+    }
     return true
   }
 
@@ -456,6 +466,7 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
     }
 
     const fixId = args.mountFixBlock(fixResult, args.workspaceRoot, pendingFixId)
+    void recordActivationTelemetry('safe_fix_proposed')
     const planSteps = deps.normalizePlanSteps(
       fixResult.executableSteps.map((step) => ({
         stepId: step.id,
@@ -493,6 +504,7 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
           },
         })
       }
+      void recordActivationTelemetry('safe_fix_approved')
       return true
     }
 

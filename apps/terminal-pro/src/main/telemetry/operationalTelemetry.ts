@@ -9,6 +9,15 @@ export type OperationalTelemetryEvent =
   | 'task_failed'
   | 'rollback_triggered'
   | 'approval_denied'
+  | 'workspace_selected'
+  | 'first_build_run'
+  | 'first_proof_generated'
+  | 'proof_exported'
+  | 'safe_fix_proposed'
+  | 'safe_fix_approved'
+  | 'memory_saved'
+  | 'marketplace_opened'
+  | 'crash_report_created'
   | 'update_check_started'
   | 'update_available'
   | 'update_downloaded'
@@ -50,6 +59,27 @@ export type OperationalTelemetrySendResult = {
 
 const DEFAULT_BASE_URL = 'https://rinawarptech.com'
 const SETTINGS_FILE = 'operational-telemetry.json'
+const OPERATIONAL_TELEMETRY_EVENTS = new Set<OperationalTelemetryEvent>([
+  'task_started',
+  'task_completed',
+  'task_failed',
+  'rollback_triggered',
+  'approval_denied',
+  'workspace_selected',
+  'first_build_run',
+  'first_proof_generated',
+  'proof_exported',
+  'safe_fix_proposed',
+  'safe_fix_approved',
+  'memory_saved',
+  'marketplace_opened',
+  'crash_report_created',
+  'update_check_started',
+  'update_available',
+  'update_downloaded',
+  'update_restart_requested',
+  'update_success',
+])
 
 function normalizeBaseUrl(input?: string): string {
   const value = String(input || process.env.RINAWARP_TELEMETRY_BASE_URL || DEFAULT_BASE_URL).trim()
@@ -223,18 +253,7 @@ export function getOperationalTelemetry(): OperationalTelemetry | null {
 }
 
 export function isOperationalTelemetryEvent(event: string): event is OperationalTelemetryEvent {
-  return (
-    event === 'task_started' ||
-    event === 'task_completed' ||
-    event === 'task_failed' ||
-    event === 'rollback_triggered' ||
-    event === 'approval_denied' ||
-    event === 'update_check_started' ||
-    event === 'update_available' ||
-    event === 'update_downloaded' ||
-    event === 'update_restart_requested' ||
-    event === 'update_success'
-  )
+  return OPERATIONAL_TELEMETRY_EVENTS.has(event as OperationalTelemetryEvent)
 }
 
 export function startOperationalTelemetrySession(): void {

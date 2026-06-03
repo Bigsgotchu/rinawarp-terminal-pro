@@ -18,6 +18,7 @@ import {
   submitRinaIntent,
   submitUiPrompt,
 } from './rinaIntentLoop.js'
+import { getOperationalTelemetry } from '../telemetry/operationalTelemetry.js'
 
 type DiagnosticsBundleDeps = unknown
 
@@ -156,6 +157,7 @@ export function registerRinaIpc(deps: RegisterRinaIpcDeps): void {
       }
       const record = await submitApprovedPatchIntent(args.request, args.payload, { memory, stream })
       assertRinaExecutionResult(record)
+      void getOperationalTelemetry()?.recordCounter('safe_fix_approved')
       return record
     },
   )
@@ -172,9 +174,13 @@ export function registerRinaIpc(deps: RegisterRinaIpcDeps): void {
     diagnosticsPathsForIpc(diagnosticsBundleDeps),
   )
 
-  replaceHandler(ipcMain, 'rina:support:bundle', async (_event: IpcMainInvokeEvent, snapshot: unknown) =>
-    supportBundleForIpcWithSnapshot(diagnosticsBundleDeps, snapshot),
-  )
+  replaceHandler(ipcMain, 'rina:support:bundle', async (_event: IpcMainInvokeEvent, snapshot: unknown) => {
+    const result = await supportBundleForIpcWithSnapshot(diagnosticsBundleDeps, snapshot)
+    if ((result as { ok?: boolean } | null)?.ok) {
+      void getOperationalTelemetry()?.recordCounter('crash_report_created')
+    }
+    return result
+  })
 
   replaceHandler(ipcMain, 'rina:workspace:pick', async () => workspacePickForIpc())
 

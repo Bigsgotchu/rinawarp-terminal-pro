@@ -1,6 +1,7 @@
 import type { WorkbenchActionControllerDeps } from './actionController.js'
 import { WorkbenchStore } from '../workbench/store.js'
 import { receiptReferenceForFix } from '../state/receiptOwnership.js'
+import { recordActivationTelemetry } from '../services/rendererTelemetry.js'
 
 type ReceiptExportPayload = {
   exportedAt: string
@@ -425,6 +426,7 @@ export function createClipboardActionHandler(
       }
       try {
         downloadReceiptJson(payload)
+        void recordActivationTelemetry('proof_exported')
         deps.setTransientStatusSummary(store, 'Proof JSON export started.')
       } catch (error) {
         deps.setTransientStatusSummary(store, `Proof export failed: ${error instanceof Error ? error.message : 'unknown error'}`)

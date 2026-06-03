@@ -7,6 +7,15 @@ export async function trackRendererEvent(event: string, properties?: Record<stri
   }
 }
 
+export async function recordActivationTelemetry(event: string): Promise<void> {
+  const rina = window.rina as any
+  try {
+    await rina.recordOperationalTelemetry?.(event)
+  } catch {
+    // Activation telemetry is optional and must never block product flow.
+  }
+}
+
 export async function trackRendererBootTiming(durationMs: number, properties?: Record<string, unknown>): Promise<void> {
   await trackRendererEvent('renderer_boot_timing', {
     duration_ms: Math.max(0, Math.round(durationMs)),

@@ -2,6 +2,7 @@ import { appendNarration, describeFixStep, interpretExecutionOutput } from '../f
 import { cognitionLabelForRuntimeEvent } from '../../workbench/runBlocks/cognitionStream.js'
 import { hasRunProof } from '../workbench/proof.js'
 import { type WorkbenchState, WorkbenchStore } from '../workbench/store.js'
+import { recordActivationTelemetry } from './rendererTelemetry.js'
 
 type RendererEventCleanup = () => void
 
@@ -256,6 +257,7 @@ export function bindRendererEvents(args: {
             trackedProofRunIds.add(updatedRun.id)
             const proofLatencyMs = computeProofLatencyMs(updatedRun.startedAt, updatedRun.endedAt)
             store.dispatch({ type: 'analytics/track', event: 'proof_backed_run_seen' })
+            void recordActivationTelemetry('first_proof_generated')
             void trackRendererEvent('proof_backed_run_seen', {
               run_id: updatedRun.id,
               status: updatedRun.status,

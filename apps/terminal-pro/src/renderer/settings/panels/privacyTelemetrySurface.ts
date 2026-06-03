@@ -41,7 +41,7 @@ export function renderPrivacyTelemetryPanel(settings: PrivacyTelemetrySettings |
     <div class="rw-card">
       <h3>What Rina Sends</h3>
       <div class="rw-prose">
-        <p>RinaWarp sends app version, platform, architecture, anonymous install ID, and lightweight counters such as task_started, task_completed, task_failed, rollback_triggered, approval_denied, update_check_started, update_available, update_downloaded, update_restart_requested, and update_success.</p>
+        <p>RinaWarp sends app version, platform, architecture, anonymous install ID, and lightweight counters such as workspace_selected, first_build_run, first_proof_generated, proof_exported, safe_fix_proposed, safe_fix_approved, memory_saved, marketplace_opened, crash_report_created, task_started, task_completed, task_failed, rollback_triggered, approval_denied, update_check_started, update_available, update_downloaded, update_restart_requested, and update_success.</p>
         <p>RinaWarp never sends prompts, source code, repo contents, terminal output, shell history, file contents, or secrets.</p>
       </div>
     </div>
