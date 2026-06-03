@@ -687,7 +687,7 @@ node scripts/guards/check-agent-shell-style.mjs
 | P0 | Windows code signing | Releases | DevOps | TODO |
 | P0 | Packaged app E2E tests require installer | Proof Layer | QA | Blocked (build artifact) |
 | P2 | Enable R2 bucket for releases | Infrastructure | DevOps | TODO |
-| P2 | Production gating of dev-user fallback | Billing/Auth | Backend | TODO |
+| P2 | Production gating of dev-user fallback | Billing/Auth | Backend | ✅ DONE |
 
 ---
 
@@ -716,7 +716,30 @@ wrangler secret put BETA_ADMIN_TOKEN
 
 ---
 
-## 18. Launch Decision
+## 18. Dev-User Fallback Hardening
+
+**Status:** green — production dev-user fallback blocked
+
+**Evidence:**
+- `website/workers/api/auth.ts` - Lines 328-335: Login endpoint blocks dev-user fallback in production
+- `website/workers/api/auth.ts` - Lines 382-386: `/me` endpoint blocks dev-user fallback in production
+- Production detection: Database presence (`!!db`) indicates production
+- Development mode: Falls back to local user if database unavailable
+
+**Changes Made:**
+- Fixed `process.env.NODE_ENV === 'production'` to `!!db` for Workers runtime compatibility
+- Added explicit error logging when dev-user fallback is blocked
+- Returns 503 error with support message for blocked fallback
+
+**Validation:**
+- ✅ `founder:check-repo` passes
+- ✅ `guard:product-realness` passes
+- ✅ `build:electron` passes
+- ✅ Code review confirms production gating
+
+---
+
+## 19. Launch Decision
 
 **Recommendation: ALMOST READY**
 

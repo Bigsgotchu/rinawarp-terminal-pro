@@ -326,7 +326,8 @@ async function handleLogin(
 
   // Create session token
   // Production gating: dev-user fallback only allowed in development
-  const isProduction = process.env.NODE_ENV === 'production';
+  // In Workers: production = database is configured (RINAWARP_DB exists)
+  const isProduction = !!db;
   const isDevUserFallback = !user;
   
   if (isDevUserFallback && isProduction) {
@@ -379,7 +380,8 @@ async function handleMe(env: Env, authHeader: string | null): Promise<Response> 
   }
 
   // Development mode: only allow fallback if not in production
-  const isProduction = process.env.NODE_ENV === 'production';
+  // In Workers: production = database is configured (RINAWARP_DB exists)
+  const isProduction = !!db;
   if (isProduction) {
     console.error('[Auth] dev-user fallback blocked in production for /me endpoint');
     return errorResponse('User not found', 404);
