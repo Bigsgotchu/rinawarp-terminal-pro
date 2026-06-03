@@ -36,7 +36,7 @@ SIGNUPS=$(wrangler d1 execute rinawarp-users --remote \
   --command "SELECT name,email,os FROM beta_signups WHERE email NOT IN ($EXCLUDE_EMAILS) AND os IN ('Linux','macOS','Windows') ORDER BY created_at DESC;" 2>/dev/null | grep -A 100 "results" | grep -E '^\s+\{' | head -20)
 
 if [ -z "$SIGNUPS" ]; then
-  echo "No beta signups found."
+  echo "No opt-in beta signups found. Nothing to send."
   exit 0
 fi
 
