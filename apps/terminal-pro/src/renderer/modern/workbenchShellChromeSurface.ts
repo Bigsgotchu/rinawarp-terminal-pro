@@ -1,5 +1,6 @@
 import type { WorkbenchState } from '../workbench/store.js'
 import { buildWorkbenchShellChromeModel } from './workbenchShellChromeModel.js'
+import { getWorkspaceContextState } from '../workbench/renderers/selectors.js'
 
 export function applyWorkbenchShellChrome(state: WorkbenchState, doc: Document = document): void {
   const model = buildWorkbenchShellChromeModel(state)
@@ -23,6 +24,7 @@ export function applyWorkbenchShellChrome(state: WorkbenchState, doc: Document =
   const workbench = doc.querySelector<HTMLElement>('.rw-workbench')
   if (workbench) {
     workbench.classList.toggle('agent-focused', model.agentFocused)
+    workbench.classList.toggle('center-route-focused', model.centerRouteFocused)
     workbench.classList.toggle('drawer-open', model.drawerOpen)
     workbench.classList.toggle('recovery-focused', model.recoveryFocused)
     if (model.drawer) workbench.dataset.drawer = model.drawer
@@ -32,6 +34,7 @@ export function applyWorkbenchShellChrome(state: WorkbenchState, doc: Document =
   const app = doc.getElementById('rw-app')
   if (app) {
     app.classList.toggle('drawer-open', model.drawerOpen)
+    app.classList.toggle('center-route-focused', model.centerRouteFocused)
     app.classList.toggle('recovery-focused', model.recoveryFocused)
     app.classList.toggle('agent-launch-empty', model.agentLaunchEmpty)
     if (model.drawer) app.dataset.drawer = model.drawer
@@ -82,4 +85,17 @@ export function applyWorkbenchShellChrome(state: WorkbenchState, doc: Document =
 
   const summary = doc.getElementById('status-summary')
   if (summary) summary.textContent = model.status.summaryText
+
+  const workspaceContext = getWorkspaceContextState(state)
+  const hasProjectWorkspace = workspaceContext.status === 'project'
+  for (const action of Array.from(doc.querySelectorAll<HTMLElement>('.rw-agent-tool-btn[data-intent-key]'))) {
+    action.hidden = !hasProjectWorkspace
+    action.setAttribute('aria-hidden', String(!hasProjectWorkspace))
+  }
+  const input = doc.getElementById('agent-input') as HTMLTextAreaElement | null
+  if (input) {
+    input.placeholder = hasProjectWorkspace
+      ? 'Ask Rina to fix, build, test, or explain...'
+      : 'Choose a project folder to give Rina safe context.'
+  }
 }

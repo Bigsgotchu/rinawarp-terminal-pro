@@ -303,6 +303,14 @@
   position: relative;
 }
 
+.rw-workbench.center-route-focused {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.rw-workbench.center-route-focused .rw-inspector {
+  display: none;
+}
+
 .rw-center-stack,
 .rw-right-stack {
   min-inline-size: 0;

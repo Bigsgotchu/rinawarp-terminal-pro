@@ -55,17 +55,15 @@ function renderUserMessage(item: Extract<ThreadItem, { type: 'user-message' }>):
 }
 
 function renderAssistantMessage(item: Extract<ThreadItem, { type: 'assistant-message' }>): HTMLElement {
-  const trustBadge = item.proofBacked
-    ? el('span', { class: 'rw-trust-badge is-verified' }, 'Verified')
-    : el('span', { class: 'rw-trust-badge is-unverified' }, 'Unverified')
-
   return el(
     'div',
-    {
-      class: ['rw-thread-message', 'rina', item.proofBacked ? 'is-proof-backed' : 'is-unproven'].join(' '),
-      dataset: { msgId: item.id, threadItem: item.type, proofBacked: item.proofBacked ? 'true' : 'false' },
-    },
-    el('div', { class: 'rw-thread-author-row' }, el('div', { class: 'rw-thread-author' }, 'Rina'), trustBadge),
+    { class: ['rw-thread-message', 'rina', item.proofBacked ? 'is-proof-backed' : ''].filter(Boolean).join(' '), dataset: { msgId: item.id, threadItem: item.type, proofBacked: item.proofBacked ? 'true' : 'false' } },
+    el(
+      'div',
+      { class: 'rw-thread-author-row' },
+      el('div', { class: 'rw-thread-author' }, 'Rina'),
+      item.proofBacked ? el('span', { class: 'rw-trust-badge is-verified' }, 'Proof attached') : null
+    ),
     el('div', { class: 'rw-message-bubble' }, item.text),
   )
 }

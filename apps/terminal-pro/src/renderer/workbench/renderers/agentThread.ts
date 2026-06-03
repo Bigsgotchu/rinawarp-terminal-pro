@@ -52,7 +52,8 @@ function renderComposerStarterPrompts(hasThreadContent: boolean): void {
 function renderRecoveryToggle(state: WorkbenchState): void {
   const button = document.getElementById('recovery-toggle') as HTMLButtonElement | null
   if (!button) return
-  renderRecoveryToggleButton(button, state.runs.filter((run) => run.restored).length, state.ui.recoveryExpanded)
+  const stripModel = buildRecoveryStripViewModel(state, false)
+  renderRecoveryToggleButton(button, stripModel?.restoredCount || 0, state.ui.recoveryExpanded)
 }
 
 function renderHero(hidden = false): void {

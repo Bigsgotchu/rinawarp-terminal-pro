@@ -128,13 +128,13 @@ export function getWorkspaceContextState(state: WorkbenchState): WorkspaceContex
   const genericFolder = GENERIC_WORKSPACE_NAMES.has(folderName.toLowerCase())
   const hasProjectMarkers = rootMarkers.length > 0
 
-  if (genericFolder && !hasProjectMarkers) {
+  if (genericFolder) {
     return {
       workspaceRoot,
-      displayValue: folderName,
+      displayValue: 'Choose project',
       title: workspaceRoot,
       status: 'weak',
-      reason: `${folderName} is a generic folder, so Rina may be looking in the wrong place. Choose the actual project root for stronger context.`,
+      reason: `${folderName} looks like a broad folder. Choose a project folder for safer context.`,
       rootMarkers,
     }
   }

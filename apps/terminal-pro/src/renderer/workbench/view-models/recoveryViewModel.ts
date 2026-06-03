@@ -12,6 +12,15 @@ function actionClass(role: 'primary' | 'secondary' | 'attention' | 'quiet'): str
   return 'rw-inline-action is-subtle'
 }
 
+function isPendingRecoveredRun(run: WorkbenchState['runs'][number], workspaceRoot: string): boolean {
+  return Boolean(
+    run.restored &&
+      run.projectRoot &&
+      run.projectRoot === workspaceRoot &&
+      (run.status === 'running' || run.status === 'interrupted')
+  )
+}
+
 export function buildRecentProofCardModel(state: WorkbenchState): AgentEmptyCardViewModel {
   const workspaceState = state.workspaceKey
   const run = lastRelevantRun(state)
@@ -63,7 +72,7 @@ export function buildRecoverySummaryCardModel(state: WorkbenchState): AgentEmpty
   const workspaceState = getWorkspaceContextState(state)
   if (workspaceState.status !== 'project') return null
   const restoredRuns = state.runs
-    .filter((run) => run.restored && run.projectRoot && run.projectRoot === workspaceState.projectRoot)
+    .filter((run) => workspaceState.workspaceRoot && isPendingRecoveredRun(run, workspaceState.workspaceRoot))
     .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())
   const latest = restoredRuns[0]
   if (!latest) return null
@@ -97,7 +106,7 @@ export function buildRecoveryStripViewModel(state: WorkbenchState, compact: bool
   const workspaceState = getWorkspaceContextState(state)
   if (workspaceState.status !== 'project') return null
   const restoredRuns = state.runs
-    .filter((run) => run.restored && run.projectRoot && run.projectRoot === workspaceState.projectRoot)
+    .filter((run) => workspaceState.workspaceRoot && isPendingRecoveredRun(run, workspaceState.workspaceRoot))
     .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())
   const latestRun = restoredRuns[0]
   if (!latestRun) return null
