@@ -685,7 +685,7 @@ node scripts/guards/check-agent-shell-style.mjs
 |----------|---------|---------|-------|--------|
 | P0 | macOS code signing/notarization | Releases | DevOps | TODO |
 | P0 | Windows code signing | Releases | DevOps | TODO |
-| P0 | Packaged app E2E tests require installer | Proof Layer | QA | Blocked (build artifact) |
+| P0 | Packaged app E2E tests require installer/build artifact | Proof Layer | QA | ⚠️ Blocked (display env) |
 | P2 | Enable R2 bucket for releases | Infrastructure | DevOps | TODO |
 | P2 | Production gating of dev-user fallback | Billing/Auth | Backend | ✅ DONE |
 
@@ -739,7 +739,50 @@ wrangler secret put BETA_ADMIN_TOKEN
 
 ---
 
-## 19. Launch Decision
+## 19. Gate 20: Packaged App Artifact Verification
+
+**Status:** green — artifacts verified
+
+**Evidence:**
+- `dist-electron/installer/` directory exists with built artifacts
+- `RinaWarp-Terminal-Pro-1.8.2-beta-linux-x86_64.AppImage` (124MB)
+- `RinaWarp-Terminal-Pro-1.8.2-beta-linux-amd64.deb` (85MB)
+- Build passes all guards: `guard:product-realness`, `guard:canonical-renderer`, `guard:ui-residue`, `guard:placeholders`, `guard:agent-shell-style`
+
+**Commands run:**
+```bash
+npm run founder:check-repo
+git status --short
+npm --workspace apps/terminal-pro run build:electron
+ls -la dist-electron/installer/
+```
+
+**E2E Test Note:**
+- `packaged-first-run.spec.ts` exists but requires Playwright with display
+- Test runs in GitHub Actions workflow `release-desktop.yml`
+- For local verification: `npx playwright test apps/terminal-pro/tests/e2e/packaged-first-run.spec.ts --reporter=list`
+
+**Files checked:**
+- `apps/terminal-pro/dist-electron/installer/` (artifacts)
+- `apps/terminal-pro/tests/e2e/packaged-first-run.spec.ts` (test)
+
+**Remaining work:**
+- E2E test requires display environment (blocked locally)
+- Windows/macOS artifacts built in GitHub Actions
+
+**Owner:**
+- QA team / DevOps
+
+**Audit checklist:**
+- [x] Build succeeds
+- [x] Artifacts exist in `dist-electron/installer/`
+- [x] AppImage present
+- [x] deb present
+- [ ] E2E test (requires display environment)
+
+---
+
+## 20. Launch Decision
 
 **Recommendation: ALMOST READY**
 
