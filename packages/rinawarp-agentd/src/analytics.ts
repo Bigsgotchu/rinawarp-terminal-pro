@@ -100,6 +100,53 @@ let metricsFlushTimer: NodeJS.Timeout | null = null
 let posthog: any | null = null
 let posthogCtor: any | null = null
 
+const SENSITIVE_ANALYTICS_KEY_PATTERN = /(?:token|secret|password|api[_-]?key|license[_-]?key)/i
+const CUSTOMER_ID_ANALYTICS_KEY_PATTERN = /customer[_-]?id/i
+const REDACTED_ANALYTICS_VALUE = '[redacted]'
+
+function maskedIdentifier(value: unknown): string {
+  const raw = String(value || '').trim()
+  if (!raw) return REDACTED_ANALYTICS_VALUE
+  return `[redacted:${raw.slice(-4).padStart(Math.min(raw.length, 4), '*')}]`
+}
+
+function sanitizeAnalyticsValue(key: string, value: unknown, seen: WeakSet<object>): unknown {
+  if (CUSTOMER_ID_ANALYTICS_KEY_PATTERN.test(key)) {
+    return maskedIdentifier(value)
+  }
+
+  if (SENSITIVE_ANALYTICS_KEY_PATTERN.test(key)) {
+    return REDACTED_ANALYTICS_VALUE
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => sanitizeAnalyticsValue(key, item, seen))
+  }
+
+  if (value && typeof value === 'object') {
+    if (seen.has(value)) return REDACTED_ANALYTICS_VALUE
+    seen.add(value)
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([childKey, childValue]) => [
+        childKey,
+        sanitizeAnalyticsValue(childKey, childValue, seen),
+      ])
+    )
+  }
+
+  return value
+}
+
+export function sanitizeAnalyticsProperties(
+  properties?: Record<string, unknown>
+): Record<string, unknown> | undefined {
+  if (!properties) return undefined
+  const seen = new WeakSet<object>()
+  return Object.fromEntries(
+    Object.entries(properties).map(([key, value]) => [key, sanitizeAnalyticsValue(key, value, seen)])
+  )
+}
+
 function loadPostHogCtor(): any | null {
   if (posthogCtor) return posthogCtor
   try {
@@ -178,6 +225,7 @@ export type ServerEvent =
   | 'invite_accepted'
   | 'subscription_created'
   | 'subscription_failed'
+  | 'api_license_generated'
   | 'api_request'
   | 'api_error'
   // Conversion funnel events
@@ -193,18 +241,19 @@ export type ServerEvent =
 export function trackServerEvent(event: ServerEvent, properties?: Record<string, unknown>): void {
   const ph = getPostHog()
   const eventId = randomUUID()
+  const sanitizedProperties = sanitizeAnalyticsProperties(properties)
 
   // Always update local metrics
-  updateLocalMetrics(event, properties)
+  updateLocalMetrics(event, sanitizedProperties)
 
   // Send to PostHog if available
   if (ph) {
     try {
       ph.capture({
-        distinctId: String(properties?.user_id || 'anonymous'),
+        distinctId: String(sanitizedProperties?.user_id || 'anonymous'),
         event: `agentd_${event}`,
         properties: {
-          ...properties,
+          ...sanitizedProperties,
           event_id: eventId,
           timestamp: new Date().toISOString(),
           service: 'agentd',

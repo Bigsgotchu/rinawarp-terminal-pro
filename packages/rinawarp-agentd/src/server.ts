@@ -1239,7 +1239,7 @@ export function createServer(opts: { port: number }) {
         }
 
         // Track in analytics
-        trackServerEvent('api_license_generated' as any, { tier, customer_id: customerId })
+        trackServerEvent('api_license_generated', { tier, customer_id: customerId })
 
         return sendJson(res, 200, { ok: true, license })
       }
