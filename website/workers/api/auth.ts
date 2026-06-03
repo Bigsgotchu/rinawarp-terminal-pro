@@ -325,6 +325,15 @@ async function handleLogin(
   }
 
   // Create session token
+  // Production gating: dev-user fallback only allowed in development
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isDevUserFallback = !user;
+  
+  if (isDevUserFallback && isProduction) {
+    console.error('[Auth] dev-user fallback blocked in production');
+    return errorResponse('Authentication is not configured. Please contact support.', 503);
+  }
+  
   const token = await createToken(
     { 
       userId: user?.id || 'dev-user', 
@@ -369,7 +378,13 @@ async function handleMe(env: Env, authHeader: string | null): Promise<Response> 
     return successResponse({ user: sanitizeUser(user) });
   }
 
-  // Development mode
+  // Development mode: only allow fallback if not in production
+  const isProduction = process.env.NODE_ENV === 'production';
+  if (isProduction) {
+    console.error('[Auth] dev-user fallback blocked in production for /me endpoint');
+    return errorResponse('User not found', 404);
+  }
+  
   return successResponse({
     user: { id: userId, email: payload.email as string, name: null, createdAt: Date.now() },
   });
