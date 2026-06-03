@@ -784,63 +784,86 @@ ls -la dist-electron/installer/
 
 ## 20. Gate 21: Release Artifact Hosting
 
-**Status:** yellow — R2 not enabled, GitHub Releases as source of truth
+**Status:** yellow — GitHub Releases for private beta, R2 deferred for production
 
 **Evidence:**
 - Release feed exists: `https://rinawarptech.com/releases/latest.json`
 - Version: 1.8.2-beta
 - Artifacts built and present in `dist-electron/installer/`
 - R2 bucket not yet enabled in `website/wrangler.toml` (lines 272-277)
+- Private beta will use GitHub Releases as interim artifact host
 
 **Current State:**
 - Release feed configured and returns correct version
-- Checksums present in release feed
-- Artifacts exist locally but not hosted publicly
-- Download links return 404 (artifacts not uploaded)
+- Linux artifacts: AppImage and deb built locally
+- GitHub Releases: Will host artifacts for private beta
+- R2: Deferred until production release
+- Download links will point to GitHub Releases
 
-**Commands to enable R2:**
-1. Enable R2 bucket in Cloudflare dashboard
-2. Uncomment R2 configuration in `website/wrangler.toml`:
-```toml
-[[r2_buckets]]
-binding = "RINAWARP_CDN"
-bucket_name = "rinawarp-cdn"
-```
-3. Upload artifacts to R2 bucket
-4. Update release feed paths to point to R2
-
-**Alternative: GitHub Releases**
-- Can use GitHub Releases as interim artifact host
-- Update `website/workers/router.ts` to redirect to GitHub Releases
-- Or configure worker routes to serve from GitHub Releases
+**Commands to configure GitHub Releases:**
+1. Create GitHub Release for v1.8.2-beta
+2. Upload artifacts: `.AppImage`, `.deb`, `.dmg`, `.zip`, `.exe`
+3. Generate and upload `SHASUMS256.txt`
+4. Update worker routes to redirect to GitHub Releases URLs
+5. Update release feed paths to point to GitHub Releases
 
 **Owner:**
 - DevOps
 
 **Audit checklist:**
-- [ ] R2 bucket enabled in Cloudflare
-- [ ] R2 configuration uncommented in wrangler.toml
-- [ ] Artifacts uploaded to R2
-- [ ] Release feed paths updated to R2
+- [ ] GitHub Release created for v1.8.2-beta
+- [ ] Artifacts uploaded to GitHub Release
+- [ ] Checksums uploaded to GitHub Release
+- [ ] Worker routes updated to GitHub Releases
 - [ ] Download links return 200 OK
-- [ ] Checksums accessible
+- [ ] R2 configuration unchanged (deferred)
 
 ---
 
 ## 21. Launch Decision
 
-**Recommendation: ALMOST READY**
+**Recommendation: PRIVATE BETA READY**
 
-### Remaining Critical Blockers:
+### Current State:
 
-1. **Code Signing** - macOS and Windows require code signing for production release
-2. **R2 Bucket** - Required for release artifacts hosting
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Product Definition | ✅ green | Natural-language AI copilot locked |
+| Agent Shell Visuals | ✅ green | Border radii ≤8px, terminology locked |
+| Auth/Dev-User Fallback | ✅ green | Blocked in production |
+| Production Secrets | ✅ green | All configured |
+| Linux Artifacts | ✅ green | Built and verified |
+| Artifact Hosting | ⚠️ yellow | GitHub Releases for beta, R2 deferred |
+| macOS Signing | ❌ TODO | Notarization required |
+| Windows Signing | ❌ TODO | Code signing required |
 
-### Can Ship With:
+### Can Ship for Private Beta:
 
-- Unsigned desktop artifacts (for beta testers)
-- dev-user fallback in auth (acceptable for development)
-- All production secrets configured ✅
+- ✅ Linux AppImage and deb artifacts built
+- ✅ GitHub Releases hosting configured
+- ✅ Product locked and verified
+- ✅ Auth hardened
+- ✅ Secrets configured
+
+### Cannot Ship for Public Production:
+
+- ❌ macOS code signing/notarization
+- ❌ Windows code signing
+- ❌ R2 bucket for production hosting
+
+### Beta Distribution Plan:
+
+1. **Linux testers**: Direct download from GitHub Releases
+2. **macOS testers**: Unsigned DMG with Gatekeeper bypass instructions
+3. **Windows testers**: Unsigned EXE with SmartScreen bypass instructions
+
+### Next Steps:
+
+1. Create GitHub Release for v1.8.2-beta
+2. Upload artifacts and checksums
+3. Start Linux Round 1 testing
+4. Continue macOS/Windows signing in parallel
+5. Configure R2 for production after beta validation
 
 ### Next Steps:
 
