@@ -3379,15 +3379,17 @@ function renderBetaSignup(): Response {
       status.textContent = "Sending beta signup...";
       status.className = "status-message";
       try {
-        const response = await fetch("/api/feedback", {
+        const response = await fetch("/api/beta-signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: data.name,
             email: data.email,
-            topic: "beta-signup",
-            rating: "5",
-            message,
+            os: data.os,
+            stack: data.stack,
+            projectAvailable: data.projectAvailable,
+            unsignedComfort: data.unsignedComfort,
+            source: "beta-page",
           }),
         });
         const payload = await response.json().catch(() => ({}));
@@ -3568,15 +3570,27 @@ function renderBetaFeedback(): Response {
       status.textContent = "Sending beta feedback...";
       status.className = "status-message";
       try {
-        const response = await fetch("/api/feedback", {
+        const response = await fetch("/api/beta-feedback", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: data.name,
             email: data.email,
-            topic: "beta-feedback",
-            rating: data.firstProofGenerated === "yes" ? "5" : "3",
-            message,
+            os: data.os,
+            artifact: data.artifact,
+            installSuccess: data.installSuccess,
+            securityWarning: data.securityWarning,
+            workspaceSelected: data.workspaceSelected,
+            firstProofGenerated: data.firstProofGenerated,
+            timeToFirstProof: data.timeToFirstProof,
+            proofExported: data.proofExported,
+            restartPersistence: data.restartPersistence,
+            safeFixUnderstood: data.safeFixUnderstood,
+            confusingMoments: data.confusingMoments,
+            crashesErrors: data.crashesErrors,
+            wouldUseAgain: data.wouldUseAgain,
+            wouldPay: data.wouldPay,
+            additionalNotes: data.additionalNotes,
           }),
         });
         const payload = await response.json().catch(() => ({}));
@@ -5233,6 +5247,18 @@ async function handleApiRequest(
   // Feedback endpoint
   if (path === '/api/feedback' && request.method === 'POST') {
     return handleFeedbackSubmit(request, env, corsHeaders)
+  }
+
+  if (path === '/api/beta-signup' && request.method === 'POST') {
+    return handleBetaSignup(request, env, corsHeaders)
+  }
+
+  if (path === '/api/beta-feedback' && request.method === 'POST') {
+    return handleBetaFeedback(request, env, corsHeaders)
+  }
+
+  if (path === '/api/beta-admin/digest' && request.method === 'GET') {
+    return handleBetaAdminDigest(request, env, corsHeaders)
   }
 
   // Events endpoint
@@ -7227,6 +7253,276 @@ async function handleFeedbackSubmit(
   } catch (err) {
     return new Response(JSON.stringify({ error: 'Invalid request' }), {
       status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+}
+
+function normalizeBetaEmail(value: unknown): string {
+  return String(value || '').trim().toLowerCase()
+}
+
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+}
+
+function betaField(value: unknown, maxLength = 500): string | null {
+  const trimmed = String(value || '').trim()
+  return trimmed ? trimmed.slice(0, maxLength) : null
+}
+
+function betaSeverity(input: {
+  installSuccess?: unknown
+  firstProofGenerated?: unknown
+  proofExported?: unknown
+  restartPersistence?: unknown
+  crashesErrors?: unknown
+}): 'normal' | 'critical' {
+  const values = [
+    input.installSuccess,
+    input.firstProofGenerated,
+    input.proofExported,
+    input.restartPersistence,
+    input.crashesErrors,
+  ].map((value) => String(value || '').toLowerCase())
+
+  return values.some((value) => /\b(blocked|crash|failed|failure|error|no)\b/.test(value)) ? 'critical' : 'normal'
+}
+
+async function handleBetaSignup(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
+  try {
+    const body = await request.json()
+    const email = normalizeBetaEmail(body?.email)
+    if (!isValidEmail(email)) {
+      return new Response(JSON.stringify({ error: 'Valid email is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      })
+    }
+
+    const db = getDb(env)
+    const id = crypto.randomUUID()
+    const createdAt = Date.now()
+
+    if (db) {
+      await db
+        .prepare(
+          `INSERT INTO beta_signups
+            (id, name, email, os, developer_stack, project_available, unsigned_comfort, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          id,
+          betaField(body?.name, 160),
+          email,
+          betaField(body?.os, 80),
+          betaField(body?.stack || body?.developer_stack, 500),
+          betaField(body?.projectAvailable || body?.project_available, 120),
+          betaField(body?.unsignedComfort || body?.unsigned_comfort, 120),
+          createdAt
+        )
+        .run()
+    }
+
+    console.log('Beta signup received:', { email, os: betaField(body?.os, 80), createdAt })
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Thanks. You are on the beta tester list.',
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    )
+  } catch (err) {
+    console.error('Beta signup error:', err)
+    return new Response(JSON.stringify({ error: 'Beta signup could not be sent right now.' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+}
+
+async function handleBetaFeedback(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
+  try {
+    const body = await request.json()
+    const email = normalizeBetaEmail(body?.email)
+    if (!isValidEmail(email)) {
+      return new Response(JSON.stringify({ error: 'Valid email is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      })
+    }
+
+    const severity = betaSeverity({
+      installSuccess: body?.installSuccess || body?.install_success,
+      firstProofGenerated: body?.firstProofGenerated || body?.first_proof_generated,
+      proofExported: body?.proofExported || body?.proof_exported,
+      restartPersistence: body?.restartPersistence || body?.restart_persistence,
+      crashesErrors: body?.crashesErrors || body?.crashes_or_errors,
+    })
+
+    const db = getDb(env)
+    const id = crypto.randomUUID()
+    const createdAt = Date.now()
+
+    if (db) {
+      await db
+        .prepare(
+          `INSERT INTO beta_feedback
+            (id, signup_email, name, email, os, artifact_used, install_success, security_warning_experience,
+             workspace_selected, first_proof_generated, time_to_first_proof, proof_exported, restart_persistence,
+             safe_fix_approval_understood, confusing_ui_moments, crashes_or_errors, would_use_again, would_pay,
+             notes, severity, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          id,
+          email,
+          betaField(body?.name, 160),
+          email,
+          betaField(body?.os, 80),
+          betaField(body?.artifact || body?.artifact_used, 160),
+          betaField(body?.installSuccess || body?.install_success, 120),
+          betaField(body?.securityWarning || body?.security_warning_experience, 1000),
+          betaField(body?.workspaceSelected || body?.workspace_selected, 80),
+          betaField(body?.firstProofGenerated || body?.first_proof_generated, 80),
+          betaField(body?.timeToFirstProof || body?.time_to_first_proof, 120),
+          betaField(body?.proofExported || body?.proof_exported, 80),
+          betaField(body?.restartPersistence || body?.restart_persistence, 80),
+          betaField(body?.safeFixUnderstood || body?.safe_fix_approval_understood, 80),
+          betaField(body?.confusingMoments || body?.confusing_ui_moments, 1500),
+          betaField(body?.crashesErrors || body?.crashes_or_errors, 1500),
+          betaField(body?.wouldUseAgain || body?.would_use_again, 80),
+          betaField(body?.wouldPay || body?.would_pay, 80),
+          betaField(body?.additionalNotes || body?.notes, 1500),
+          severity,
+          createdAt
+        )
+        .run()
+    }
+
+    console.log('Beta feedback received:', { email, severity, createdAt })
+
+    if (severity === 'critical' && env.SENDGRID_API_KEY) {
+      try {
+        const safeEmail = escapeHtml(email)
+        const safeDetails = escapeHtml(
+          String(body?.crashesErrors || body?.crashes_or_errors || body?.additionalNotes || body?.notes || 'No details provided')
+        ).replace(/\n/g, '<br>')
+        await fetch('https://api.sendgrid.com/v3/mail/send', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${env.SENDGRID_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            personalizations: [
+              {
+                to: [{ email: 'support@rinawarptech.com' }],
+                subject: `[Beta] Critical feedback from ${safeEmail}`,
+              },
+            ],
+            from: { email: 'noreply@rinawarptech.com', name: 'RinaWarp Beta' },
+            content: [
+              {
+                type: 'text/html',
+                value: `<p><strong>Critical beta feedback from:</strong> ${safeEmail}</p><p>${safeDetails}</p>`,
+              },
+            ],
+          }),
+        })
+      } catch (emailErr) {
+        console.error('Failed to send critical beta alert:', emailErr)
+      }
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Thanks. Your beta feedback is in.',
+        severity,
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    )
+  } catch (err) {
+    console.error('Beta feedback error:', err)
+    return new Response(JSON.stringify({ error: 'Beta feedback could not be sent right now.' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+}
+
+async function handleBetaAdminDigest(
+  request: Request,
+  env: any,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
+  const auth = request.headers.get('authorization') || ''
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
+  const expectedToken = String(env.BETA_ADMIN_TOKEN || '').trim()
+
+  if (!expectedToken || token !== expectedToken) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  const db = getDb(env)
+  if (!db) {
+    return new Response(JSON.stringify({ error: 'Database unavailable' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    })
+  }
+
+  try {
+    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000
+    const signups = await db
+      .prepare('SELECT email, name, os, created_at FROM beta_signups WHERE created_at > ? ORDER BY created_at DESC LIMIT 20')
+      .bind(oneDayAgo)
+      .all()
+    const feedback = await db
+      .prepare('SELECT email, severity, crashes_or_errors, notes, created_at FROM beta_feedback WHERE created_at > ? ORDER BY created_at DESC LIMIT 20')
+      .bind(oneDayAgo)
+      .all()
+    const totalSignups = await db.prepare('SELECT COUNT(*) as count FROM beta_signups').first<{ count: number }>()
+    const needsFollowup = await db
+      .prepare('SELECT email, name, os, created_at FROM beta_signups ORDER BY created_at DESC LIMIT 5')
+      .all()
+    const criticalFeedback = (feedback.results || []).filter((row: any) => row.severity === 'critical')
+
+    return new Response(
+      JSON.stringify({
+        signups_24h: (signups.results || []).length,
+        feedback_24h: (feedback.results || []).length,
+        total_signups: totalSignups?.count || 0,
+        critical_blockers: criticalFeedback.length,
+        needs_followup: needsFollowup.results || [],
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    )
+  } catch (err) {
+    console.error('Beta digest error:', err)
+    return new Response(JSON.stringify({ error: 'Server error' }), {
+      status: 500,
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
     })
   }

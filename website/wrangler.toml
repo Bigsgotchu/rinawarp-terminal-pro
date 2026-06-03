@@ -73,6 +73,18 @@ pattern = "rinawarptech.com/api/feedback"
 zone_name = "rinawarptech.com"
 
 [[routes]]
+pattern = "rinawarptech.com/api/beta-signup"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/api/beta-feedback"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "rinawarptech.com/api/beta-admin/digest"
+zone_name = "rinawarptech.com"
+
+[[routes]]
 pattern = "rinawarptech.com/api/auth/*"
 zone_name = "rinawarptech.com"
 
@@ -150,6 +162,18 @@ zone_name = "rinawarptech.com"
 
 [[routes]]
 pattern = "www.rinawarptech.com/api/feedback"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/api/beta-signup"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/api/beta-feedback"
+zone_name = "rinawarptech.com"
+
+[[routes]]
+pattern = "www.rinawarptech.com/api/beta-admin/digest"
 zone_name = "rinawarptech.com"
 
 [[routes]]
@@ -263,5 +287,6 @@ database_id = "ca5efe98-909b-4bb5-9182-29cc9dd1fba2"
 # STRIPE_MI_SOLO_PRICE_ID - Matter Intelligence Solo monthly Stripe price ID
 # STRIPE_MI_TEAM_PRICE_ID - Matter Intelligence Team monthly Stripe price ID
 # STRIPE_MI_ENTERPRISE_PRICE_ID - Matter Intelligence Enterprise Stripe price ID
+# BETA_ADMIN_TOKEN - Bearer token for /api/beta-admin/digest
 [build]
 command = ""
