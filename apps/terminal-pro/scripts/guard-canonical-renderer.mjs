@@ -7,11 +7,14 @@ const __dirname = path.dirname(__filename)
 const appRoot = path.resolve(__dirname, '..')
 const rendererRoot = path.join(appRoot, 'src/renderer')
 const builtRendererRoot = path.join(appRoot, 'dist-electron/renderer')
+const repoRoot = path.resolve(appRoot, '..', '..')
 
 const requiredIndexPath = path.join(rendererRoot, 'index.html')
 const requiredIndexTsPath = path.join(rendererRoot, 'index.ts')
 const requiredIndexCssPath = path.join(rendererRoot, 'index.css')
 const requiredRendererCssPath = path.join(rendererRoot, 'renderer.css')
+const requiredThemeTokensPath = path.join(rendererRoot, 'workbench/theme.tokens.css')
+const requiredProductUiLockPath = path.join(repoRoot, 'docs/PRODUCT_UI_LOCK.md')
 const requiredBuiltRendererPath = path.join(builtRendererRoot, 'renderer.html')
 const productionBootFiles = [
   requiredIndexTsPath,
@@ -50,6 +53,36 @@ const blockedRendererStrings = [
   'Fix project button',
   'one-click Build project',
   'one-click Run tests',
+  'Rina workbench',
+  'AI workbench',
+  'terminal wrapper',
+  'button launcher',
+]
+
+const requiredVisualTokens = [
+  '--bg-app',
+  '--bg-panel',
+  '--bg-elevated',
+  '--text-primary',
+  '--text-secondary',
+  '--accent-pink',
+  '--accent-cyan',
+  '--accent-purple',
+  '--success',
+  '--warning',
+  '--danger',
+  '--border-subtle',
+  '--glow-accent',
+]
+
+const requiredProductUiLockMarkers = [
+  'RinaWarp Terminal Pro Product UI Lock',
+  'Product: RinaWarp Terminal Pro',
+  'AI copilot: Rina',
+  'Desktop container: Agent Shell',
+  'Primary user experience: Agent Thread',
+  'white raw HTML shell',
+  'Agent Thread is the visual focus',
 ]
 
 let failed = false
@@ -116,6 +149,10 @@ function assertStyleContract() {
     fail('src/renderer/renderer.css is missing')
     return
   }
+  if (!fs.existsSync(requiredThemeTokensPath)) {
+    fail('src/renderer/workbench/theme.tokens.css is missing')
+    return
+  }
 
   const indexTs = readText(requiredIndexTsPath)
   if (!indexTs.includes("import './index.css'") && !indexTs.includes('import "./index.css"')) {
@@ -128,13 +165,45 @@ function assertStyleContract() {
   }
 
   const rendererCss = readText(requiredRendererCssPath)
+  if (!rendererCss.includes('./workbench/theme.tokens.css')) {
+    fail('src/renderer/renderer.css must import canonical visual tokens')
+  }
   if (!rendererCss.includes('./styles/renderer-agent.css')) {
     fail('src/renderer/renderer.css must include Agent Shell CSS')
+  }
+  if (!rendererCss.includes('html[data-rw-renderer="prod"] body') || !rendererCss.includes('background: var(--w-bg)')) {
+    fail('src/renderer/renderer.css must keep the production Agent Shell dark')
+  }
+
+  const themeTokens = readText(requiredThemeTokensPath)
+  for (const token of requiredVisualTokens) {
+    if (!themeTokens.includes(token)) {
+      fail(`src/renderer/workbench/theme.tokens.css is missing visual token: ${token}`)
+    }
   }
 
   const agentCss = readText(path.join(rendererRoot, 'styles/renderer-agent-layout.css'))
   if (!agentCss.includes('.rw-agent-composer') || !agentCss.includes('.rw-agent-launch-empty')) {
     fail('Agent Shell CSS classes are missing from src/renderer/styles/renderer-agent-layout.css')
+  }
+}
+
+function assertProductUiLockContract() {
+  if (!fs.existsSync(requiredProductUiLockPath)) {
+    fail('docs/PRODUCT_UI_LOCK.md is missing')
+    return
+  }
+
+  const content = readText(requiredProductUiLockPath)
+  for (const marker of requiredProductUiLockMarkers) {
+    if (!content.includes(marker)) {
+      fail(`docs/PRODUCT_UI_LOCK.md is missing required marker: ${marker}`)
+    }
+  }
+  for (const token of requiredVisualTokens) {
+    if (!content.includes(token)) {
+      fail(`docs/PRODUCT_UI_LOCK.md is missing canonical token: ${token}`)
+    }
   }
 }
 
@@ -206,6 +275,7 @@ function assertBuiltRendererContract() {
 
 assertIndexContract()
 assertStyleContract()
+assertProductUiLockContract()
 assertProductionBootContract()
 assertRemovedFiles()
 assertBlockedStrings()

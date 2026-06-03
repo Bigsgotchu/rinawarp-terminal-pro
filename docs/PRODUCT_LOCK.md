@@ -12,7 +12,8 @@ It safely observes, plans, executes, verifies, proves, and remembers work across
 
 ## Product
 
-Rina is the product.
+RinaWarp Terminal Pro is the product.
+Rina is the AI copilot.
 
 ## Desktop UI
 
@@ -21,6 +22,16 @@ Agent Shell is only the Electron desktop container.
 ## Primary UX
 
 Agent Thread + natural-language composer.
+
+## Visual Lock
+
+The UI must follow docs/PRODUCT_UI_LOCK.md:
+
+- dark Agent Shell always
+- Agent Thread primary
+- inspect rail secondary
+- compact professional terminal/operator aesthetic
+- no white raw HTML shell
 
 ## Runtime
 

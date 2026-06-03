@@ -1,4 +1,18 @@
 :root {
+  --bg-app: #0b0d10;
+  --bg-panel: #0f1217;
+  --bg-elevated: #121621;
+  --text-primary: color-mix(in oklab, white 88%, transparent);
+  --text-secondary: color-mix(in oklab, white 62%, transparent);
+  --accent-pink: #ff2fb3;
+  --accent-cyan: #26f7d4;
+  --accent-purple: #c084fc;
+  --success: #26f7d4;
+  --warning: #ffb84d;
+  --danger: #ff6a5c;
+  --border-subtle: color-mix(in oklab, white 8%, transparent);
+  --glow-accent: 0 0 32px rgba(255, 47, 179, 0.24), 0 0 22px rgba(38, 247, 212, 0.12);
+
   --w-bg: #0b0d10;
   --w-panel: #0f1217;
   --w-panel-2: #121621;
@@ -9,8 +23,8 @@
   --w-surface-soft: color-mix(in oklab, white 3%, transparent);
   --w-shadow-soft: 0 10px 24px rgba(0, 0, 0, 0.16);
 
-  --w-fg: color-mix(in oklab, white 88%, transparent);
-  --w-muted: color-mix(in oklab, white 62%, transparent);
+  --w-fg: var(--text-primary);
+  --w-muted: var(--text-secondary);
   --w-muted-soft: color-mix(in oklab, white 54%, transparent);
 
   --w-r1: 6px;
@@ -28,9 +42,9 @@
   --rw-black: #07080b;
   --rw-ink: #0b0d12;
   --rw-panel-2: #121728;
-  --rw-hotpink: #ff2fb3;
+  --rw-hotpink: var(--accent-pink);
   --rw-coral: #ff6a5c;
-  --rw-teal: #26f7d4;
+  --rw-teal: var(--accent-cyan);
   --rw-babyblue: #7dd3ff;
 
   --rw-bg: var(--rw-ink);

@@ -35,6 +35,21 @@ git status --short
 git log --oneline -3
 npm run founder:clean-local
 
+Product Locks
+
+Before changing UI, runtime, website copy, marketplace, memory, proof, billing, or release surfaces, read:
+
+docs/PRODUCT_LOCK.md
+docs/PRODUCT_UI_LOCK.md
+
+RinaWarp Terminal Pro is the product.
+Rina is the AI copilot.
+Agent Shell is only the Electron desktop container.
+Agent Thread is the primary user experience.
+
+The main app must stay dark, compact, proof-backed, and Agent Thread first.
+Do not call the product a workbench.
+
 Before Committing
 
 npm run founder:clean-local

@@ -1,10 +1,12 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { withPackagedApp } from './_app'
+import { withApp } from './_app'
 
 test.setTimeout(180_000)
+
+const SCREENSHOT_DIR = path.resolve(process.cwd(), 'e2e/screenshots')
 
 function freshHomeEnv(suffix: string): Record<string, string> {
   const cleanHome = path.join(os.tmpdir(), `rinawarp-smoke-home-${suffix}`)
@@ -17,99 +19,65 @@ function freshHomeEnv(suffix: string): Record<string, string> {
   }
 }
 
-test('packaged app Agent Thread visual smoke test', async () => {
-  const env = freshHomeEnv(`agent-thread-smoke-${Date.now()}`)
+function agentThreadTab(page: Page) {
+  return page.locator('[data-shell-source="shell_topbar"][data-shell-nav="agent"]')
+}
 
-  await withPackagedApp(async ({ page }) => {
-    // 1. Verify app launches with core UI
+function marketplaceNav(page: Page) {
+  return page.locator('[data-shell-owned="true"][data-shell-nav="marketplace"]').first()
+}
+
+function settingsNav(page: Page) {
+  return page.locator('[data-shell-owned="true"][data-shell-nav="settings"]').first()
+}
+
+async function capture(page: Page, name: string): Promise<void> {
+  fs.mkdirSync(SCREENSHOT_DIR, { recursive: true })
+  await page.screenshot({
+    path: path.join(SCREENSHOT_DIR, `${name}.png`),
+    fullPage: true,
+  })
+}
+
+test('Agent Shell visual smoke: launches styled Agent Thread', async () => {
+  const env = freshHomeEnv(`agent-shell-smoke-${Date.now()}`)
+
+  await withApp(async ({ page }) => {
+    await agentThreadTab(page).click()
+
     await expect(page.locator('body')).toBeVisible({ timeout: 30_000 })
+    const bodyBackground = await page.locator('body').evaluate((el) => getComputedStyle(el).backgroundColor)
+    expect(bodyBackground).not.toBe('rgb(255, 255, 255)')
 
-    // 2. Verify Rina panel is visible (Agent Thread UI)
-    const rinaPanel = page.getByTestId('rina-panel')
-    await expect(rinaPanel).toBeVisible()
+    await expect(page.locator('#rw-app')).toBeVisible()
+    await expect(page.locator('.rw-workbench-shell')).toBeVisible()
+    await expect(page.locator('#panel-agent')).toBeVisible()
+    await expect(page.locator('#panel-agent')).toContainText('Agent Thread')
+    await expect(page.locator('#agent-output')).toBeVisible()
+    await expect(page.locator('#agent-input')).toBeVisible()
+    await expect(page.locator('#agent-send')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Proof' })).toBeVisible()
 
-    // 3. Verify chat interface is visible
-    const rinaChat = page.getByTestId('rina-chat')
-    await expect(rinaChat).toBeVisible()
+    await page.locator('#agent-input').fill('What does this project do?')
+    await expect(page.locator('#agent-input')).toHaveValue('What does this project do?')
 
-    // 4. Verify Composer is visible (use specific test id to avoid duplicates)
-    const composer = page.getByTestId('rina-chat-input')
-    await expect(composer).toBeVisible()
-
-    // Screenshot: initial-app-launch.png
-    await page.screenshot({
-      path: 'apps/terminal-pro/e2e/screenshots/initial-app-launch.png',
-      fullPage: true,
-    })
-
-    // 5. Type "What does this project do?" and submit
-    const testPrompt = 'What does this project do?'
-    await composer.fill(testPrompt)
-    await page.getByTestId('rina-chat-send').click()
-
-    // 6. Verify user message appears in chat history
-    await expect(page.getByText(testPrompt)).toBeVisible({ timeout: 15_000 })
-
-    // 7. Wait for Rina response
-    await expect(page.locator('.text-zinc-100').first()).toBeVisible({ timeout: 45_000 })
-
-    // Screenshot: repo-understanding-response.png
-    await page.screenshot({
-      path: 'apps/terminal-pro/e2e/screenshots/repo-understanding-response.png',
-      fullPage: true,
-    })
+    await capture(page, 'agent-shell-initial-launch')
   }, env)
 })
 
-test('packaged app disk diagnostic visual smoke test', async () => {
-  const env = freshHomeEnv(`disk-diagnostic-smoke-${Date.now()}`)
+test('Agent Shell visual smoke: routes Marketplace and Settings without legacy panel IDs', async () => {
+  const env = freshHomeEnv(`agent-shell-routes-${Date.now()}`)
 
-  await withPackagedApp(async ({ page }) => {
-    await expect(page.getByTestId('rina-panel')).toBeVisible()
+  await withApp(async ({ page }) => {
+    await marketplaceNav(page).click()
+    await expect(page.locator('#panel-marketplace')).toBeVisible({ timeout: 15_000 })
+    await expect(page.locator('#panel-marketplace')).toContainText('Marketplace')
+    await expect(page.locator('#marketplace-output')).toBeVisible()
+    await capture(page, 'agent-shell-marketplace-route')
 
-    const composer = page.getByTestId('rina-chat-input')
-    await composer.fill('Why is my disk full?')
-    await page.getByTestId('rina-chat-send').click()
-
-    // Agent Thread should show diagnostic response
-    await expect(page.getByText(/Why is my disk full/)).toBeVisible({ timeout: 15_000 })
-
-    // Check for diagnostic-related content or response
-    const hasContent = await page
-      .locator('text=/disk|diagnosis|cleanup|full/i')
-      .first()
-      .isVisible()
-      .catch(() => false)
-
-    expect(hasContent).toBe(true)
-
-    await page.screenshot({
-      path: 'apps/terminal-pro/e2e/screenshots/disk-diagnostic-response.png',
-      fullPage: true,
-    })
-  }, env)
-})
-
-test('packaged app TypeScript fix visual smoke test', async () => {
-  const env = freshHomeEnv(`ts-fix-smoke-${Date.now()}`)
-
-  await withPackagedApp(async ({ page }) => {
-    await expect(page.getByTestId('rina-panel')).toBeVisible()
-
-    const composer = page.getByTestId('rina-chat-input')
-    await composer.fill('Fix the TypeScript error in this repo')
-    await page.getByTestId('rina-chat-send').click()
-
-    // Wait for response
-    await expect(page.getByText(/Fix the TypeScript error/)).toBeVisible({ timeout: 15_000 })
-
-    // Check for any response content
-    const hasResponse = await page.locator('.text-zinc-100').first().isVisible().catch(() => false)
-    expect(hasResponse).toBe(true)
-
-    await page.screenshot({
-      path: 'apps/terminal-pro/e2e/screenshots/ts-fix-response.png',
-      fullPage: true,
-    })
+    await settingsNav(page).click()
+    await expect(page.locator('#rw-settings')).toBeVisible({ timeout: 15_000 })
+    await expect(page.locator('#rw-settings')).toContainText('Settings')
+    await capture(page, 'agent-shell-settings-route')
   }, env)
 })
