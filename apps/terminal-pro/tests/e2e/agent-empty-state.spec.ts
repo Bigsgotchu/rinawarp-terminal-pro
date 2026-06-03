@@ -10,6 +10,30 @@ function agentTopbarTab(page: Page) {
   return page.locator('[data-shell-source="shell_topbar"][data-shell-nav="agent"]')
 }
 
+function createProjectWorkspace(): string {
+  const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'rinawarp-agent-first-run-'))
+  fs.writeFileSync(
+    path.join(workspaceRoot, 'package.json'),
+    JSON.stringify(
+      {
+        name: 'rinawarp-agent-first-run-fixture',
+        version: '1.0.0',
+        private: true,
+        scripts: {
+          build: 'node build.mjs',
+          test: 'node test.mjs',
+        },
+      },
+      null,
+      2
+    ),
+    'utf8'
+  )
+  fs.writeFileSync(path.join(workspaceRoot, 'build.mjs'), "console.log('build ok')\n", 'utf8')
+  fs.writeFileSync(path.join(workspaceRoot, 'test.mjs'), "console.log('tests ok')\n", 'utf8')
+  return workspaceRoot
+}
+
 function seedInterruptedRun(userDataSuffix: string): void {
   const userDataDir = path.join(os.tmpdir(), `rinawarp-e2e-${userDataSuffix}`)
   const sessionId = `session_restore_${Date.now()}`
@@ -76,13 +100,17 @@ test('agent empty state shows safe setup UI before a project is selected', async
     await expect(page.locator('#agent-input')).toBeVisible()
     await expect(page.locator('#agent-input')).toHaveAttribute('placeholder', 'Choose a project folder to give Rina safe context.')
     await expect(page.locator('#agent-send')).toBeVisible()
+    await expect(page.locator('[data-agent-section="workspace-setup"]')).toBeVisible()
+    await expect(page.locator('[data-agent-section="workspace-setup"]')).toContainText('Choose a project folder and tell Rina what you want done.')
+    await expect(page.locator('[data-agent-section="workspace-setup"]')).toContainText('After choosing a project')
+    await expect(page.getByRole('button', { name: 'Choose project' })).toBeVisible()
 
-    const starterPrompts = page.locator('#agent-starter-prompts .rw-prompt-chip')
-    await expect(starterPrompts).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'Build project' })).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'Run tests' })).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'Inspect workspace' })).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'Plan a fix' })).toHaveCount(0)
+    const examplePrompts = page.locator('#agent-starter-prompts [data-example-prompt]')
+    await expect(examplePrompts).toHaveCount(4)
+    await expect(page.locator('.rw-agent-composer [data-agent-prompt], #agent-output [data-agent-prompt]')).toHaveCount(0)
+    await page.getByRole('button', { name: 'Build this project and tell me what fails' }).click()
+    await expect(page.locator('#agent-input')).toHaveValue('Build this project and tell me what fails')
+    await expect(page.locator('#agent-output .rw-thread-message')).toHaveCount(0)
     await expect(page.getByRole('button', { name: /Browse Marketplace/i })).toBeVisible()
 
     await expect(page.locator('#status-bar')).toBeHidden()
@@ -93,20 +121,39 @@ test('agent empty state shows safe setup UI before a project is selected', async
   })
 })
 
-test('agent launch scaffolding collapses after the thread becomes active', async () => {
+test('agent first-run flow fills natural-language examples only after safe project scan', async () => {
+  const workspaceRoot = createProjectWorkspace()
+  await withApp(
+    async ({ page }) => {
+      await agentTopbarTab(page).click()
+
+      await expect(page.locator('[data-agent-section="guided-fix"]')).toBeVisible({ timeout: 20_000 })
+      await expect(page.locator('[data-agent-section="guided-fix"]')).toContainText('Project ready')
+      await expect(page.locator('[data-agent-section="guided-fix"]')).toContainText('Ask Rina what you want done.')
+      await expect(page.locator('.rw-agent-composer [data-agent-prompt], #agent-output [data-agent-prompt]')).toHaveCount(0)
+      await expect(page.locator('#agent-starter-prompts [data-example-prompt]')).toHaveCount(4)
+      await page.getByRole('button', { name: 'Run tests and explain failures' }).click()
+      await expect(page.locator('#agent-input')).toHaveValue('Run tests and explain failures')
+      await expect(page.locator('#agent-input')).toHaveAttribute('placeholder', 'Ask Rina to fix, build, test, or explain...')
+      await expect(page.locator('#agent-output .rw-thread-message')).toHaveCount(0)
+    },
+    {
+      RINAWARP_E2E_WORKSPACE: workspaceRoot,
+    }
+  )
+})
+
+test('agent launch scaffolding stays idle when an example only fills the composer', async () => {
   await withApp(async ({ page }) => {
     await agentTopbarTab(page).click()
     await expect(page.locator('.rw-agent-launch-title')).toBeVisible()
 
-    await page.locator('#agent-input').fill('Build this project and tell me what fails.')
-    await page.locator('#agent-send').click()
+    await page.getByRole('button', { name: 'Plan a fix safely' }).click()
 
-    await expect
-      .poll(async () => page.locator('#agent-output .rw-thread-message').count(), { timeout: 20_000 })
-      .toBeGreaterThan(0)
-
-    await expect(page.locator('.rw-agent-launch-empty')).toBeHidden()
-    await expect(page.locator('#agent-starter-prompts .rw-prompt-chip')).toHaveCount(0)
+    await expect(page.locator('#agent-input')).toHaveValue('Plan a fix safely. Do not edit files without approval.')
+    await expect(page.locator('.rw-agent-launch-empty')).toBeVisible()
+    await expect(page.locator('#agent-output .rw-thread-message')).toHaveCount(0)
+    await expect(page.locator('#agent-starter-prompts [data-example-prompt]')).toHaveCount(4)
   })
 })
 
@@ -142,12 +189,9 @@ test('agent first-run flow suppresses project actions after weak workspace selec
       window.dispatchEvent(new CustomEvent('rina:workspace-selected', { detail: { path: '/home/karina/Downloads' } }))
     })
 
-    await expect(page.locator('#agent-starter-prompts .rw-prompt-chip')).toHaveCount(0)
+    await expect(page.locator('#agent-starter-prompts [data-example-prompt]')).toHaveCount(4)
     await expect(page.locator('#agent-input')).toHaveAttribute('placeholder', 'Choose a project folder to give Rina safe context.')
-    await expect(page.getByRole('button', { name: 'Build project' })).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'Run tests' })).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'Inspect workspace' })).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'Plan a fix' })).toHaveCount(0)
+    await expect(page.locator('.rw-agent-composer [data-agent-prompt], #agent-output [data-agent-prompt]')).toHaveCount(0)
     await expect(page.locator('.rw-agent-launch-title')).toBeVisible()
   })
 })

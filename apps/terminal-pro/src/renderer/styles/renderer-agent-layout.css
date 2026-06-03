@@ -87,7 +87,8 @@
 .rw-agent-prompts {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
 }
 
 .rw-agent-body.has-thread-content .rw-agent-hero,
@@ -187,6 +188,35 @@
 .rw-prompt-chip[data-intent-key="fix"] .rw-prompt-chip-label {
   color: #fff1f7;
   font-weight: 700;
+}
+
+.rw-example-prompt-intro {
+  color: rgba(159, 173, 191, 0.78);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.rw-example-prompt {
+  appearance: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: color-mix(in oklab, var(--baby-blue) 76%, #fff);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  padding: 1px 0;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: rgba(124, 199, 255, 0.36);
+  text-underline-offset: 3px;
+}
+
+.rw-example-prompt:hover,
+.rw-example-prompt:focus-visible {
+  color: #fff8fc;
+  text-decoration-color: rgba(255, 122, 168, 0.72);
 }
 
 #agent-output,

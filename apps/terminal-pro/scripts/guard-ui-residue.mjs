@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const root = path.resolve('src/renderer')
+const agentShellPath = path.join(root, 'modern', 'workbenchShellFrameModel.ts')
 
 const blocked = [
   'Receipt Viewer',
@@ -34,4 +35,20 @@ function walk(dir) {
 }
 
 walk(root)
+
+const agentShell = fs.readFileSync(agentShellPath, 'utf8')
+const firstRunExecutionButtons = [
+  'data-agent-prompt="Run tests"',
+  'data-agent-prompt="Build project"',
+  'data-agent-prompt="Inspect this workspace',
+  'data-agent-prompt="Diagnose the project',
+]
+for (const marker of firstRunExecutionButtons) {
+  if (agentShell.includes(marker)) {
+    throw new Error(
+      `RinaWarp Terminal Pro is natural-language first: first-run Agent Thread examples must fill the composer, not execute via ${marker}`
+    )
+  }
+}
+
 console.log('[guard-ui-residue] clean')

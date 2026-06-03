@@ -14,17 +14,16 @@ export function renderStarterPromptChip(model: StarterPromptViewModel): HTMLElem
   return el(
     'button',
     {
-      class: 'rw-prompt-chip',
+      class: 'rw-example-prompt',
       ariaLabel: model.label,
       dataset: {
-        agentPrompt: model.prompt,
+        examplePrompt: model.prompt,
         intentKey: model.intent,
         tierHint: model.hint,
         tierTone: model.tone,
       },
     },
-    el('span', { class: 'rw-prompt-chip-label' }, model.label),
-    model.hint ? el('span', { class: 'rw-prompt-chip-meta' }, model.hint) : null
+    el('span', { class: 'rw-example-prompt-label' }, model.label)
   )
 }
 
@@ -225,6 +224,7 @@ export function mountStarterPromptMount(container: HTMLElement | null, prompts: 
   clear(container)
   if (prompts.length === 0) return
   const fragment = document.createDocumentFragment()
+  fragment.appendChild(el('span', { class: 'rw-example-prompt-intro' }, 'Try:'))
   for (const prompt of prompts) fragment.appendChild(renderStarterPromptChip(prompt))
   mount(container, fragment)
 }

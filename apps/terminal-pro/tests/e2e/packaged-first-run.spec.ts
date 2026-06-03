@@ -52,7 +52,7 @@ async function submitBuildPrompt(page: Page): Promise<void> {
   const input = page.locator('#agent-input')
   await expect(input).toBeVisible({ timeout: 30_000 })
   await input.fill('Build this project and tell me what fails.')
-  await page.locator('#agent-send').click()
+  await input.press('Enter')
 }
 
 async function waitForNewRunBlock(page: Page): Promise<{ runId: string; runBlock: ReturnType<Page['locator']> }> {
@@ -102,10 +102,14 @@ test('packaged first-run journey: customer can find workspace, settings, and a s
   await withPackagedApp(async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'RinaWarp Terminal Pro' })).toBeVisible()
     await expect(page.getByText('What would you like me to do?')).toBeVisible()
-    await expect(page.getByPlaceholder('Ask Rina to fix, build, test, or explain...')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Build project' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Run tests' }).first()).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Plan a fix' }).first()).toBeVisible()
+    await expect(page.getByPlaceholder('Choose a project folder to give Rina safe context.')).toBeVisible()
+    await expect(page.locator('[data-agent-section="workspace-setup"]')).toContainText('Choose a project folder and tell Rina what you want done.')
+    await expect(page.getByRole('button', { name: 'Choose project' })).toBeVisible()
+    await expect(page.locator('.rw-agent-composer [data-agent-prompt], #agent-output [data-agent-prompt]')).toHaveCount(0)
+    await expect(page.locator('#agent-starter-prompts [data-example-prompt]')).toHaveCount(4)
+    await page.getByRole('button', { name: 'Build this project and tell me what fails' }).click()
+    await expect(page.locator('#agent-input')).toHaveValue('Build this project and tell me what fails')
+    await expect(page.locator('#agent-output .rw-thread-message')).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Fix Project' })).toHaveCount(0)
     const recoverySection = page.locator('[data-agent-section="recovery"]')
     if (await recoverySection.isVisible().catch(() => false)) {

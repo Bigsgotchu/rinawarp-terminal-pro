@@ -1,13 +1,16 @@
-import type { RunModel, WorkbenchState } from '../store.js'
+import type { WorkbenchState } from '../store.js'
 import { clear, el, mount } from '../dom.js'
 import { appendMessageContent } from './messageBlocks.js'
 import { hasCanonicalThreadContent, renderCanonicalThread } from './threadSurface.js'
-import { clearStarterPromptMount, mountStarterPromptMount } from '../components/agentSurface.js'
+import { clearStarterPromptMount, mountStarterPromptMount, renderAgentCard } from '../components/agentSurface.js'
 import { hasAgentThreadContent, hasAgentRecoveryOnly } from '../agentLaunchState.js'
 import { renderRecoveryStrip, renderRecoveryToggleButton } from '../components/recoverySurface.js'
 import { renderTruthHud } from '../components/truthHud.js'
 import { EMPTY_STATE_PROMPTS } from '../emptyStatePrompts.js'
 import { buildRecoveryStripViewModel } from '../view-models/recoveryViewModel.js'
+import { hasRunProof } from '../proof.js'
+import { buildWorkspaceSetupCardModel } from '../view-models/agentThreadModel.js'
+import { getStarterPromptViewModels } from '../view-models/suggestedActionsViewModel.js'
 
 function syncStarterPromptChips(): void {
   // Launch chips are static; no tier/meta sync on empty state.
@@ -39,14 +42,14 @@ function dedupeAdjacentThreadMessages(messages: WorkbenchState['chat']): Workben
 }
 
 
-function renderComposerStarterPrompts(hasThreadContent: boolean): void {
+function renderComposerStarterPrompts(state: WorkbenchState, hasThreadContent: boolean): void {
   const container = document.getElementById('agent-starter-prompts')
   if (!container) return
   if (hasThreadContent) {
     clearStarterPromptMount(container)
     return
   }
-  mountStarterPromptMount(container, EMPTY_STATE_PROMPTS)
+  mountStarterPromptMount(container, hasProofHistory(state) ? EMPTY_STATE_PROMPTS : getStarterPromptViewModels(state))
 }
 
 function renderRecoveryToggle(state: WorkbenchState): void {
@@ -60,6 +63,32 @@ function renderHero(hidden = false): void {
   const hero = document.querySelector<HTMLElement>('.rw-agent-hero')
   if (!hero) return
   if (hidden) clear(hero)
+}
+
+function hasProofHistory(state: WorkbenchState): boolean {
+  return state.runs.some(hasRunProof) || Object.keys(state.executionReceiptsByRunId || {}).length > 0
+}
+
+function renderFirstRunOnboarding(state: WorkbenchState): HTMLElement | null {
+  if (hasProofHistory(state)) return null
+
+  const workspaceSetup = buildWorkspaceSetupCardModel(state)
+  const cards = workspaceSetup ? [renderAgentCard(workspaceSetup)] : []
+
+  if (cards.length === 0) return null
+  return el(
+    'div',
+    {
+      class: [
+        'rw-agent-empty-state-shell',
+        cards.length === 1 ? 'is-single-column' : '',
+        cards.length > 1 ? 'has-secondary-card' : '',
+      ]
+        .filter(Boolean)
+        .join(' '),
+    },
+    ...cards
+  )
 }
 
 export function renderAgentThreadSurface(state: WorkbenchState): void {
@@ -133,6 +162,9 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
         shell.appendChild(node)
       }
     }
+  } else if (!recoveryFocus) {
+    const onboarding = renderFirstRunOnboarding(state)
+    if (onboarding) shell.appendChild(onboarding)
   }
 
   mount(root, shell)
@@ -147,7 +179,7 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
     launchEmpty?.removeAttribute('hidden')
   }
   root.scrollTop = hasThreadContent ? root.scrollHeight : 0
-  renderComposerStarterPrompts(hasThreadContent)
+  renderComposerStarterPrompts(state, hasThreadContent)
   syncStarterPromptChips()
 }
 

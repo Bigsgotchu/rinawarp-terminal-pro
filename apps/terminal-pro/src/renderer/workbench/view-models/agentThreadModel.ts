@@ -141,52 +141,32 @@ export function buildWorkspaceSetupCardModel(state: WorkbenchState): AgentEmptyC
   if (workspaceState.status === 'project') {
     return {
       sectionKey: 'guided-fix',
-      label: 'Start here',
-      title: 'Run one focused action.',
-      copy: 'Start with a diagnosis and safe fix plan, then approve any edits explicitly.',
+      label: 'Project ready',
+      title: 'Ask Rina what you want done.',
+      copy: 'Rina can inspect, plan, run commands, propose safe fixes, verify results, and attach proof.',
       className: 'rw-agent-onboarding-card',
-      actions: [
-        {
-          label: 'Plan a fix',
-          className: actionClass('primary'),
-          dataset: {
-            agentPrompt: 'Diagnose the project and propose a safe fix plan. Do not edit files without approval.',
-            intentKey: 'fix',
-            tierHint: 'Approval required',
-            tierTone: 'available',
-          },
-        },
-        {
-          label: 'Check project health',
-          className: actionClass('secondary'),
-          dataset: {
-            agentPrompt: 'Check this project health. Find outdated dependencies, configuration risks, and the safest next fixes without changing files yet.',
-            healthCheck: 'guided-fix',
-          },
-        },
-      ],
+      actions: [],
       stats: undefined,
       footerCopy: `Current project: ${workspaceState.displayValue}`,
     }
   }
   return {
     sectionKey: 'workspace-setup',
-    label: workspaceState.status === 'missing' ? 'First launch' : 'Workspace check',
+    label: workspaceState.status === 'missing' ? 'Welcome' : 'Workspace check',
     title:
       workspaceState.status === 'missing'
-        ? 'Ask Rina to inspect, explain, fix, or build.'
-        : `${workspaceState.displayValue} may not be the right project folder.`,
+        ? 'Choose a project folder and tell Rina what you want done.'
+        : 'Choose the project root first.',
     copy:
       workspaceState.status === 'missing'
-        ? 'Open your project or use a demo project to get the first verified run.'
+        ? 'Rina can inspect, plan, run commands, propose safe fixes, verify results, and attach proof.'
         : workspaceState.reason,
     className: `rw-agent-workspace-setup rw-agent-onboarding-card is-${workspaceState.status}`,
     actions: [
-      { label: 'Open Project', className: actionClass('primary'), dataset: { pickWorkspace: 'workspace-setup' } },
-      { label: 'Try Demo Project', className: actionClass('secondary'), dataset: { loadDemoProject: 'workspace-setup' } },
+      { label: 'Choose project', className: actionClass('primary'), dataset: { pickWorkspace: 'workspace-setup' } },
     ],
     stats: undefined,
-    footerCopy: workspaceState.rootMarkers.length > 0 ? `Detected project markers: ${workspaceState.rootMarkers.join(', ')}` : 'You can switch projects later. The goal is just to get to the first successful fix quickly.',
+    footerCopy: workspaceState.rootMarkers.length > 0 ? `Detected project markers: ${workspaceState.rootMarkers.join(', ')}` : 'After choosing a project, ask Rina to build, test, inspect, explain, or plan a fix.',
   }
 }
 

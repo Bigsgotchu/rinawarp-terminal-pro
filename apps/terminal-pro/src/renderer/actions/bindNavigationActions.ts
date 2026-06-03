@@ -56,7 +56,7 @@ export function createNavigationActionHandler(
         source: pickWorkspaceBtn.dataset.pickWorkspace || 'unknown',
       })
       if (result.ok) {
-        store.dispatch({ type: 'ui/setStatusSummary', text: 'Project loaded. Start with Build project, Run tests, or Plan a fix.' })
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'Project loaded. Ask Rina what you want done.' })
       }
       return true
     }
@@ -67,7 +67,7 @@ export function createNavigationActionHandler(
         source: demoWorkspaceBtn.dataset.loadDemoProject || 'unknown',
       })
       if (result.ok) {
-        store.dispatch({ type: 'ui/setStatusSummary', text: 'Demo project ready. Start with Build project, Run tests, or Plan a fix.' })
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'Demo project ready. Ask Rina what you want done.' })
       } else {
         store.dispatch({ type: 'ui/setStatusSummary', text: result.error || 'Could not prepare the demo project.' })
       }
@@ -83,6 +83,23 @@ export function createNavigationActionHandler(
         recordDebugEvent('ui', 'settings.open.tab', { tabId })
       }
       window.__rinaSettings?.open(tabId)
+      return true
+    }
+
+    const examplePrompt = target.closest<HTMLElement>('[data-example-prompt]')
+    if (examplePrompt?.dataset.examplePrompt) {
+      const input = document.getElementById('agent-input') as HTMLTextAreaElement | null
+      if (input) {
+        input.value = examplePrompt.dataset.examplePrompt
+        input.dispatchEvent(new Event('input', { bubbles: true }))
+        input.focus()
+        input.setSelectionRange(input.value.length, input.value.length)
+      }
+      recordDebugEvent('ui', 'prompt-example.fill', {
+        label: examplePrompt.textContent?.trim() || examplePrompt.dataset.examplePrompt,
+        workspaceKey: store.getState().workspaceKey,
+      })
+      store.dispatch({ type: 'ui/setStatusSummary', text: 'Prompt added. Press Send when you are ready.' })
       return true
     }
 

@@ -23,6 +23,12 @@ The first 30 seconds should answer:
 - where do settings live?
 - can I ask Rina something and get a sane answer?
 
+## Product Invariant
+
+RinaWarp Terminal Pro is natural-language first.
+
+Default first-run UI must not promote one-click execution buttons as the primary interaction. Prompt examples may exist, but clicking an example must only fill the composer. Real work starts when the user submits a natural-language request with Send or Enter.
+
 ## Manual Pass
 
 ### 1. No Workspace Selected
@@ -32,7 +38,9 @@ Launch the app with no valid project selected.
 Confirm:
 
 - the Agent view leads with a workspace setup card
-- the main action is `Choose workspace`
+- the main action is `Choose project`
+- natural-language prompt examples are visible below the composer
+- clicking a prompt example fills the composer and does not execute
 - the top bar also shows a visible workspace picker
 - the app does not pretend it already has a good project context
 
@@ -56,6 +64,7 @@ Confirm:
 - the weak-context warning goes away
 - the workspace picker shows the project name cleanly
 - the Agent surface feels ready for real work
+- prompt examples still fill the composer instead of running immediately
 
 ### 4. Settings
 

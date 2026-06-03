@@ -30,10 +30,10 @@ export function getStarterPromptViewModels(state: WorkbenchState): StarterPrompt
   }
 
   return [
-    { intent: 'build', label: 'Build project', prompt: 'Build this project and tell me what fails.', ...meta('build') },
-    { intent: 'test', label: 'Run tests', prompt: 'Run the tests and summarize the failures.', ...meta('test') },
-    { intent: 'inspect', label: 'Inspect workspace', prompt: 'Inspect this workspace and summarize the safest next step. Do not change files.', ...meta('inspect') },
-    { intent: 'fix', label: 'Plan a fix', prompt: 'Diagnose the project and propose a safe fix plan. Do not edit files without approval.', ...meta('fix') },
+    { intent: 'build', label: 'Build this project and tell me what fails', prompt: 'Build this project and tell me what fails', ...meta('build') },
+    { intent: 'test', label: 'Run tests and explain failures', prompt: 'Run tests and explain failures', ...meta('test') },
+    { intent: 'inspect', label: 'What is this project and how do I run it?', prompt: 'What is this project and how do I run it?', ...meta('inspect') },
+    { intent: 'fix', label: 'Plan a fix safely', prompt: 'Plan a fix safely. Do not edit files without approval.', ...meta('fix') },
   ]
 }
 
@@ -44,11 +44,11 @@ export function buildSuggestedActionsCardModel(state: WorkbenchState): AgentEmpt
     label: 'Suggested actions',
     title:
       workspaceState.status === 'project'
-        ? 'Start with proof-backed build, test, or inspection.'
+        ? 'Prompt examples'
         : 'Open a project first, then start with a verification action.',
     copy:
       workspaceState.status === 'project'
-        ? 'Mutation stays behind an explicit plan, diff, rollback, and approval path.'
+        ? 'Examples fill the composer. Real work starts only after you submit a natural-language request.'
         : workspaceState.reason,
     className: 'rw-agent-empty-actions',
     actions:
