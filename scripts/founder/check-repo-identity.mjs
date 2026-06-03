@@ -1,71 +1,94 @@
 #!/usr/bin/env node
-import fs from 'fs';
-import path from 'path';
-import { execSync } from 'child_process';
 
-const root = process.cwd();
-const expectedRemote = 'Bigsgotchu/rinawarp-terminal-pro';
-const expectedBranch = 'main';
-const expectedVersion = '1.8.2-beta';
-const requiredFiles = [
-  '.gitignore',
-  'docs/PRODUCTION_STATE.md',
-  'scripts/founder/clean-local.mjs'
-];
+import { execSync } from 'node:child_process'
+import fs from 'node:fs'
+import path from 'node:path'
 
-function runGit(command) {
-  return execSync(command, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] }).trim();
+function run(command, options = {}) {
+  return execSync(command, {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    ...options,
+  }).trim()
 }
 
 function fail(message) {
-  console.error(`ERROR: ${message}`);
-  process.exit(1);
+  console.error(`[founder:check-repo] ${message}`)
+  process.exit(1)
 }
 
+let repoRoot
 try {
-  const remote = runGit('git remote -v');
-  if (!remote.includes(expectedRemote)) {
-    fail(`git remote does not include '${expectedRemote}'.\n${remote}`);
-  }
-} catch (error) {
-  fail('Unable to read git remotes. Are you in the repository root?');
+  repoRoot = run('git rev-parse --show-toplevel')
+} catch {
+  fail('Unable to locate git repository root. Are you inside the canonical repo?')
 }
 
-let branch;
+process.chdir(repoRoot)
+
+let remote
 try {
-  branch = runGit('git branch --show-current');
-  if (branch !== expectedBranch) {
-    fail(`git branch is '${branch}', expected '${expectedBranch}'.`);
-  }
-} catch (error) {
-  fail('Unable to read git branch.');
+  remote = run('git remote -v')
+} catch {
+  fail('Unable to read git remotes.')
 }
 
-const terminalProPackagePath = path.resolve(root, 'apps/terminal-pro/package.json');
-if (!fs.existsSync(terminalProPackagePath)) {
-  fail(`Missing required file: ${path.relative(root, terminalProPackagePath)}`);
-}
-
-let version;
+let branch
 try {
-  const terminalProPackage = JSON.parse(fs.readFileSync(terminalProPackagePath, 'utf8'));
-  version = terminalProPackage.version;
-  if (version !== expectedVersion) {
-    fail(`apps/terminal-pro/package.json version is '${version}', expected '${expectedVersion}'.`);
-  }
-} catch (error) {
-  fail(`Unable to read or parse ${path.relative(root, terminalProPackagePath)}.`);
+  branch = run('git branch --show-current')
+} catch {
+  fail('Unable to read current git branch.')
 }
 
-for (const relativePath of requiredFiles) {
-  const absolutePath = path.resolve(root, relativePath);
-  if (!fs.existsSync(absolutePath)) {
-    fail(`Missing required canonical file: ${relativePath}`);
+const packagePath = path.join(repoRoot, 'apps/terminal-pro/package.json')
+
+if (!fs.existsSync(packagePath)) {
+  fail('Missing apps/terminal-pro/package.json')
+}
+
+const terminalPro = JSON.parse(fs.readFileSync(packagePath, 'utf8'))
+
+const errors = []
+
+if (repoRoot !== '/home/karina/rinawarp-terminal-pro') {
+  errors.push(`Expected repo root /home/karina/rinawarp-terminal-pro, got ${repoRoot}`)
+}
+
+if (!remote.includes('Bigsgotchu/rinawarp-terminal-pro')) {
+  errors.push('Remote does not point to Bigsgotchu/rinawarp-terminal-pro')
+}
+
+if (branch !== 'main') {
+  errors.push(`Expected branch main, got ${branch}`)
+}
+
+if (terminalPro.version !== '1.8.2-beta') {
+  errors.push(`Expected version 1.8.2-beta, got ${terminalPro.version}`)
+}
+
+const requiredFiles = [
+  'docs/PRODUCT_LOCK.md',
+  'docs/STARTUP_CHECKLIST.md',
+  'docs/PRODUCTION_STATE.md',
+  'apps/terminal-pro/src/renderer/index.html',
+  'apps/terminal-pro/src/renderer/index.ts',
+  'apps/terminal-pro/src/renderer/bootstrap/initRenderer.ts',
+]
+
+for (const file of requiredFiles) {
+  if (!fs.existsSync(path.join(repoRoot, file))) {
+    errors.push(`Missing required file: ${file}`)
   }
 }
 
-console.log('Repository identity check passed.');
-console.log(`Repository: ${expectedRemote}`);
-console.log(`Branch: ${branch}`);
-console.log(`Terminal Pro version: ${version}`);
-console.log('Required canonical files are present.');
+if (errors.length) {
+  console.error('[founder:check-repo] FAILED')
+  for (const error of errors) console.error(`- ${error}`)
+  process.exit(1)
+}
+
+console.log('[founder:check-repo] OK')
+console.log('Repository: Bigsgotchu/rinawarp-terminal-pro')
+console.log(`Path: ${repoRoot}`)
+console.log(`Branch: ${branch}`)
+console.log(`Terminal Pro version: ${terminalPro.version}`)

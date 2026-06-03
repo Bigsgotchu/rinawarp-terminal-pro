@@ -2,6 +2,12 @@
 
 RinaWarp Terminal Pro is a natural-language AI copilot for real computer work.
 
+It is not a workbench, chatbot, terminal wrapper, code generator, CLI assistant, dashboard, or button launcher.
+
+Agent Shell is only the Electron desktop container.
+Agent Thread is the primary user experience.
+All real work goes through AgentRuntime and produces proof.
+
 It safely observes, plans, executes, verifies, proves, and remembers work across a user’s development environment using CLI commands, tools, MCP servers, and runtime-controlled automation.
 
 ## Product
