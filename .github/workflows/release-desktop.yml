@@ -49,14 +49,21 @@ jobs:
           if [[ -n "${{ inputs.release_version }}" ]]; then
             VERSION="${{ inputs.release_version }}"
             CURRENT_VERSION="$(node -p "require('./apps/terminal-pro/package.json').version")"
-            if [[ "$CURRENT_VERSION" != "$VERSION" ]]; then
+            if [[ "$CURRENT_VERSION" != "$VERSION" && "$CURRENT_VERSION" != "$VERSION-"* && "$CURRENT_VERSION" != "$VERSION."* ]]; then
               echo "Requested release version $VERSION does not match apps/terminal-pro/package.json ($CURRENT_VERSION)" >&2
               exit 1
             fi
           else
-            BUMP_TYPE="$(bash scripts/release/detect-version-bump.sh)"
-            BASE_VERSION="$(bash scripts/release/apply-version-bump.sh "$BUMP_TYPE")"
-            VERSION="$(bash scripts/release/apply-pre-release-version.sh "$BASE_VERSION" "${{ steps.channel.outputs.channel }}")"
+            CURRENT_VERSION="$(node -p "require('./apps/terminal-pro/package.json').version")"
+            # For pre-releases (beta/alpha), use existing version without bumping
+            if [[ "$CURRENT_VERSION" == *"-beta"* || "$CURRENT_VERSION" == *"-alpha"* ]]; then
+              VERSION="$CURRENT_VERSION"
+              echo "Pre-release detected: $CURRENT_VERSION - using without bump" >&2
+            else
+              BUMP_TYPE="$(bash scripts/release/detect-version-bump.sh)"
+              BASE_VERSION="$(bash scripts/release/apply-version-bump.sh "$BUMP_TYPE")"
+              VERSION="$(bash scripts/release/apply-pre-release-version.sh "$BASE_VERSION" "${{ steps.channel.outputs.channel }}")"
+            fi
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"

@@ -29,6 +29,14 @@ esac
 
 echo "Version: $VERSION" >&2
 
+# Skip file updates during prepare job - only output version for beta builds
+CURRENT_FULL="$(node -p "require('./apps/terminal-pro/package.json').version")"
+if [[ "$CURRENT_FULL" == *"-beta"* || "$CURRENT_FULL" == *"-alpha"* ]]; then
+  echo "Pre-release already set - keeping existing version: $CURRENT_FULL" >&2
+  printf '%s\n' "$CURRENT_FULL"
+  exit 0
+fi
+
 node - <<'NODE' "$VERSION"
 const fs = require('fs')
 

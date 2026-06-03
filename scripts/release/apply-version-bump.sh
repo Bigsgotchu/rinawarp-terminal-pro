@@ -8,11 +8,19 @@ if [[ -z "$BUMP_TYPE" ]]; then
   exit 1
 fi
 
-CURRENT_VERSION="$(node -p "require('./apps/terminal-pro/package.json').version")"
-CURRENT_VERSION="${CURRENT_VERSION%%-*}"
+CURRENT_VERSION_FULL="$(node -p "require('./apps/terminal-pro/package.json').version")"
+CURRENT_VERSION="${CURRENT_VERSION_FULL%%-*}"
 
-echo "Current version: $CURRENT_VERSION" >&2
+echo "Current version: $CURRENT_VERSION_FULL (base: $CURRENT_VERSION)" >&2
 echo "Bump type: $BUMP_TYPE" >&2
+
+# Skip version bump if already on a pre-release version (for beta builds)
+# Only update files for stable releases
+if [[ "$CURRENT_VERSION_FULL" == *"-beta"* || "$CURRENT_VERSION_FULL" == *"-alpha"* ]]; then
+  echo "Pre-release version detected - skipping package.json update for beta build" >&2
+  printf '%s\n' "$CURRENT_VERSION"
+  exit 0
+fi
 
 IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
 
