@@ -21,5 +21,7 @@ Please test:
 6. Try: `Plan a fix safely.`
 7. Send feedback using the checklist.
 
-Thanks for helping make RinaWarp production-ready.
+Feedback form:
+https://www.rinawarptech.com/beta-feedback
 
+Thanks for helping make RinaWarp production-ready.
