@@ -43,6 +43,8 @@
     "qa:stabilization-core": "npm --workspace apps/terminal-pro run qa:stabilization-core",
     "qa:wiring": "npm --workspace apps/terminal-pro run qa:wiring",
     "qa:intents": "npm --workspace apps/terminal-pro run qa:intents",
+    "founder:clean-local": "node scripts/founder/clean-local.mjs",
+    "founder:check-repo": "node scripts/founder/check-repo-identity.mjs",
     "guard:no-stubs": "node scripts/guards/check-no-stubs.mjs",
     "guard:no-legacy-contracts": "node scripts/guards/check-no-legacy-contracts.mjs",
     "guard:runtime-integrity": "node scripts/guards/check-no-stubs.mjs",

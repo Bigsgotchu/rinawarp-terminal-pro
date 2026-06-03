@@ -64,24 +64,30 @@ apps/terminal-pro/tsconfig.tsbuildinfo
 packages/*/.turbo/
 packages/*/coverage/
 
-# Release artifacts that shouldn't be in repo
+# Local editor state
+*.code-workspace
+
+# Local builds/artifacts
+dist/
+dist-renderer/
 release-artifacts/
+test-results/
+.playwright-mcp/
 release/*.exe
 release/*.AppImage
 release/*.deb
 release/*.dmg
 
-# Test results
-test-results/
-*.test.js
-*.test.ts
-*.spec.js
-*.spec.ts
+# Test source files (these SHOULD be committed)
 !apps/terminal-pro/src/renderer/rina-agent-core.test.ts
 !apps/terminal-pro/tests/e2e/*.test.ts
 !apps/terminal-pro/tests/e2e/*.spec.ts
 !apps/terminal-pro/e2e/golden/**/*.spec.ts
+
+# Coverage reports
 coverage/
+
+# Local downloaded installers
 RinaWarp-Terminal-Pro-*.AppImage
 *.deb
 
