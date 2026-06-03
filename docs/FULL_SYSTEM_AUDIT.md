@@ -686,10 +686,6 @@ node scripts/guards/check-agent-shell-style.mjs
 | P0 | macOS code signing/notarization | Releases | DevOps | TODO |
 | P0 | Windows code signing | Releases | DevOps | TODO |
 | P0 | Packaged app E2E tests require installer | Proof Layer | QA | Blocked (build artifact) |
-| P1 | Set AUTH_SECRET for production | Billing/Auth | DevOps | TODO |
-| P1 | Set STRIPE_WEBHOOK_SECRET for production | Billing/Auth | DevOps | TODO |
-| P1 | Set SENDGRID_API_KEY for production | Beta | DevOps | TODO |
-| P1 | Set BETA_ADMIN_TOKEN for production | Beta | DevOps | TODO |
 | P2 | Enable R2 bucket for releases | Infrastructure | DevOps | TODO |
 | P2 | Production gating of dev-user fallback | Billing/Auth | Backend | TODO |
 
@@ -697,38 +693,50 @@ node scripts/guards/check-agent-shell-style.mjs
 
 ## 17. Release Secrets Required
 
-**Status:** yellow — production secrets not yet configured
+**Status:** green — all production secrets configured
 
-**Required Environment Variables:**
-- `AUTH_SECRET` - Used for session signing in auth
-- `STRIPE_WEBHOOK_SECRET` - For Stripe webhook signature verification
-- `SENDGRID_API_KEY` - For beta feedback email notifications
-- `BETA_ADMIN_TOKEN` - For accessing `/api/beta-admin/digest`
+**Verified Environment Variables:**
+- ✅ `AUTH_SECRET` - Configured for session signing
+- ✅ `STRIPE_WEBHOOK_SECRET` - Configured for webhook verification
+- ✅ `SENDGRID_API_KEY` - Configured for beta feedback emails
+- ✅ `BETA_ADMIN_TOKEN` - Configured for admin endpoints
 
-**Commands to set secrets (Cloudflare):**
+**Verification:**
 ```bash
-wrangler secret put AUTH_SECRET --env production
-wrangler secret put STRIPE_WEBHOOK_SECRET --env production
-wrangler secret put SENDGRID_API_KEY --env production
-wrangler secret put BETA_ADMIN_TOKEN --env production
+wrangler secret list | grep -E "AUTH_SECRET|STRIPE_WEBHOOK_SECRET|SENDGRID_API_KEY|BETA_ADMIN_TOKEN"
+```
+
+**Commands to rotate secrets (Cloudflare):**
+```bash
+wrangler secret put AUTH_SECRET
+wrangler secret put STRIPE_WEBHOOK_SECRET
+wrangler secret put SENDGRID_API_KEY
+wrangler secret put BETA_ADMIN_TOKEN
 ```
 
 ---
 
 ## 18. Launch Decision
 
-**Recommendation: NOT READY**
+**Recommendation: ALMOST READY**
 
-### Critical Blockers (Must Fix Before Launch):
+### Remaining Critical Blockers:
 
 1. **Code Signing** - macOS and Windows require code signing for production release
-2. **Production Secrets** - AUTH_SECRET, STRIPE_WEBHOOK_SECRET, SENDGRID_API_KEY, BETA_ADMIN_TOKEN not set
-3. **R2 Bucket** - Required for release artifacts hosting
+2. **R2 Bucket** - Required for release artifacts hosting
 
 ### Can Ship With:
 
 - Unsigned desktop artifacts (for beta testers)
 - dev-user fallback in auth (acceptable for development)
+- All production secrets configured ✅
+
+### Next Steps:
+
+1. Enable R2 bucket
+2. Sign macOS and Windows artifacts
+3. Re-run full audit after changes
+4. Deploy to production
 
 ### Next Steps:
 
