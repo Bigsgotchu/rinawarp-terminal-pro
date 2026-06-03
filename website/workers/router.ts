@@ -3288,7 +3288,7 @@ function renderBetaSignup(): Response {
     <section class="hero">
       <span class="eyebrow">Terminal Pro beta</span>
       <h1>Join the RinaWarp Terminal Pro Beta</h1>
-      <p class="hero-copy">RinaWarp Terminal Pro is a conversational AI workbench for real developer work with memory, controlled execution, and proof attached to every meaningful run.</p>
+      <p class="hero-copy">RinaWarp Terminal Pro is a conversational AI copilot for real developer work with memory, controlled execution, and proof attached to every meaningful run.</p>
       <div class="hero-actions">
         <a href="#signup" class="btn btn-primary">Apply to test</a>
         <a href="/docs" class="btn btn-secondary">Read tester docs</a>

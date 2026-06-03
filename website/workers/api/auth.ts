@@ -132,7 +132,7 @@ async function sendPasswordResetEmail(
                 <p>If you didn't request this, please ignore this email.</p>
                 <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
                 <p style="color: #666; font-size: 12px;">
-                  RinaWarp Terminal Pro - Proof-first AI workbench
+                  RinaWarp Terminal Pro - Proof-first AI copilot
                 </p>
               </div>
             `,
@@ -186,7 +186,7 @@ async function sendWelcomeEmail(
                 <p>If you ever need help restoring access, reply to this email or contact support@rinawarptech.com.</p>
                 <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
                 <p style="color: #666; font-size: 12px;">
-                  RinaWarp Terminal Pro - Proof-first AI workbench
+                  RinaWarp Terminal Pro - Proof-first AI copilot
                 </p>
               </div>
             `,

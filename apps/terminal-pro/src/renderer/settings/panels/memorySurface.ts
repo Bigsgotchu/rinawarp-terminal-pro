@@ -177,10 +177,10 @@ export function renderMemoryPanelShell(): string {
       <div class="rw-row">
         <div>
           <div class="rw-label">Dislikes</div>
-          <div class="rw-muted">One item per line. Example: fake progress language.</div>
+          <div class="rw-muted">One item per line. Example: verbose output, unnecessary confirmations.</div>
         </div>
       </div>
-      <textarea id="rw-memory-dislikes" class="rw-input" rows="4" placeholder="fake progress language"></textarea>
+      <textarea id="rw-memory-dislikes" class="rw-input" rows="4" placeholder="verbose output, unnecessary confirmations"></textarea>
       <div class="rw-row rw-gap">
         <button type="button" id="rw-memory-save-profile" class="rw-btn">Save owner profile</button>
         <button type="button" id="rw-memory-reset-all" class="rw-btn rw-btn-ghost">Reset all memory</button>

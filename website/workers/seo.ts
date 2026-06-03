@@ -36,10 +36,10 @@ export const SEO_CONFIG: Record<string, SeoData> = {
   '/beta': {
     title: 'Join the RinaWarp Terminal Pro Beta | RinaWarp',
     description:
-      'Join the RinaWarp Terminal Pro v1.8.2 beta for a conversational AI workbench with memory, controlled execution, and proof-backed runs.',
+      'Join the RinaWarp Terminal Pro v1.8.2 beta for a conversational AI copilot with memory, controlled execution, and proof-backed runs.',
     canonical: 'https://rinawarptech.com/beta',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
-    keywords: 'RinaWarp beta, Terminal Pro beta, AI developer workbench, proof-backed execution',
+    keywords: 'RinaWarp beta, Terminal Pro beta, AI developer copilot, proof-backed execution',
   },
   '/beta-feedback': {
     title: 'RinaWarp Beta Feedback | Terminal Pro',
@@ -223,7 +223,7 @@ function buildStructuredData(path: string, seo: SeoData): string {
           name: 'What is RinaWarp Terminal Pro?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'RinaWarp Terminal Pro is a proof-first AI workbench for build, test, deploy, and recovery workflows.',
+            text: 'RinaWarp Terminal Pro is a conversational AI copilot for build, test, deploy, and recovery workflows.',
           },
         },
         {

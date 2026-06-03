@@ -351,7 +351,7 @@ export async function marketplaceUI(req: Request, env: any): Promise<Response> {
   </main>
   <footer>
     <div class="footer-inner">
-      <div>© 2026 RinaWarp Technologies, LLC. Proof-first AI workbench.</div>
+      <div>© 2026 RinaWarp Technologies, LLC. Proof-first AI copilot.</div>
       <div class="footer-links">
         <a href="/docs">Docs</a>
         <a href="/pricing">Pricing</a>

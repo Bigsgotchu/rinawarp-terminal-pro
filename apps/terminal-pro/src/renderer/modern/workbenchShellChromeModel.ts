@@ -78,7 +78,7 @@ export function getStatusBarModel(state: WorkbenchState, options: { launchEmpty?
   else summaryText = 'Rina is ready to work in this project.'
 
   return {
-    modeText: 'Rina workbench',
+    modeText: 'Agent Shell',
     workspaceText: `Workspace: ${workspaceState.displayValue}`,
     workspaceTitle: workspaceState.title,
     workspacePickerText,

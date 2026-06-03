@@ -123,7 +123,7 @@ export function buildAgentHeroViewModel(state: WorkbenchState): AgentHeroViewMod
     heading,
     copy,
     workspaceDisplay: workspaceState.displayValue,
-    modeLabel: 'Rina workbench',
+    modeLabel: 'Agent Shell',
     runLabel:
       restoredRuns.length > 0
         ? 'Recovered work is ready'
@@ -271,11 +271,11 @@ export function buildInlineRunViewModel(state: WorkbenchState, run: RunModel): I
     outputText: tail,
     outputPlaceholder: expanded
       ? run.status === 'running'
-        ? 'Still waiting on the first output…'
-        : 'There is no saved output for this run yet.'
+        ? 'Running. Output will appear here.'
+        : 'No output saved for this run yet.'
       : run.status === 'running'
-        ? 'Live proof is coming in. Expand this when you want to inspect it.'
-        : 'Output is tucked away until you want to inspect it.',
+        ? 'Running. Expand to see output when available.'
+        : 'Output is hidden until you inspect it.',
     cognitionLines,
     memoryNote: canonicalBlock?.memoryNote,
     verificationSummary: persistedReceipt?.verificationResults.join(' · '),
