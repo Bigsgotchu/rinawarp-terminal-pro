@@ -64,22 +64,22 @@ export function getStatusBarModel(state: WorkbenchState, options: { launchEmpty?
   const preferredStatusSummary = hasPendingRecovery && hasStaleRecoverySummary ? '' : rawStatusSummary
   const workspacePickerText =
     workspaceState.status === 'weak'
-      ? 'Workspace: choose project'
+      ? 'Project: choose project'
       : workspaceState.status === 'missing'
-        ? 'Workspace: choose project'
-        : `Workspace: ${workspaceState.displayValue}`
+        ? 'Project: choose project'
+        : `Project: ${workspaceState.displayValue}`
 
   let summaryText: string
   if (workspaceState.status !== 'project') summaryText = 'Choose a project folder to give Rina stronger context'
   else if (preferredStatusSummary && preferredStatusSummary.toLowerCase() !== 'ready') {
     summaryText = preferredStatusSummary
   } else if (state.thinking.active && state.thinking.message) summaryText = state.thinking.message
-  else if (hasPendingRecovery) summaryText = 'Recovered session is ready. Resume task or open receipt.'
+  else if (hasPendingRecovery) summaryText = 'Recovered session is ready. Resume task or open proof.'
   else summaryText = 'Rina is ready to work in this project.'
 
   return {
     modeText: 'Agent Shell',
-    workspaceText: `Workspace: ${workspaceState.displayValue}`,
+    workspaceText: `Project: ${workspaceState.displayValue}`,
     workspaceTitle: workspaceState.title,
     workspacePickerText,
     workspacePickerTitle: workspaceState.title,

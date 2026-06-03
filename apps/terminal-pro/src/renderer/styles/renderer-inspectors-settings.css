@@ -5,7 +5,7 @@
   inline-size: auto;
   block-size: auto;
   padding: 14px;
-  border-radius: 18px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background:
     linear-gradient(180deg, rgba(10, 14, 20, 0.94), rgba(10, 12, 18, 0.98)),
@@ -43,7 +43,7 @@
 
 .rw-settings-rail {
   padding: 12px;
-  border-radius: 18px;
+  border-radius: 8px;
   background:
     linear-gradient(180deg, rgba(18, 24, 36, 0.88), rgba(13, 18, 29, 0.82)),
     radial-gradient(circle at top left, rgba(87, 231, 255, 0.06), transparent 44%);
@@ -89,7 +89,7 @@
 
 .rw-settings-content {
   padding: 16px;
-  border-radius: 18px;
+  border-radius: 8px;
   background:
     linear-gradient(180deg, rgba(18, 24, 36, 0.78), rgba(13, 18, 29, 0.74)),
     radial-gradient(circle at top left, rgba(255, 122, 168, 0.05), transparent 42%);
@@ -524,7 +524,7 @@ textarea.rw-input {
   gap: 12px;
   padding: 14px 16px;
   border: 1px solid var(--rw-border, rgba(255,255,255,0.12));
-  border-radius: 16px;
+  border-radius: 8px;
   background: color-mix(in oklab, var(--rw-surface-2, rgba(20,20,28,0.96)) 92%, black);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.34);
 }
@@ -564,13 +564,13 @@ textarea.rw-input {
     grid-template-columns: 1fr;
   }
 
-  .rw-workbench.agent-focused.drawer-open .rw-center-stack,
-  .rw-workbench.agent-focused.drawer-open[data-drawer="diagnostics"] #panel-diagnostics {
+.rw-workbench.agent-focused.drawer-open .rw-center-stack,
+   .rw-workbench.agent-focused.drawer-open[data-drawer="diagnostics"] #panel-diagnostics {
     inset: auto 0 0 0;
     inline-size: 100%;
     max-inline-size: 100%;
     block-size: min(72vh, 560px);
-    border-radius: 18px 18px 0 0;
+    border-radius: 8px 8px 0 0;
   }
 
   .rw-right-stack {

@@ -26,7 +26,7 @@
   inset: 10px 10px 10px auto;
   inline-size: min(388px, calc(100% - 24px));
   block-size: calc(100% - 20px);
-  border-radius: 16px;
+  border-radius: 8px;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.06);
   box-shadow: 0 18px 42px rgba(0,0,0,0.32);

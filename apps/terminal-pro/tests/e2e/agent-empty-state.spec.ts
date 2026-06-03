@@ -106,7 +106,7 @@ test('agent empty state shows safe setup UI before a project is selected', async
     await expect(page.locator('[data-agent-section="workspace-setup"]')).toBeVisible()
     await expect(page.locator('[data-agent-section="workspace-setup"]')).toContainText('Choose a project folder and tell Rina what you want done.')
     await expect(page.locator('[data-agent-section="workspace-setup"]')).toContainText('After choosing a project')
-    await expect(page.getByRole('button', { name: 'Choose project' })).toBeVisible()
+    await expect(page.locator('[data-agent-section="workspace-setup"] [data-pick-workspace="workspace-setup"]')).toBeVisible()
 
     const examplePrompts = page.locator('#agent-starter-prompts [data-example-prompt]')
     await expect(examplePrompts).toHaveCount(4)
@@ -119,7 +119,7 @@ test('agent empty state shows safe setup UI before a project is selected', async
     await expect(page.locator('#status-bar')).toBeHidden()
     await expect(page.locator('#workspace-picker')).toBeHidden()
     await expect(page.locator('.rw-agent-welcome-card')).toHaveCount(0)
-    await expect(page.locator('#panel-execution-trace .rw-execution-trace-empty')).toHaveCount(0)
+    await expect(page.locator('#panel-proof .rw-execution-trace-empty')).toHaveCount(0)
     await expect(page.locator('#agent-output .rw-thread-message')).toHaveCount(0)
   })
 })

@@ -151,9 +151,9 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
   const humorSelect = container.querySelector<HTMLSelectElement>('#rw-memory-humor')!
   const likesInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-likes')!
   const dislikesInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-dislikes')!
-  const workspacePath = container.querySelector<HTMLElement>('#rw-memory-workspace-path')!
-  const workspaceStatus = container.querySelector<HTMLElement>('#rw-memory-workspace-status')!
-  const workspaceSummary = container.querySelector<HTMLElement>('#rw-memory-workspace-summary')!
+  const workspacePath = container.querySelector<HTMLElement>('#rw-memory-project-path')!
+  const workspaceStatus = container.querySelector<HTMLElement>('#rw-memory-project-status')!
+  const workspaceSummary = container.querySelector<HTMLElement>('#rw-memory-project-summary')!
   const inferredList = container.querySelector<HTMLElement>('#rw-memory-inferred-list')!
   const operationalList = container.querySelector<HTMLElement>('#rw-memory-operational-list')!
   const operationalStoreBadge = container.querySelector<HTMLElement>('#rw-memory-operational-store-badge')!
@@ -162,8 +162,8 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
   const proofStyleInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-proof-style')!
   const conventionsInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-conventions')!
   const saveProfileButton = container.querySelector<HTMLButtonElement>('#rw-memory-save-profile')!
-  const saveWorkspaceButton = container.querySelector<HTMLButtonElement>('#rw-memory-save-workspace')!
-  const resetWorkspaceButton = container.querySelector<HTMLButtonElement>('#rw-memory-reset-workspace')!
+  const saveProjectButton = container.querySelector<HTMLButtonElement>('#rw-memory-save-project')!
+  const resetProjectButton = container.querySelector<HTMLButtonElement>('#rw-memory-reset-project')!
   const resetAllButton = container.querySelector<HTMLButtonElement>('#rw-memory-reset-all')!
   const feedback = container.querySelector<HTMLElement>('#rw-memory-feedback')!
 
@@ -199,11 +199,11 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
     humorSelect.value = profile.humorPreference || 'medium'
     likesInput.value = linesFromStrings(profile.likes)
     dislikesInput.value = linesFromStrings(profile.dislikes)
-    workspacePath.textContent = currentWorkspaceId || 'Local workspace defaults'
-    workspaceStatus.textContent = currentWorkspaceId ? 'Workspace scoped' : 'Local defaults'
+    workspacePath.textContent = currentWorkspaceId || 'Local project defaults'
+    workspaceStatus.textContent = currentWorkspaceId ? 'Project scoped' : 'Local defaults'
     workspaceSummary.innerHTML = currentWorkspaceId
       ? renderWorkspaceSummary(currentWorkspaceId, workspaceMemory)
-      : renderWorkspaceSummary('Local workspace defaults', workspaceMemory)
+      : renderWorkspaceSummary('Local project defaults', workspaceMemory)
     responseStyleInput.value = linesFromStrings(workspaceMemory?.preferredResponseStyle)
     proofStyleInput.value = linesFromStrings(workspaceMemory?.preferredProofStyle)
     conventionsInput.value = linesFromConventions(workspaceMemory?.conventions)
@@ -367,22 +367,22 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
     await render()
   })
 
-  saveWorkspaceButton.addEventListener('click', async () => {
-    const workspaceId = getEffectiveWorkspaceId()
-    await rina.memoryUpdateWorkspace?.(workspaceId, {
-      label: currentWorkspaceId ? currentWorkspaceId.split('/').pop() || currentWorkspaceId : 'Local workspace defaults',
+  saveProjectButton.addEventListener('click', async () => {
+    const projectId = getEffectiveWorkspaceId()
+    await rina.memoryUpdateWorkspace?.(projectId, {
+      label: currentWorkspaceId ? currentWorkspaceId.split('/').pop() || currentWorkspaceId : 'Local project defaults',
       preferredResponseStyle: splitLines(responseStyleInput.value),
       preferredProofStyle: splitLines(proofStyleInput.value),
       conventions: parseConventions(conventionsInput.value),
     })
     void recordActivationTelemetry('memory_saved')
-    setFeedback('Workspace memory saved.')
+    setFeedback('Project memory saved.')
     await render()
   })
 
-  resetWorkspaceButton.addEventListener('click', async () => {
+  resetProjectButton.addEventListener('click', async () => {
     await rina.memoryResetWorkspace?.(getEffectiveWorkspaceId())
-    setFeedback('Workspace memory reset.')
+    setFeedback('Project memory reset.')
     await render()
   })
 

@@ -452,8 +452,8 @@ function renderAgentPanelHeader(fix: FixBlockModel): HTMLElement {
   return el(
     'div',
     { class: 'agent-panel-header' },
-    el('div', { class: 'agent-panel-title' }, 'Rina - Terminal Workbench'),
-    el('div', { class: 'agent-panel-subtitle' }, `Workspace: ${workspaceName}`)
+    el('div', { class: 'agent-panel-title' }, 'Rina - Terminal Pro'),
+    el('div', { class: 'agent-panel-subtitle' }, `Project: ${workspaceName}`)
   )
 }
 

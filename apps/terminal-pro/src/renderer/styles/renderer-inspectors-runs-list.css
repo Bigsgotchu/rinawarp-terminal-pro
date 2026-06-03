@@ -14,7 +14,7 @@
   gap: 14px;
   margin-block-end: 14px;
   padding: 14px 16px;
-  border-radius: 18px;
+  border-radius: 8px;
   border: 1px solid rgba(87, 231, 255, 0.08);
   background:
     linear-gradient(180deg, rgba(16, 22, 33, 0.92), rgba(10, 15, 24, 0.82)),
@@ -60,7 +60,7 @@
 .rw-run-block {
   padding: 14px 16px;
   border: 1px solid rgba(87, 231, 255, 0.08);
-  border-radius: 18px !important;
+  border-radius: 8px;
   background:
     linear-gradient(180deg, rgba(16, 22, 33, 0.92), rgba(10, 15, 24, 0.82)),
     radial-gradient(circle at top left, rgba(87, 231, 255, 0.045), transparent 42%);

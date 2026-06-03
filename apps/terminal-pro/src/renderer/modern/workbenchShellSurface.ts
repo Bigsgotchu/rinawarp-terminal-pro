@@ -84,7 +84,7 @@ function renderExtensionsCard(): string {
 export function renderWorkbenchShellFrame(model: WorkbenchShellFrameModel): string {
   const primaryActivityItems = model.activityItems.filter((item) => item.placement === 'primary')
   const footerActivityItems = model.activityItems.filter((item) => item.placement === 'footer')
-  const primarySections = [...new Set(primaryActivityItems.map((item) => item.section || 'workspace'))]
+  const primarySections = [...new Set(primaryActivityItems.map((item) => item.section || 'project'))]
   return `
     <div id="rw-app">
       <aside class="rw-activitybar" aria-label="Workbench activity">
@@ -94,13 +94,13 @@ export function renderWorkbenchShellFrame(model: WorkbenchShellFrameModel): stri
           </div>
           <div class="rw-sidebar-account-copy">
             <div class="rw-sidebar-account-title">Mermaid Auth</div>
-            <div class="rw-sidebar-account-meta">Production Workspace</div>
+            <div class="rw-sidebar-account-meta">Production Project</div>
           </div>
         </div>
         ${primarySections.map((section) => `
           <div class="rw-sidebar-section" data-sidebar-section="${section}">
             ${section === 'advanced' ? '<div class="rw-sidebar-section-title">Dev Mode</div>' : ''}
-            ${primaryActivityItems.filter((item) => (item.section || 'workspace') === section).map(renderActivityItem).join('')}
+            ${primaryActivityItems.filter((item) => (item.section || 'project') === section).map(renderActivityItem).join('')}
           </div>
         `).join('')}
         ${renderExtensionsCard()}
@@ -135,23 +135,23 @@ export function renderWorkbenchShellFrame(model: WorkbenchShellFrameModel): stri
               <span id="rw-chrome-channel">channel ...</span>
             </div>
           </div>
-          <div class="rw-workbench-topbar-workspace">
+          <div class="rw-workbench-topbar-project">
             <button
-              id="workspace-picker"
-              class="rw-topbar-workspace"
-              data-pick-workspace="topbar"
-              data-shell-workspace="true"
+id="workspace-picker"
+               class="rw-topbar-project"
+               data-pick-workspace="topbar"
+              data-shell-project="true"
               data-shell-owned="true"
-              data-shell-source="shell_workspace"
+              data-shell-source="shell_project"
               type="button"
-              aria-label="Choose workspace"
-              title="Choose workspace"
+              aria-label="Choose project"
+              title="Choose project"
             >
-              Choose workspace
+              Choose project
             </button>
           </div>
           <div class="rw-workbench-topbar-actions">
-            <span class="rw-runtime-pill"><span class="status-dot"></span>Runtime Connected</span>
+            <span class="rw-runtime-pill"><span class="status-dot"></span>Rina ready</span>
             ${model.actions.map(renderAction).join('')}
           </div>
         </header>
@@ -176,7 +176,7 @@ export function renderWorkbenchShellFrame(model: WorkbenchShellFrameModel): stri
         <span class="status-dot disconnected" id="autonomy-dot"></span>
         <span id="mode-status-bar">Mode: assist</span>
       </span>
-      <span class="rw-status-item" id="workspace-status">Workspace: -</span>
+      <span class="rw-status-item" id="project-status">Project: -</span>
       <span class="rw-status-item" id="activity-status">0 commands · 0 tools</span>
       <span class="rw-status-item rw-status-item-right" id="status-summary">Starting…</span>
     </div>

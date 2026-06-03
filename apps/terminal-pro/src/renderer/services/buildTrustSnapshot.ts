@@ -10,7 +10,7 @@ function formatAnalyticsTimestamp(value?: number): string {
 export function buildTrustSnapshotFromState(state: WorkbenchState): string {
   const lastRun = [...state.runs].sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())[0]
   return [
-    `Workspace: ${state.workspaceKey || 'unknown'}`,
+    `Project: ${state.workspaceKey || 'unknown'}`,
     'Trust scope: current workspace',
     `Mode: ${state.runtime.mode || 'unknown'}`,
     `Starter intents: ${state.analytics.starterIntentCount}`,

@@ -107,34 +107,73 @@ export function describeOperationalStore(store: { backend?: 'sqlite' | 'json-fal
 
 export function renderWorkspaceSummary(workspaceId: string, state: MemoryWorkspaceState | undefined): string {
   if (!state) {
-    return `<div class="rw-muted">No workspace memory saved yet for this project.</div>`
+    return `<div class="rw-muted">No project memory saved yet for this project.</div>`
   }
   const conventionCount = Array.isArray(state.conventions) ? state.conventions.length : 0
   return `
-    <div class="rw-row">
-      <div>
-        <div class="rw-label">${esc(state.label || workspaceId)}</div>
-        <div class="rw-muted">${esc(workspaceId)}</div>
+<div class="rw-row">
+        <div>
+          <div class="rw-label">Current project memory</div>
+          <div id="rw-memory-project-path" class="rw-muted">Loading project…</div>
+        </div>
+        <div id="rw-memory-project-status" class="rw-pill">Project</div>
       </div>
-      <div class="rw-pill">Updated ${esc(new Date(state.updatedAt).toLocaleString())}</div>
+      <div id="rw-memory-project-summary"></div>
+      <div class="rw-row">
+        <div>
+<div class="rw-label">Preferred response style</div>
+           <div class="rw-muted">One phrase per line, for this project only.</div>
+         </div>
+       </div>
+       <textarea id="rw-memory-response-style" class="rw-input" rows="4" placeholder="show the short plan first"></textarea>
+       <div class="rw-row">
+         <div>
+           <div class="rw-label">Preferred proof style</div>
+           <div class="rw-muted">One phrase per line, for this project only.</div>
+         </div>
+       </div>
+       <textarea id="rw-memory-proof-style" class="rw-input" rows="4" placeholder="keep run IDs visible"></textarea>
+       <div class="rw-row">
+         <div>
+           <div class="rw-label">Project conventions</div>
+           <div class="rw-muted">One convention per line in <code>key=value</code> form.</div>
+         </div>
+       </div>
+       <textarea id="rw-memory-conventions" class="rw-input" rows="5" placeholder="packageManager=npm"></textarea>
+       <div class="rw-row rw-gap">
+         <button type="button" id="rw-memory-save-project" class="rw-btn">Save project memory</button>
+         <button type="button" id="rw-memory-reset-project" class="rw-btn rw-btn-ghost">Reset this project</button>
+       </div>
     </div>
-    <div class="rw-row">
-      <div class="rw-muted">Response defaults: ${esc(linesFromStrings(state.preferredResponseStyle) || '\u2014')}</div>
+    <div class="rw-card rw-flex rw-gap">
+      <div class="rw-row rw-space">
+        <div>
+          <div class="rw-label">Inferred memory review</div>
+          <div class="rw-muted">Behavior-based suggestions stay here until you approve or dismiss them.</div>
+        </div>
+        <div class="rw-pill">Owner review</div>
+      </div>
+      <div id="rw-memory-inferred-list" class="rw-flex rw-gap"></div>
     </div>
-    <div class="rw-row">
-      <div class="rw-muted">Proof defaults: ${esc(linesFromStrings(state.preferredProofStyle) || '\u2014')}</div>
+    <div class="rw-card rw-flex rw-gap">
+      <div class="rw-row rw-space">
+        <div>
+          <div class="rw-label">Operational memory</div>
+          <div id="rw-memory-operational-store-summary" class="rw-muted">Local-first memory entries the agent actually uses during turns.</div>
+        </div>
+        <div id="rw-memory-operational-store-badge" class="rw-pill">SQLite</div>
+      </div>
+      <div id="rw-memory-operational-list" class="rw-flex rw-gap"></div>
     </div>
-    <div class="rw-row">
-      <div class="rw-muted">Conventions: ${esc(conventionCount)}</div>
-    </div>
-  `
+<div id="rw-memory-feedback" class="rw-muted"></div>
+   `
 }
 
 export function renderMemoryPanelShell(): string {
   return `
     <div class="rw-panel-head">
       <h2>Memory</h2>
-      <p class="rw-sub">Owner-only preferences and workspace memory for Rina. Explicit only in this phase.</p>
+      <p class="rw-sub">Owner-only preferences and project memory for Rina. Explicit only in this phase.</p>
     </div>
     <div class="rw-card rw-flex rw-gap">
       <div id="rw-memory-owner-meta" class="rw-row rw-space"></div>
@@ -186,41 +225,7 @@ export function renderMemoryPanelShell(): string {
         <button type="button" id="rw-memory-reset-all" class="rw-btn rw-btn-ghost">Reset all memory</button>
       </div>
     </div>
-    <div class="rw-card rw-flex rw-gap">
-      <div class="rw-row rw-space">
-        <div>
-          <div class="rw-label">Current workspace memory</div>
-          <div id="rw-memory-workspace-path" class="rw-muted">Loading workspace…</div>
-        </div>
-        <div id="rw-memory-workspace-status" class="rw-pill">Workspace</div>
-      </div>
-      <div id="rw-memory-workspace-summary"></div>
-      <div class="rw-row">
-        <div>
-          <div class="rw-label">Preferred response style</div>
-          <div class="rw-muted">One phrase per line, for this workspace only.</div>
-        </div>
-      </div>
-      <textarea id="rw-memory-response-style" class="rw-input" rows="4" placeholder="show the short plan first"></textarea>
-      <div class="rw-row">
-        <div>
-          <div class="rw-label">Preferred proof style</div>
-          <div class="rw-muted">One phrase per line, for this workspace only.</div>
-        </div>
-      </div>
-      <textarea id="rw-memory-proof-style" class="rw-input" rows="4" placeholder="keep run IDs visible"></textarea>
-      <div class="rw-row">
-        <div>
-          <div class="rw-label">Workspace conventions</div>
-          <div class="rw-muted">One convention per line in <code>key=value</code> form.</div>
-        </div>
-      </div>
-      <textarea id="rw-memory-conventions" class="rw-input" rows="5" placeholder="packageManager=npm"></textarea>
-      <div class="rw-row rw-gap">
-        <button type="button" id="rw-memory-save-workspace" class="rw-btn">Save workspace memory</button>
-        <button type="button" id="rw-memory-reset-workspace" class="rw-btn rw-btn-ghost">Reset this workspace</button>
-      </div>
-    </div>
+    ${renderWorkspaceSummary('', undefined)}
     <div class="rw-card rw-flex rw-gap">
       <div class="rw-row rw-space">
         <div>
