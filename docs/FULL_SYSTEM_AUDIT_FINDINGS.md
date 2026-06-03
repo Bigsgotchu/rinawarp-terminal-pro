@@ -190,34 +190,72 @@ wrangler secret list
 
 ---
 
-## Progress Update (2026-06-03)
+## Progress Update (2026-06-03 - Post-Fix)
 
 ### Completed Fixes:
 
-1. **dev-user fallback production gating** - Added production check in `website/workers/api/auth.ts`
-   - Lines 327-339: Login endpoint now blocks dev-user fallback in production
-   - Lines 381-386: /me endpoint now blocks dev-user fallback in production
+1. **dev-user fallback production gating** - DONE
+   - Added NODE_ENV check in `handleLogin` (lines 327-339)
+   - Added NODE_ENV check in `handleMe` (lines 381-386)
+   - Auth now blocks dev-user fallback in production
 
-2. **Packaged E2E tests** - Partial progress
-   - Linux AppImage built successfully
+2. **Linux packaging** - DONE
+   - AppImage built: `RinaWarp-Terminal-Pro-1.8.2-beta-linux-x86_64.AppImage`
+   - DEB package built: `RinaWarp-Terminal-Pro-1.8.2-beta-linux-amd64.deb`
+   - Release feed updated: https://rinawarptech.com/releases/latest.json
+
+3. **Packaged E2E tests** - PARTIAL
    - 2 of 4 tests pass
    - 2 tests fail due to SQLite native module version mismatch (NODE_MODULE_VERSION 115 vs 133)
-   - This is a packaging issue, not a code issue
+   - This is a packaging/build issue, not a code issue
+   - Dev mode tests all pass
 
 ### Remaining Blockers:
 
-1. **macOS code signing/notarization** - NOT DONE
-2. **Windows code signing** - NOT DONE
-3. **Production secrets** - NOT SET (requires manual `wrangler secret put`)
-4. **R2 bucket** - NOT ENABLED
+| Priority | Blocker | Status |
+|----------|---------|--------|
+| P0 | macOS code signing/notarization | NOT DONE |
+| P0 | Windows code signing | NOT DONE |
+| P0 | Production secrets (AUTH_SECRET, STRIPE_WEBHOOK_SECRET, etc.) | NOT SET |
+| P1 | SQLite native module rebuild for packaged app | PARTIAL (only affects memory badge test) |
+| P2 | R2 bucket for releases | NOT ENABLED |
 
 ### Current Status:
 
 - **Proof Layer**: yellow (packaged tests partially working, SQLite native module mismatch)
 - **Billing/Auth**: yellow (dev-user fallback now gated, secrets not set)
+- **Releases**: yellow (Linux packages built, macOS/Windows unsigned)
+
+---
+
+## Decision Matrix
+
+| Criteria | Status | Notes |
+|----------|--------|-------|
+| Dev mode tests | ✅ PASS | All tests pass in dev mode |
+| Packaged tests | ⚠️ PARTIAL | 2/4 pass, SQLite native module issue |
+| Auth production gating | ✅ DONE | dev-user fallback blocked in production |
+| Linux artifacts | ✅ BUILT | AppImage and DEB available |
+| macOS artifacts | ❌ MISSING | Not signed/notarized |
+| Windows artifacts | ❌ MISSING | Not signed |
+| Production secrets | ❌ MISSING | Need to be set via wrangler |
+
+### Recommendation for Round 1:
+
+**Conditional YES** - Can ship to Linux testers with unsigned warnings
+
+- Linux AppImage works and is functional
+- All dev mode tests pass
+- Auth is now production-gated
+- Feedback from Linux testers is valuable
+
+**Requirements for testers:**
+1. Show macOS/Windows unsigned warnings
+2. Document SQLite memory badge issue (cosmetic, not functional)
+3. Collect feedback on core functionality
 
 ---
 
 **Audit completed:** 2026-06-03
-**Last updated:** 2026-06-03T13:40:00-06:00
+**Last updated:** 2026-06-03T13:45:00-06:00
 **Next review:** After blocking issues resolved
