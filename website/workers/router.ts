@@ -591,6 +591,7 @@ async function serveDownloadObject(env: any, objectKey: string): Promise<Respons
 type SitePage =
   | 'home'
   | 'products'
+  | 'beta'
   | 'pricing'
   | 'download'
   | 'docs'
@@ -1628,6 +1629,7 @@ function renderSitemapXml(origin: string): Response {
   const urls = [
     '/',
     '/products',
+    '/beta',
     '/pricing',
     '/download',
     '/docs',
@@ -3279,6 +3281,130 @@ function renderFeedback(): Response {
   return renderPage('/support', 'feedback', hero, content, script)
 }
 
+function renderBetaSignup(): Response {
+  const hero = `
+    <section class="hero">
+      <span class="eyebrow">Terminal Pro beta</span>
+      <h1>Join the RinaWarp Terminal Pro Beta</h1>
+      <p class="hero-copy">RinaWarp Terminal Pro is a conversational AI workbench for real developer work with memory, controlled execution, and proof attached to every meaningful run.</p>
+      <div class="hero-actions">
+        <a href="#signup" class="btn btn-primary">Apply to test</a>
+        <a href="/docs" class="btn btn-secondary">Read tester docs</a>
+      </div>
+      <p class="hero-support">Linux is production-candidate validated. macOS and Windows are unsigned beta previews.</p>
+    </section>
+  `
+
+  const content = `
+    <section class="section">
+      <div class="panel stack">
+        <h2 class="section-title">Current beta status</h2>
+        <p>RinaWarp Terminal Pro v1.8.2 beta now has Linux, macOS, and Windows beta artifacts. Linux is production-candidate validated. macOS and Windows builds are unsigned beta previews and may require OS security bypass steps. Production builds will be signed and notarized before full public release.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid three-up">
+        <article class="card"><h3>What you will test</h3><p>Select a real workspace, ask RinaWarp to build the project and explain what fails, then confirm proof appears.</p></article>
+        <article class="card"><h3>What we need to learn</h3><p>Whether testers can install, reach first proof, export proof, reopen the app, and understand safe-fix approval.</p></article>
+        <article class="card"><h3>What not to send</h3><p>Do not submit secrets, tokens, private keys, raw source code, private terminal output, or confidential file contents.</p></article>
+      </div>
+    </section>
+
+    <section id="signup" class="section">
+      <div class="panel stack">
+        <h2 class="section-title">Beta signup</h2>
+        <p class="section-copy">Tell us what platform and project type you can test. We will use this to match testers to the right unsigned beta artifact and checklist.</p>
+        <form id="beta-signup-form">
+          <label for="beta-name">Name
+            <input type="text" id="beta-name" name="name" placeholder="Your name" required>
+          </label>
+          <label for="beta-email">Email
+            <input type="email" id="beta-email" name="email" placeholder="you@company.com" required>
+          </label>
+          <label for="beta-os">OS
+            <select id="beta-os" name="os" required>
+              <option value="">Choose one</option>
+              <option value="linux">Linux</option>
+              <option value="macos">macOS</option>
+              <option value="windows">Windows</option>
+              <option value="multiple">Multiple platforms</option>
+            </select>
+          </label>
+          <label for="beta-stack">Developer stack
+            <input type="text" id="beta-stack" name="stack" placeholder="Node/TypeScript, Python, Go, Rust, monorepo..." required>
+          </label>
+          <label for="beta-project">Do you have a project to test with?
+            <select id="beta-project" name="projectAvailable" required>
+              <option value="">Choose one</option>
+              <option value="yes-real-project">Yes, a real project</option>
+              <option value="yes-broken-project">Yes, a broken project</option>
+              <option value="sample-project">Only a sample project</option>
+              <option value="not-yet">Not yet</option>
+            </select>
+          </label>
+          <label for="beta-unsigned">Are you comfortable testing unsigned beta builds?
+            <select id="beta-unsigned" name="unsignedComfort" required>
+              <option value="">Choose one</option>
+              <option value="yes">Yes</option>
+              <option value="with-instructions">Yes, with clear bypass instructions</option>
+              <option value="linux-only">Only on Linux</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <button type="submit" class="btn btn-primary">Join beta list</button>
+          <p id="beta-signup-status" class="status-message" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  `
+
+  const script = `
+    const form = document.getElementById("beta-signup-form");
+    const status = document.getElementById("beta-signup-status");
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(form));
+      const message = [
+        "Beta signup request",
+        "",
+        "OS: " + String(data.os || ""),
+        "Developer stack: " + String(data.stack || ""),
+        "Project to test with: " + String(data.projectAvailable || ""),
+        "Comfortable with unsigned builds: " + String(data.unsignedComfort || ""),
+      ].join("\\n");
+
+      status.textContent = "Sending beta signup...";
+      status.className = "status-message";
+      try {
+        const response = await fetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            topic: "beta-signup",
+            rating: "5",
+            message,
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload.error || "Beta signup could not be sent.");
+        }
+        form.reset();
+        status.textContent = "Thanks. You are on the beta tester list.";
+        status.className = "status-message success";
+      } catch (error) {
+        status.textContent = error instanceof Error ? error.message : "Beta signup could not be sent right now. Please email support@rinawarptech.com.";
+        status.className = "status-message error";
+      }
+    });
+  `
+
+  return renderPage('/beta', 'beta', hero, content, script)
+}
+
 function renderTerms(): Response {
   const hero = `
     <section class="hero">
@@ -4641,6 +4767,10 @@ export default {
 
       if (path === '/products' || path === '/products/') {
         return renderProducts()
+      }
+
+      if (path === '/beta' || path === '/beta/') {
+        return renderBetaSignup()
       }
 
       if (path === '/matter-intelligence' || path === '/matter-intelligence/') {
@@ -6847,11 +6977,16 @@ async function handleFeedbackSubmit(
     // Send email notification via SendGrid if API key is configured
     if (env.SENDGRID_API_KEY) {
       try {
+        const safeName = escapeHtml(String(name || ''))
+        const safeEmail = escapeHtml(String(email || ''))
+        const safeTopic = escapeHtml(String(topic || 'General'))
+        const safeRating = escapeHtml(String(rating || 'Not provided'))
+        const safeMessage = escapeHtml(String(message || '')).replace(/\n/g, '<br>')
         const emailBody = {
           personalizations: [
             {
               to: [{ email: 'support@rinawarptech.com' }],
-              subject: `[${String(topic || 'general').toUpperCase()}] New Feedback: ${rating ? `⭐${rating}` : ''} from ${name}`,
+              subject: `[${String(topic || 'general').toUpperCase()}] New Feedback: ${rating ? `rating ${rating}` : ''} from ${String(name || '')}`,
             },
           ],
           from: { email: 'noreply@rinawarptech.com', name: 'RinaWarp Feedback' },
@@ -6860,12 +6995,12 @@ async function handleFeedbackSubmit(
               type: 'text/html',
               value: `
               <h2>New Feedback Received</h2>
-              <p><strong>Name:</strong> ${name}</p>
-              <p><strong>Email:</strong> ${email}</p>
-              <p><strong>Topic:</strong> ${topic || 'General'}</p>
-              <p><strong>Rating:</strong> ${rating || 'Not provided'}</p>
+              <p><strong>Name:</strong> ${safeName}</p>
+              <p><strong>Email:</strong> ${safeEmail}</p>
+              <p><strong>Topic:</strong> ${safeTopic}</p>
+              <p><strong>Rating:</strong> ${safeRating}</p>
               <p><strong>Message:</strong></p>
-              <p>${message}</p>
+              <p>${safeMessage}</p>
               <hr>
               <p><small>Submitted: ${new Date().toISOString()}</small></p>
             `,
@@ -6900,6 +7035,25 @@ async function handleFeedbackSubmit(
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
     })
   }
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (char) => {
+    switch (char) {
+      case '&':
+        return '&amp;'
+      case '<':
+        return '&lt;'
+      case '>':
+        return '&gt;'
+      case '"':
+        return '&quot;'
+      case "'":
+        return '&#39;'
+      default:
+        return char
+    }
+  })
 }
 
 // Stripe Checkout session creation handler

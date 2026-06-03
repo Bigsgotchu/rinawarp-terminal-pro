@@ -133,6 +133,11 @@ check_robots_and_sitemap() {
     cat "$sitemap_file" >&2
     exit 1
   }
+  rg -q "<loc>https://rinawarptech.com/beta/</loc>" "$sitemap_file" || {
+    echo "[smoke:prod] sitemap missing /beta/" >&2
+    cat "$sitemap_file" >&2
+    exit 1
+  }
   if rg -q "<loc>https://rinawarptech.com/music-video-creator/?</loc>" "$sitemap_file"; then
     echo "[smoke:prod] sitemap still includes stale music-video-creator URL" >&2
     cat "$sitemap_file" >&2
@@ -271,6 +276,7 @@ check_redirect "/matter-intelligence/security" "301" "/products/"
 
 echo "[smoke:prod] Verifying product-family pages"
 check_content "/products" "200" "text/html" 'RinaWarp Products'
+check_content "/beta" "200" "text/html" 'Join the RinaWarp Terminal Pro Beta'
 check_content "/support" "200" "text/html" 'RinaWarp Support|Send feedback|Support & feedback'
 
 echo "[smoke:prod] Verifying canonical tags and HTML cache directives"

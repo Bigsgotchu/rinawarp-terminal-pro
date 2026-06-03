@@ -1751,6 +1751,42 @@ if (page === 'feedback') {
   });
 }
 
+if (page === 'beta') {
+  document.getElementById('beta-signup-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    const message = [
+      'Beta signup request',
+      '',
+      'OS: ' + String(data.os || ''),
+      'Developer stack: ' + String(data.stack || ''),
+      'Project to test with: ' + String(data.projectAvailable || ''),
+      'Comfortable with unsigned builds: ' + String(data.unsignedComfort || ''),
+    ].join('\\n');
+
+    setStatus('beta-signup-status', 'Sending beta signup...');
+    try {
+      await withJson(await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          topic: 'beta-signup',
+          rating: '5',
+          message,
+        }),
+      }));
+      form.reset();
+      setStatus('beta-signup-status', 'Thanks. You are on the beta tester list.', 'success');
+    } catch (error) {
+      setStatus('beta-signup-status', error instanceof Error ? error.message : 'Beta signup could not be sent right now.', 'error');
+    }
+  });
+}
+
 if (page === 'login') {
   document.getElementById('login-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -2311,6 +2347,82 @@ Type 'string' is not assignable</pre></article>
         <article class="product-card stack"><span class="pill">For developers</span><h2>Terminal Pro</h2><p><strong>Fixes broken repos.</strong></p><div class="link-row"><a href="/download/" class="btn btn-primary">Download Free</a><a href="/pricing/" class="btn btn-secondary">Pricing</a></div></article>
         <article class="product-card muted-product stack"><span class="pill">Legal &amp; compliance</span><h2>Matter Intelligence</h2><p><strong>Coming Soon</strong></p><a href="/matter-intelligence/contact" class="btn btn-secondary">Join waitlist</a></article>
       </div></section>
+    `
+  },
+  {
+    route: "beta",
+    path: "/beta",
+    page: "beta",
+    title: "Join the RinaWarp Terminal Pro Beta | RinaWarp",
+    description: "Join the RinaWarp Terminal Pro v1.8.2 beta for a conversational AI workbench with memory, controlled execution, and proof-backed runs.",
+    eyebrow: "Terminal Pro beta",
+    heading: "Join the RinaWarp Terminal Pro Beta",
+    copy: "RinaWarp Terminal Pro is a conversational AI workbench for real developer work with memory, controlled execution, and proof attached to every meaningful run.",
+    heroActions: `
+      <a href="#signup" class="btn btn-primary">Apply to test</a>
+      <a href="/docs/" class="btn btn-secondary">Read tester docs</a>
+    `,
+    heroSupport: "Linux is production-candidate validated. macOS and Windows are unsigned beta previews.",
+    content: `
+      <section class="section">
+        <div class="panel stack">
+          <h2 class="section-title">Current beta status</h2>
+          <p>RinaWarp Terminal Pro v1.8.2 beta now has Linux, macOS, and Windows beta artifacts. Linux is production-candidate validated. macOS and Windows builds are unsigned beta previews and may require OS security bypass steps. Production builds will be signed and notarized before full public release.</p>
+        </div>
+      </section>
+      <section class="section">
+        <div class="grid three-up">
+          <article class="card"><h3>What you will test</h3><p>Select a real workspace, ask RinaWarp to build the project and explain what fails, then confirm proof appears.</p></article>
+          <article class="card"><h3>What we need to learn</h3><p>Whether testers can install, reach first proof, export proof, reopen the app, and understand safe-fix approval.</p></article>
+          <article class="card"><h3>What not to send</h3><p>Do not submit secrets, tokens, private keys, raw source code, private terminal output, or confidential file contents.</p></article>
+        </div>
+      </section>
+      <section id="signup" class="section">
+        <div class="panel stack">
+          <h2 class="section-title">Beta signup</h2>
+          <p class="section-copy">Tell us what platform and project type you can test. We will use this to match testers to the right unsigned beta artifact and checklist.</p>
+          <form id="beta-signup-form">
+            <label>Name
+              <input type="text" name="name" placeholder="Your name" required>
+            </label>
+            <label>Email
+              <input type="email" name="email" placeholder="you@company.com" required>
+            </label>
+            <label>OS
+              <select name="os" required>
+                <option value="">Choose one</option>
+                <option value="linux">Linux</option>
+                <option value="macos">macOS</option>
+                <option value="windows">Windows</option>
+                <option value="multiple">Multiple platforms</option>
+              </select>
+            </label>
+            <label>Developer stack
+              <input type="text" name="stack" placeholder="Node/TypeScript, Python, Go, Rust, monorepo..." required>
+            </label>
+            <label>Do you have a project to test with?
+              <select name="projectAvailable" required>
+                <option value="">Choose one</option>
+                <option value="yes-real-project">Yes, a real project</option>
+                <option value="yes-broken-project">Yes, a broken project</option>
+                <option value="sample-project">Only a sample project</option>
+                <option value="not-yet">Not yet</option>
+              </select>
+            </label>
+            <label>Are you comfortable testing unsigned beta builds?
+              <select name="unsignedComfort" required>
+                <option value="">Choose one</option>
+                <option value="yes">Yes</option>
+                <option value="with-instructions">Yes, with clear bypass instructions</option>
+                <option value="linux-only">Only on Linux</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+            <button type="submit" class="btn btn-primary">Join beta list</button>
+            <p id="beta-signup-status" class="status-message" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
     `
   },
    {
@@ -2903,6 +3015,7 @@ const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://rinawarptech.com/</loc></url>
   <url><loc>https://rinawarptech.com/products/</loc></url>
+  <url><loc>https://rinawarptech.com/beta/</loc></url>
   <url><loc>https://rinawarptech.com/pricing/</loc></url>
   <url><loc>https://rinawarptech.com/download/</loc></url>
   <url><loc>https://rinawarptech.com/docs/</loc></url>

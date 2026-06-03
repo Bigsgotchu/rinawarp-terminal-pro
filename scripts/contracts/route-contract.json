@@ -17,6 +17,7 @@
   "canonicals": {
     "/": "https://rinawarptech.com/",
     "/products/": "https://rinawarptech.com/products",
+    "/beta/": "https://rinawarptech.com/beta",
     "/pricing/": "https://rinawarptech.com/pricing",
     "/download/": "https://rinawarptech.com/download",
     "/support/": "https://rinawarptech.com/support",
