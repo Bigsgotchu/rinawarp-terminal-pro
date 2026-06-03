@@ -65,6 +65,7 @@ packages/*/.turbo/
 packages/*/coverage/
 
 # Release artifacts that shouldn't be in repo
+release-artifacts/
 release/*.exe
 release/*.AppImage
 release/*.deb
