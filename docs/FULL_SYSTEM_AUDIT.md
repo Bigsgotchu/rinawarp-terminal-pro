@@ -88,13 +88,16 @@ npm run guard:product-constraint-contract
 
 ## 3. Desktop App / Agent Shell
 
-**Status:** green
+**Status:** green — canonical dark Agent Shell verified
 
 **Evidence:**
 - Renderer builds successfully
 - Electron builds successfully
 - All guards pass
 - Agent Shell is confirmed as canonical Electron container
+- Dark theme CSS properly applied (navy/black background with magenta/teal accents)
+- Left nav, Agent Thread center, composer bottom, Inspect rail all styled correctly
+- No white/raw HTML regression
 
 **Commands run:**
 ```bash
@@ -103,12 +106,15 @@ npm --workspace apps/terminal-pro run build:electron
 npm --workspace apps/terminal-pro run guard:canonical-renderer
 npm --workspace apps/terminal-pro run guard:ui-residue
 npm --workspace apps/terminal-pro run guard:placeholders
+npx playwright test apps/terminal-pro/tests/e2e/agent-empty-state.spec.ts --reporter=list
 ```
 
 **Files checked:**
-- `apps/terminal-pro/package.json` (scripts)
-- `apps/terminal-pro/tsconfig.json`
-- `apps/terminal-pro/vite.config.ts`
+- `apps/terminal-pro/src/renderer/index.ts`
+- `apps/terminal-pro/src/renderer/index.css`
+- `apps/terminal-pro/src/renderer/renderer.css`
+- `apps/terminal-pro/src/renderer/styles/renderer-agent-layout.css`
+- `apps/terminal-pro/src/renderer/modern/` (workbench shell surface)
 
 **Remaining work:**
 - None
@@ -126,6 +132,12 @@ npm --workspace apps/terminal-pro run guard:placeholders
 - [x] `guard:canonical-renderer` passes
 - [x] `guard:ui-residue` passes
 - [x] `guard:placeholders` passes
+- [x] Dark shell CSS verified
+- [x] Agent Thread visible
+- [x] composer visible
+- [x] left nav visible
+- [x] Inspect rail visible
+- [x] No white document view
 
 ---
 
@@ -446,14 +458,18 @@ curl -I https://rinawarptech.com/pricing/
 
 ## 12. Beta Automation
 
-**Status:** green
+**Status:** green — deployed and endpoint-verified
 
 **Evidence:**
 - D1 database `rinawarp-users` exists
-- `beta_signups` table exists
+- `beta_signups` table exists (migration applied 2026-06-03)
+- `beta_feedback` table exists
 - Beta status shows 0 signups (expected for Round 1)
 - Routes configured: `/api/beta-signup`, `/api/beta-feedback`, `/api/beta-admin/digest`
-- SendGrid secret configured for email delivery
+- Worker deployed to `rinawarp-marketplace`
+- `/api/beta-signup` returns 200 OK
+- `/api/beta-feedback` returns 200 OK
+- `/api/beta-admin/digest` returns 401 for invalid token (correct behavior)
 
 **Commands run:**
 ```bash
@@ -461,12 +477,14 @@ npm run beta:status
 curl -i https://rinawarptech.com/api/beta-signup
 curl -i https://rinawarptech.com/api/beta-feedback
 curl -i https://rinawarptech.com/api/beta-admin/digest -H "Authorization: Bearer $BETA_ADMIN_TOKEN"
+curl -i https://rinawarptech.com/api/beta-admin/digest -H "Authorization: Bearer wrong-token"
 ```
 
 **Files checked:**
 - `scripts/ops/beta-status.sh`
 - `website/wrangler.toml`
 - `website/workers/router.ts`
+- `website/migrations/2026-06-03-beta-feedback.sql`
 
 **Remaining work:**
 - Set `SENDGRID_API_KEY` secret
@@ -477,12 +495,13 @@ curl -i https://rinawarptech.com/api/beta-admin/digest -H "Authorization: Bearer
 
 **Audit checklist:**
 - [x] `beta_signups` table exists
-- [x] `/api/beta-signup` endpoint
-- [x] `/api/beta-feedback` endpoint
-- [x] `/api/beta-admin/digest` endpoint
-- [x] SendGrid secret set
-- [x] Admin token set
-- [x] Worker deployed
+- [x] `beta_feedback` table exists
+- [x] `/api/beta-signup` endpoint — deployed and verified
+- [x] `/api/beta-feedback` endpoint — deployed and verified
+- [x] `/api/beta-admin/digest` endpoint — deployed and verified
+- [x] Worker deployed (rinawarp-marketplace)
+- [ ] SendGrid secret set
+- [ ] Admin token set
 - [ ] Severe feedback classified (requires production data)
 
 ---

@@ -10,7 +10,7 @@ The full system audit has been completed. The product is **NOT READY** for Round
 |----------|--------|
 | Source of Truth | green |
 | Product Definition | green |
-| Desktop App | green |
+| Desktop App | green — canonical dark Agent Shell verified |
 | Agent Runtime | green |
 | Memory | green |
 | Proof Layer | yellow |
@@ -210,15 +210,57 @@ wrangler secret list
    - This is a packaging/build issue, not a code issue
    - Dev mode tests all pass
 
-### Remaining Blockers:
+## Beta Automation Deployment
+
+**Status:** ✅ DEPLOYED AND VERIFIED
+
+**Actions Completed:**
+1. Archived stub production directory: `/home/karina/Documents/rinawarp-production` → `/home/karina/_ARCHIVE_rinawarp-production_stub_2026-06-03`
+2. Ran pre-deployment validation:
+   - `npm run founder:check-repo` - PASS
+   - `npm run verify:site` - PASS
+   - `node scripts/build/build-pages-site.mjs` - PASS
+   - `npm run smoke:pages` - PASS
+   - `npm run smoke:prod` - PASS
+3. Deployed Cloudflare Worker: `npx wrangler deploy --config website/wrangler.toml`
+4. Applied database migration: `wrangler d1 execute rinawarp-users --remote --file=website/migrations/2026-06-03-beta-feedback.sql`
+5. Verified endpoints:
+   - `/api/beta-signup` - 200 OK
+   - `/api/beta-feedback` - 200 OK
+   - `/api/beta-admin/digest` - 401 for invalid token (correct)
+
+**Remaining Work:**
+- Set `SENDGRID_API_KEY` secret (for email notifications on critical feedback)
+- Set `BETA_ADMIN_TOKEN` secret (for admin digest access)
+
+## Remaining Blockers
+
+### Critical Blockers (P0)
 
 | Priority | Blocker | Status |
 |----------|---------|--------|
 | P0 | macOS code signing/notarization | NOT DONE |
 | P0 | Windows code signing | NOT DONE |
 | P0 | Production secrets (AUTH_SECRET, STRIPE_WEBHOOK_SECRET, etc.) | NOT SET |
+
+### High Priority Issues (P1)
+
+| Priority | Blocker | Status |
+|----------|---------|--------|
 | P1 | SQLite native module rebuild for packaged app | PARTIAL (only affects memory badge test) |
+
+### Medium Priority Issues (P2)
+
+| Priority | Blocker | Status |
+|----------|---------|--------|
 | P2 | R2 bucket for releases | NOT ENABLED |
+
+### Recently Resolved
+
+| Priority | Blocker | Resolution |
+|----------|---------|------------|
+| P2 | Beta automation routes not deployed | Deployed 2026-06-03, endpoints verified |
+| P2 | Beta feedback database table missing | Migration applied, table exists |
 
 ### Current Status:
 
@@ -257,5 +299,40 @@ wrangler secret list
 ---
 
 **Audit completed:** 2026-06-03
-**Last updated:** 2026-06-03T13:45:00-06:00
+**Last updated:** 2026-06-03T20:22:00-06:00
 **Next review:** After blocking issues resolved
+
+---
+
+## Beta Automation Deployment Summary (2026-06-03)
+
+### What Was Done
+
+1. **Archived stub production directory**
+   - `/home/karina/Documents/rinawarp-production` → `/home/karina/_ARCHIVE_rinawarp-production_stub_2026-06-03`
+
+2. **Validated deployment readiness**
+   - `npm run founder:check-repo` - PASS
+   - `npm run verify:site` - PASS  
+   - `node scripts/build/build-pages-site.mjs` - PASS
+   - `npm run smoke:pages` - PASS
+   - `npm run smoke:prod` - PASS
+
+3. **Deployed Cloudflare Worker**
+   - `npx wrangler deploy --config website/wrangler.toml`
+   - Worker: `rinawarp-marketplace`
+   - Routes: 57 total (handles `/api/*` endpoints)
+
+4. **Applied database migrations**
+   - `beta_feedback` table created
+   - `beta_signups` table verified
+
+5. **Verified endpoints**
+   - `/api/beta-signup` - 200 OK
+   - `/api/beta-feedback` - 200 OK
+   - `/api/beta-admin/digest` - 401 for invalid token (correct)
+
+### Remaining Work
+
+- Set `SENDGRID_API_KEY` secret (for critical feedback email alerts)
+- Set `BETA_ADMIN_TOKEN` secret (for admin digest access)
