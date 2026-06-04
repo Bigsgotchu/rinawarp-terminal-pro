@@ -85,6 +85,10 @@ pattern = "rinawarptech.com/api/beta-admin/digest"
 zone_name = "rinawarptech.com"
 
 [[routes]]
+pattern = "rinawarptech.com/api/twilio/sms"
+zone_name = "rinawarptech.com"
+
+[[routes]]
 pattern = "rinawarptech.com/api/auth/*"
 zone_name = "rinawarptech.com"
 

@@ -6,6 +6,7 @@
 
 import { handleAuthRequest } from './api/auth'
 import { apiRouter } from './api/index'
+import { sendBetaSMS } from './api/twilio'
 import { createToken, extractToken, verifyToken } from './lib/auth'
 import type { D1Database } from './lib/cloudflare-types'
 import { marketplaceUI } from './marketplace/ui'
@@ -5185,6 +5186,11 @@ export default {
       // API routes: /v1/*
       if (path.startsWith('/v1')) {
         return apiRouter(request, env)
+      }
+
+      // Twilio SMS webhook
+      if (path === '/api/twilio/sms' && method === 'POST') {
+        return sendBetaSMS(request, env)
       }
 
       // Marketplace UI: /agents
