@@ -1,3 +1,17 @@
+# Archived Historical Document
+
+This file is retained for history only.
+
+Do not use this file as current product, architecture, release, UI, beta, or implementation guidance.
+
+Current truth lives in:
+- docs/CURRENT_STATE.md
+- docs/PRODUCT_LOCK.md
+- docs/PRODUCT_UI_LOCK.md
+- docs/STARTUP_CHECKLIST.md
+
+---
+
 # RinaWarp Terminal Pro Full System Audit
 
 **Audit Date:** 2026-06-03

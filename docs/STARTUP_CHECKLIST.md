@@ -28,6 +28,24 @@ Do not code.
 Do not commit.
 Do not deploy.
 
+## Read Current State First
+
+Before coding, read in order:
+
+1. docs/CURRENT_STATE.md
+2. docs/PRODUCT_LOCK.md
+3. docs/PRODUCT_UI_LOCK.md
+
+Ignore archived historical docs unless intentionally doing research.
+
+## If Anything Looks Wrong
+
+Stop.
+
+Do not code.
+Do not commit.
+Do not deploy.
+
 Before Coding
 
 git fetch origin

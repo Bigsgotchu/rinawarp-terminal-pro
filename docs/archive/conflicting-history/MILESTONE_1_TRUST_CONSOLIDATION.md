@@ -1,3 +1,17 @@
+# Archived Historical Document
+
+This file is retained for history only.
+
+Do not use this file as current product, architecture, release, UI, beta, or implementation guidance.
+
+Current truth lives in:
+- docs/CURRENT_STATE.md
+- docs/PRODUCT_LOCK.md
+- docs/PRODUCT_UI_LOCK.md
+- docs/STARTUP_CHECKLIST.md
+
+---
+
 # Milestone 1 — Trust-Preserving Consolidation
 
 This milestone turns the product spec into an execution checklist for the current codebase.
