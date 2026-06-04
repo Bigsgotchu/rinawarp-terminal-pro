@@ -39,6 +39,13 @@ export function linesFromStrings(entries: string[] | undefined): string {
   return Array.isArray(entries) ? entries.join('\n') : ''
 }
 
+export function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+}
+
 export function describeOperationalReason(metadata: Record<string, unknown> | undefined, tags: string[] | undefined): string {
   const rememberedBecause = typeof metadata?.rememberedBecause === 'string' ? metadata.rememberedBecause : ''
   if (rememberedBecause) return rememberedBecause
@@ -106,67 +113,50 @@ export function describeOperationalStore(store: { backend?: 'sqlite' | 'json-fal
 }
 
 export function renderWorkspaceSummary(workspaceId: string, state: MemoryWorkspaceState | undefined): string {
-  if (!state) {
-    return `<div class="rw-muted">No project memory saved yet for this project.</div>`
-  }
-  const conventionCount = Array.isArray(state.conventions) ? state.conventions.length : 0
+  // Always render stable placeholder elements - IDs must exist before async state loads
+  const projectName = workspaceId || state?.label || 'No project selected'
+  const memoryMode = 'Project scoped'
+  const summary = state?.updatedAt
+    ? `Last updated: ${new Date(state.updatedAt).toLocaleString()}`
+    : 'Rina will remember useful project context after real work runs.'
+
   return `
-<div class="rw-row">
-        <div>
-          <div class="rw-label">Current project memory</div>
-          <div id="rw-memory-project-path" class="rw-muted">Loading project…</div>
-        </div>
-        <div id="rw-memory-project-status" class="rw-pill">Project</div>
-      </div>
-      <div id="rw-memory-project-summary"></div>
-      <div class="rw-row">
-        <div>
-<div class="rw-label">Preferred response style</div>
-           <div class="rw-muted">One phrase per line, for this project only.</div>
-         </div>
-       </div>
-       <textarea id="rw-memory-response-style" class="rw-input" rows="4" placeholder="show the short plan first"></textarea>
-       <div class="rw-row">
-         <div>
-           <div class="rw-label">Preferred proof style</div>
-           <div class="rw-muted">One phrase per line, for this project only.</div>
-         </div>
-       </div>
-       <textarea id="rw-memory-proof-style" class="rw-input" rows="4" placeholder="keep run IDs visible"></textarea>
-       <div class="rw-row">
-         <div>
-           <div class="rw-label">Project conventions</div>
-           <div class="rw-muted">One convention per line in <code>key=value</code> form.</div>
-         </div>
-       </div>
-       <textarea id="rw-memory-conventions" class="rw-input" rows="5" placeholder="packageManager=npm"></textarea>
-       <div class="rw-row rw-gap">
-         <button type="button" id="rw-memory-save-project" class="rw-btn">Save project memory</button>
-         <button type="button" id="rw-memory-reset-project" class="rw-btn rw-btn-ghost">Reset this project</button>
-       </div>
+<section class="rw-card rw-flex rw-gap" data-testid="memory-project-summary">
+  <div class="rw-row rw-space">
+    <div>
+      <div class="rw-label">Current project memory</div>
+      <div id="rw-memory-project-path" class="rw-muted">${escapeHtml(projectName)}</div>
     </div>
-    <div class="rw-card rw-flex rw-gap">
-      <div class="rw-row rw-space">
-        <div>
-          <div class="rw-label">Inferred memory review</div>
-          <div class="rw-muted">Behavior-based suggestions stay here until you approve or dismiss them.</div>
-        </div>
-        <div class="rw-pill">Owner review</div>
-      </div>
-      <div id="rw-memory-inferred-list" class="rw-flex rw-gap"></div>
+    <div id="rw-memory-project-status" class="rw-pill">${memoryMode}</div>
+  </div>
+  <p id="rw-memory-project-summary-text" class="rw-muted">${escapeHtml(summary)}</p>
+  <div class="rw-row">
+    <div>
+      <div class="rw-label">Preferred response style</div>
+      <div class="rw-muted">One phrase per line, for this project only.</div>
     </div>
-    <div class="rw-card rw-flex rw-gap">
-      <div class="rw-row rw-space">
-        <div>
-          <div class="rw-label">Operational memory</div>
-          <div id="rw-memory-operational-store-summary" class="rw-muted">Local-first memory entries the agent actually uses during turns.</div>
-        </div>
-        <div id="rw-memory-operational-store-badge" class="rw-pill">SQLite</div>
-      </div>
-      <div id="rw-memory-operational-list" class="rw-flex rw-gap"></div>
+  </div>
+  <textarea id="rw-memory-response-style" class="rw-input" rows="4" placeholder="show the short plan first">${escapeHtml(linesFromStrings(state?.preferredResponseStyle))}</textarea>
+  <div class="rw-row">
+    <div>
+      <div class="rw-label">Preferred proof style</div>
+      <div class="rw-muted">One phrase per line, for this project only.</div>
     </div>
-<div id="rw-memory-feedback" class="rw-muted"></div>
-   `
+  </div>
+  <textarea id="rw-memory-proof-style" class="rw-input" rows="4" placeholder="keep run IDs visible">${escapeHtml(linesFromStrings(state?.preferredProofStyle))}</textarea>
+  <div class="rw-row">
+    <div>
+      <div class="rw-label">Project conventions</div>
+      <div class="rw-muted">One convention per line in <code>key=value</code> form.</div>
+    </div>
+  </div>
+  <textarea id="rw-memory-conventions" class="rw-input" rows="5" placeholder="packageManager=npm">${escapeHtml(linesFromConventions(state?.conventions))}</textarea>
+  <div class="rw-row rw-gap">
+    <button type="button" id="rw-memory-save-project" class="rw-btn">Save project memory</button>
+    <button type="button" id="rw-memory-reset-project" class="rw-btn rw-btn-ghost">Reset this project</button>
+  </div>
+</section>
+`
 }
 
 export function renderMemoryPanelShell(): string {
@@ -225,7 +215,7 @@ export function renderMemoryPanelShell(): string {
         <button type="button" id="rw-memory-reset-all" class="rw-btn rw-btn-ghost">Reset all memory</button>
       </div>
     </div>
-    ${renderWorkspaceSummary('', undefined)}
+    <div id="rw-memory-workspace-placeholder"></div>
     <div class="rw-card rw-flex rw-gap">
       <div class="rw-row rw-space">
         <div>

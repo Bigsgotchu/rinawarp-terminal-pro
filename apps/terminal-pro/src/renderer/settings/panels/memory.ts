@@ -123,10 +123,22 @@ function parseConventions(value: string): Array<{ key: string; value: string }> 
     .filter(Boolean) as Array<{ key: string; value: string }>
 }
 
+// Safe DOM update helper - prevents crashes when elements are missing
+function setText(root: Element, selector: string, value: string): boolean {
+  const element = root.querySelector<HTMLElement>(selector)
+  if (!element) {
+    console.warn(`[memory-panel] missing element: ${selector}`)
+    return false
+  }
+  element.textContent = value
+  return true
+}
+
 const LOCAL_WORKSPACE_MEMORY_ID = '__local_workspace_defaults__'
 
 export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
   container.innerHTML = renderMemoryPanelShell()
+  container.setAttribute('data-testid', 'memory-panel')
 
   const rina = getRina()
   if (
@@ -141,37 +153,21 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
     !rina?.memoryResetAll ||
     !rina?.workspaceDefault
   ) {
-    container.querySelector('#rw-memory-feedback')!.textContent = 'Memory API not available. Check the preload bridge.'
+    setText(container, '#rw-memory-feedback', 'Memory API not available. Check the preload bridge.')
     return
   }
 
-  const ownerMeta = container.querySelector<HTMLElement>('#rw-memory-owner-meta')!
-  const preferredNameInput = container.querySelector<HTMLInputElement>('#rw-memory-preferred-name')!
-  const toneSelect = container.querySelector<HTMLSelectElement>('#rw-memory-tone')!
-  const humorSelect = container.querySelector<HTMLSelectElement>('#rw-memory-humor')!
-  const likesInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-likes')!
-  const dislikesInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-dislikes')!
-  const workspacePath = container.querySelector<HTMLElement>('#rw-memory-project-path')!
-  const workspaceStatus = container.querySelector<HTMLElement>('#rw-memory-project-status')!
-  const workspaceSummary = container.querySelector<HTMLElement>('#rw-memory-project-summary')!
-  const inferredList = container.querySelector<HTMLElement>('#rw-memory-inferred-list')!
-  const operationalList = container.querySelector<HTMLElement>('#rw-memory-operational-list')!
-  const operationalStoreBadge = container.querySelector<HTMLElement>('#rw-memory-operational-store-badge')!
-  const operationalStoreSummary = container.querySelector<HTMLElement>('#rw-memory-operational-store-summary')!
-  const responseStyleInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-response-style')!
-  const proofStyleInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-proof-style')!
-  const conventionsInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-conventions')!
-  const saveProfileButton = container.querySelector<HTMLButtonElement>('#rw-memory-save-profile')!
-  const saveProjectButton = container.querySelector<HTMLButtonElement>('#rw-memory-save-project')!
-  const resetProjectButton = container.querySelector<HTMLButtonElement>('#rw-memory-reset-project')!
-  const resetAllButton = container.querySelector<HTMLButtonElement>('#rw-memory-reset-all')!
-  const feedback = container.querySelector<HTMLElement>('#rw-memory-feedback')!
+  // Cache selectors that are always present in the shell
+  const feedback = container.querySelector<HTMLElement>('#rw-memory-feedback')
+  const inferredList = container.querySelector<HTMLElement>('#rw-memory-inferred-list')
+  const operationalList = container.querySelector<HTMLElement>('#rw-memory-operational-list')
+  const workspacePlaceholder = container.querySelector<HTMLElement>('#rw-memory-workspace-placeholder')
 
   let currentState: MemoryState | null = null
   let currentWorkspaceId = ''
 
   const setFeedback = (message: string) => {
-    feedback.textContent = message
+    if (feedback) feedback.textContent = message
   }
 
   const loadWorkspaceId = async (): Promise<string> => {
@@ -187,26 +183,52 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
     const profile = currentState.memory.profile || {}
     const effectiveWorkspaceId = getEffectiveWorkspaceId()
     const workspaceMemory = currentState.memory.workspaces[effectiveWorkspaceId]
-    ownerMeta.innerHTML = `
-      <div>
-        <div class="rw-label">Owner identity</div>
-        <div class="rw-muted">${currentState.owner.ownerId}</div>
-      </div>
-      <div class="rw-pill">${currentState.owner.mode === 'licensed' ? 'Licensed owner' : 'Local owner fallback'}</div>
-    `
-    preferredNameInput.value = profile.preferredName || ''
-    toneSelect.value = profile.tonePreference || 'balanced'
-    humorSelect.value = profile.humorPreference || 'medium'
-    likesInput.value = linesFromStrings(profile.likes)
-    dislikesInput.value = linesFromStrings(profile.dislikes)
-    workspacePath.textContent = currentWorkspaceId || 'Local project defaults'
-    workspaceStatus.textContent = currentWorkspaceId ? 'Project scoped' : 'Local defaults'
-    workspaceSummary.innerHTML = currentWorkspaceId
-      ? renderWorkspaceSummary(currentWorkspaceId, workspaceMemory)
-      : renderWorkspaceSummary('Local project defaults', workspaceMemory)
-    responseStyleInput.value = linesFromStrings(workspaceMemory?.preferredResponseStyle)
-    proofStyleInput.value = linesFromStrings(workspaceMemory?.preferredProofStyle)
-    conventionsInput.value = linesFromConventions(workspaceMemory?.conventions)
+
+    // Update owner meta
+    const ownerMeta = container.querySelector<HTMLElement>('#rw-memory-owner-meta')
+    if (ownerMeta) {
+      ownerMeta.innerHTML = `
+        <div>
+          <div class="rw-label">Owner identity</div>
+          <div class="rw-muted">${currentState.owner.ownerId}</div>
+        </div>
+        <div class="rw-pill">${currentState.owner.mode === 'licensed' ? 'Licensed owner' : 'Local owner fallback'}</div>
+      `
+    }
+
+    // Update profile inputs - use safe setters
+    const preferredNameInput = container.querySelector<HTMLInputElement>('#rw-memory-preferred-name')
+    const toneSelect = container.querySelector<HTMLSelectElement>('#rw-memory-tone')
+    const humorSelect = container.querySelector<HTMLSelectElement>('#rw-memory-humor')
+    const likesInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-likes')
+    const dislikesInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-dislikes')
+
+    preferredNameInput!.value = profile.preferredName || ''
+    toneSelect!.value = profile.tonePreference || 'balanced'
+    humorSelect!.value = profile.humorPreference || 'medium'
+    likesInput!.value = linesFromStrings(profile.likes)
+    dislikesInput!.value = linesFromStrings(profile.dislikes)
+
+    // Render workspace summary - now always has stable elements
+    if (workspacePlaceholder) {
+      workspacePlaceholder.innerHTML = renderWorkspaceSummary(currentWorkspaceId, workspaceMemory)
+    }
+
+    // Update workspace elements - use safe setters
+    setText(container, '#rw-memory-project-path', currentWorkspaceId || 'Local project defaults')
+    setText(container, '#rw-memory-project-status', currentWorkspaceId ? 'Project scoped' : 'Local defaults')
+
+    const responseStyleInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-response-style')
+    const proofStyleInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-proof-style')
+    const conventionsInput = container.querySelector<HTMLTextAreaElement>('#rw-memory-conventions')
+
+    responseStyleInput!.value = linesFromStrings(workspaceMemory?.preferredResponseStyle)
+    proofStyleInput!.value = linesFromStrings(workspaceMemory?.preferredProofStyle)
+    conventionsInput!.value = linesFromConventions(workspaceMemory?.conventions)
+
+    // Mark panel as hydrated after all inputs are populated
+    container.setAttribute('data-hydrated', 'true')
+
     inferredList.innerHTML = ''
     operationalList.innerHTML = ''
     const inferred = Array.isArray(currentState.memory.inferredMemories) ? currentState.memory.inferredMemories : []
@@ -275,11 +297,10 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
 
     const operational = Array.isArray(currentState.memory.operationalMemories) ? currentState.memory.operationalMemories : []
     const operationalStore = describeOperationalStore(currentState.memory.operationalStore)
-    operationalStoreBadge.textContent = operationalStore.badge
-    operationalStoreSummary.textContent = operationalStore.summary
+    setText(container, '#rw-memory-operational-store-badge', operationalStore.badge)
+    setText(container, '#rw-memory-operational-store-summary', operationalStore.summary)
     if (operational.length === 0) {
       operationalList.innerHTML = `<div class="rw-muted">No operational memory has been stored yet.</div>`
-      return
     }
 
     const buckets = groupOperationalMemories(operational)
@@ -354,43 +375,56 @@ export async function mountMemoryPanel(container: HTMLElement): Promise<void> {
     }
   }
 
-  saveProfileButton.addEventListener('click', async () => {
+  const saveProfileButton = container.querySelector<HTMLButtonElement>('#rw-memory-save-profile')
+  const resetAllButton = container.querySelector<HTMLButtonElement>('#rw-memory-reset-all')
+
+  saveProfileButton?.addEventListener('click', async () => {
     await rina.memoryUpdateProfile?.({
-      preferredName: preferredNameInput.value,
-      tonePreference: toneSelect.value as 'concise' | 'balanced' | 'detailed',
-      humorPreference: humorSelect.value as 'low' | 'medium' | 'high',
-      likes: splitLines(likesInput.value),
-      dislikes: splitLines(dislikesInput.value),
+      preferredName: (container.querySelector<HTMLInputElement>('#rw-memory-preferred-name')?.value || ''),
+      tonePreference: (container.querySelector<HTMLSelectElement>('#rw-memory-tone')?.value as 'concise' | 'balanced' | 'detailed') || 'balanced',
+      humorPreference: (container.querySelector<HTMLSelectElement>('#rw-memory-humor')?.value as 'low' | 'medium' | 'high') || 'medium',
+      likes: splitLines((container.querySelector<HTMLTextAreaElement>('#rw-memory-likes')?.value || '')),
+      dislikes: splitLines((container.querySelector<HTMLTextAreaElement>('#rw-memory-dislikes')?.value || '')),
     })
     void recordActivationTelemetry('memory_saved')
     setFeedback('Owner profile memory saved.')
     await render()
   })
 
-  saveProjectButton.addEventListener('click', async () => {
-    const projectId = getEffectiveWorkspaceId()
-    await rina.memoryUpdateWorkspace?.(projectId, {
-      label: currentWorkspaceId ? currentWorkspaceId.split('/').pop() || currentWorkspaceId : 'Local project defaults',
-      preferredResponseStyle: splitLines(responseStyleInput.value),
-      preferredProofStyle: splitLines(proofStyleInput.value),
-      conventions: parseConventions(conventionsInput.value),
-    })
-    void recordActivationTelemetry('memory_saved')
-    setFeedback('Project memory saved.')
-    await render()
-  })
-
-  resetProjectButton.addEventListener('click', async () => {
-    await rina.memoryResetWorkspace?.(getEffectiveWorkspaceId())
-    setFeedback('Project memory reset.')
-    await render()
-  })
-
-  resetAllButton.addEventListener('click', async () => {
+  resetAllButton?.addEventListener('click', async () => {
     await rina.memoryResetAll?.()
     setFeedback('All explicit memory reset.')
     await render()
   })
 
+  // Set up workspace save handlers
+  const setupWorkspaceHandlers = () => {
+    const saveProjectButton = container.querySelector<HTMLButtonElement>('#rw-memory-save-project')
+    const resetProjectButton = container.querySelector<HTMLButtonElement>('#rw-memory-reset-project')
+
+    if (saveProjectButton) {
+      saveProjectButton.addEventListener('click', async () => {
+        const projectId = getEffectiveWorkspaceId()
+        await rina.memoryUpdateWorkspace?.(projectId, {
+          label: currentWorkspaceId ? currentWorkspaceId.split('/').pop() || currentWorkspaceId : 'Local project defaults',
+          preferredResponseStyle: splitLines((container.querySelector<HTMLTextAreaElement>('#rw-memory-response-style')?.value || '')),
+          preferredProofStyle: splitLines((container.querySelector<HTMLTextAreaElement>('#rw-memory-proof-style')?.value || '')),
+          conventions: parseConventions(container.querySelector<HTMLTextAreaElement>('#rw-memory-conventions')?.value || ''),
+        })
+        void recordActivationTelemetry('memory_saved')
+        setFeedback('Project memory saved.')
+        await render()
+      })
+    }
+    if (resetProjectButton) {
+      resetProjectButton.addEventListener('click', async () => {
+        await rina.memoryResetWorkspace?.(getEffectiveWorkspaceId())
+        setFeedback('Project memory reset.')
+        await render()
+      })
+    }
+  }
+
   await render()
+  setupWorkspaceHandlers()
 }
