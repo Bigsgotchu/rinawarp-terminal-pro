@@ -1,4 +1,5 @@
 import type { ExecutionReceipt } from './types.js'
+import { getReceiptId } from './receiptCompat.js'
 
 const STORAGE_KEY = 'rinawarp.execution-receipts.v1'
 const MAX_RECEIPTS = 40
@@ -26,7 +27,7 @@ function writeStore(store: ReceiptStore): void {
 
 export function persistExecutionReceipt(receipt: ExecutionReceipt): void {
   const store = readStore()
-  store[receipt.runId] = receipt
+  store[getReceiptId(receipt)] = receipt
   const keys = Object.keys(store)
   if (keys.length > MAX_RECEIPTS) {
     for (const key of keys.slice(0, keys.length - MAX_RECEIPTS)) {
@@ -36,9 +37,9 @@ export function persistExecutionReceipt(receipt: ExecutionReceipt): void {
   writeStore(store)
 }
 
-export function loadExecutionReceipt(runId: string): ExecutionReceipt | null {
+export function loadExecutionReceipt(id: string): ExecutionReceipt | null {
   const store = readStore()
-  return store[runId] || null
+  return store[id] || null
 }
 
 export function listPersistedReceiptRunIds(): string[] {

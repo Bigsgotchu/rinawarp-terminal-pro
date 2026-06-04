@@ -1,6 +1,7 @@
 import { listPersistedReceiptRunIds, loadExecutionReceipt } from '../runBlocks/receiptPersistence.js'
 import type { ExecutionReceipt, RunBlock } from '../runBlocks/types.js'
 import { buildMemorySurfaceText } from '../runBlocks/executionSummary.js'
+import { getReceiptId, getReceiptVerificationChecks } from '../runBlocks/receiptCompat.js'
 import type { ThreadCognitionLine, ThreadItem } from './threadTypes.js'
 import { MAX_THREAD_ITEMS } from './threadTypes.js'
 import { chatMessageToThreadItems, type ThreadWorkbenchSlice } from './threadMutations.js'
@@ -18,7 +19,7 @@ function cognitionItem(runId: string, lines: ThreadCognitionLine[], workspaceKey
 
 function receiptItem(receipt: ExecutionReceipt, workspaceKey: string, createdAt: number): ThreadItem {
   return {
-    id: `thread:receipt:${receipt.runId}`,
+    id: `thread:receipt:${getReceiptId(receipt)}`,
     type: 'receipt',
     receipt,
     createdAt,
@@ -83,12 +84,13 @@ function appendRunArtifacts(
 
   const receipt = slice.executionReceiptsByRunId?.[runId] || loadExecutionReceipt(runId)
   if (receipt) {
-    if (receipt.verificationResults.length > 0) {
+    const verificationChecks = getReceiptVerificationChecks(receipt)
+    if (verificationChecks.length > 0) {
       items.push({
         id: `thread:verify:${runId}`,
         type: 'verification',
         runId,
-        results: receipt.verificationResults,
+        results: verificationChecks.map((c) => c.label),
         createdAt: baseTs + 5,
         workspaceKey,
       })
@@ -122,11 +124,11 @@ export function hydrateCanonicalThread(state: ThreadWorkbenchSlice, workspaceKey
     appendRunArtifacts(items, runId, workspaceKey, state, Date.now())
   }
 
-  for (const runId of listPersistedReceiptRunIds()) {
-    if (seenRunIds.has(runId)) continue
-    const receipt = loadExecutionReceipt(runId)
+  for (const receiptId of listPersistedReceiptRunIds()) {
+    if (seenRunIds.has(receiptId)) continue
+    const receipt = loadExecutionReceipt(receiptId)
     if (!receipt) continue
-    seenRunIds.add(runId)
+    seenRunIds.add(receiptId)
     items.push(receiptItem(receipt, workspaceKey, Date.now()))
   }
 

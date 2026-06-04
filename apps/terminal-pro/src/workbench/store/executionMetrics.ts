@@ -1,4 +1,4 @@
-import type { ExecutionReceipt } from '../runBlocks/types.js'
+import type { ExecutionReceipt } from '@rinawarp/rina-contracts'
 import type { RunBlock } from '../runBlocks/types.js'
 
 export type ExecutionMetrics = {
@@ -37,22 +37,24 @@ export function recordExecutionMetrics(
   receipt: ExecutionReceipt,
   runBlock?: RunBlock,
 ): ExecutionMetrics {
-  const duration = Math.max(0, receipt.completedAt - receipt.startedAt)
-  const verifiedPass = receipt.exitCode === 0 && !receipt.rollbackOccurred
-  const verifiedFail = receipt.rollbackOccurred || receipt.exitCode !== 0
-  const buildIntent = isBuildIntent(runBlock?.title, receipt.commandsExecuted)
+  const start = typeof receipt.startedAt === 'string' ? parseInt(receipt.startedAt, 10) : receipt.startedAt
+  const complete = typeof receipt.completedAt === 'string' ? parseInt(receipt.completedAt, 10) : receipt.completedAt
+  const duration = Math.max(0, complete - start)
+  const verifiedPass = receipt.status === 'succeeded' && receipt.verification.status === 'passed'
+  const verifiedFail = receipt.status === 'failed' || receipt.verification.status === 'failed'
+  const buildIntent = isBuildIntent(runBlock?.title, receipt.commands?.map(c => c.command).filter(Boolean))
   const mutationIntent = isMutationIntent(runBlock?.title)
 
   return {
     runsCompleted: metrics.runsCompleted + 1,
     totalDurationMs: metrics.totalDurationMs + duration,
-    rollbackCount: metrics.rollbackCount + (receipt.rollbackOccurred ? 1 : 0),
+    rollbackCount: metrics.rollbackCount + (receipt.status === 'cancelled' ? 1 : 0),
     verificationPassCount: metrics.verificationPassCount + (verifiedPass ? 1 : 0),
     verificationFailCount: metrics.verificationFailCount + (verifiedFail ? 1 : 0),
     buildSuccessCount: metrics.buildSuccessCount + (buildIntent && verifiedPass ? 1 : 0),
     buildFailureCount: metrics.buildFailureCount + (buildIntent && verifiedFail ? 1 : 0),
     mutationApprovalCount:
-      metrics.mutationApprovalCount + (mutationIntent && verifiedPass && !receipt.rollbackOccurred ? 1 : 0),
+      metrics.mutationApprovalCount + (mutationIntent && verifiedPass ? 1 : 0),
   }
 }
 

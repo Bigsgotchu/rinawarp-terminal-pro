@@ -1,6 +1,15 @@
 import type { RinaExecutionEvent, RinaExecutionRecord } from '@rinawarp/rina-core'
+import type { ExecutionReceipt } from '@rinawarp/rina-contracts'
 import { cognitionLabelForIngressEvent } from './cognitionStream.js'
-import type { DiffSummary, ExecutionReceipt, RunBlock, RunBlockStatus, RuntimeTimelineEvent } from './types.js'
+import type { RunBlock, RunBlockStatus, RuntimeTimelineEvent } from './types.js'
+import {
+  getReceiptArtifacts,
+  getReceiptCommands,
+  getReceiptFileChanges,
+  getReceiptId,
+  getReceiptVerificationChecks,
+  getReceiptVerificationStatus,
+} from './receiptCompat.js'
 
 function mapStatus(record: RinaExecutionRecord): RunBlockStatus {
   const rolledBack =
@@ -38,46 +47,6 @@ function intentTitle(record: RinaExecutionRecord, fallback?: string): string {
   return record.intent.target
 }
 
-export function executionReceiptFromRecord(record: RinaExecutionRecord): ExecutionReceipt {
-  const receipt = record.receipts[0]
-  const failed = record.events.find((event) => event.type === 'execution.failed')
-  const verificationResults: string[] = []
-
-  if (record.outcome?.transactionOutcome === 'applied') {
-    verificationResults.push('Mutation applied and verified')
-  } else if (record.outcome?.transactionOutcome === 'rolled_back') {
-    verificationResults.push('Verification failed; changes rolled back')
-  } else if (record.outcome?.transactionOutcome === 'failed') {
-    verificationResults.push('Verification failed')
-  }
-
-  const commandsExecuted = [
-    ...(receipt?.commandsExecuted || []),
-    ...(typeof record.outcome?.command === 'string' && record.outcome.command.trim() ? [record.outcome.command.trim()] : []),
-  ]
-
-  const filesChanged = [...(receipt?.filesChanged || [])]
-  const pendingPayload = record.outcome?.pendingApproval?.payload as { path?: string } | undefined
-  if (pendingPayload?.path) filesChanged.push(String(pendingPayload.path))
-
-  const startedAt = record.intent.createdAt || Date.now()
-  const status = mapStatus(record)
-  const completedAt = status === 'running' ? startedAt : Date.now()
-
-  return {
-    runId: record.runId,
-    transactionId: record.transactions[0]?.id,
-    actionsPerformed: record.plan?.steps?.length ? record.plan.steps : record.events.map((event) => String(event.type)),
-    filesChanged: [...new Set(filesChanged)],
-    commandsExecuted: [...new Set(commandsExecuted)],
-    verificationResults,
-    rollbackOccurred: Boolean(receipt?.rollback || record.outcome?.transactionOutcome === 'rolled_back'),
-    exitCode: receipt?.exitCode ?? (failed ? 1 : status === 'success' ? 0 : -1),
-    startedAt,
-    completedAt,
-  }
-}
-
 export function runBlockFromExecutionRecord(
   record: RinaExecutionRecord,
   opts?: { title?: string; workspaceRoot?: string },
@@ -86,15 +55,12 @@ export function runBlockFromExecutionRecord(
   const status = mapStatus(record)
   const receipt = record.receipts[0]
   const failed = record.events.find((event) => event.type === 'execution.failed')
-  const pendingPayload = record.outcome?.pendingApproval?.payload as { unifiedDiff?: string; path?: string } | undefined
+  const pendingPayload = record.outcome?.pendingApproval?.payload as { path?: string } | undefined
 
-  const diffSummary: DiffSummary | undefined =
-    pendingPayload?.unifiedDiff || (receipt?.filesChanged?.length ?? 0) > 0
-      ? {
-          filesChanged: receipt?.filesChanged || (pendingPayload?.path ? [pendingPayload.path] : []),
-          unifiedDiff: pendingPayload?.unifiedDiff,
-        }
-      : undefined
+  const fileChanges = getReceiptFileChanges(receipt)
+  if (pendingPayload?.path) {
+    fileChanges.push({ path: String(pendingPayload.path), changeType: 'modified' })
+  }
 
   const memoryNote =
     record.memoryDelta?.updated && record.memoryDelta.note
@@ -116,34 +82,59 @@ export function runBlockFromExecutionRecord(
     completedAt: status === 'running' ? undefined : Date.now(),
     exitCode: receipt?.exitCode ?? (failed ? 1 : status === 'success' ? 0 : undefined),
     receipts: receipt
-      ? [{ id: receipt.runId, label: receipt.summary || 'execution receipt' }]
+      ? [{ id: getReceiptId(receipt), label: receipt.summary || 'execution receipt' }]
       : [{ id: record.runId, label: 'proof pending' }],
     timeline: timelineFromRecord(record, startedAt),
-    diffSummary,
-    memoryNote,
-  }
-}
-
-/** @deprecated Use runBlockFromExecutionRecord — kept for rina-core RunBlock bridge */
-export function legacyProductRunBlock(record: RinaExecutionRecord, intentLabel?: string) {
-  const block = runBlockFromExecutionRecord(record, { title: intentLabel })
-  return {
-    runId: block.runId,
-    intent: block.title,
-    status: block.status === 'rolled_back' ? 'failed' : block.status === 'planned' ? 'planned' : block.status,
-    steps: block.timeline.map((event) => event.cognitionLabel || String(event.type)),
-    logs: block.summary,
-    diff: block.diffSummary?.unifiedDiff,
-    exitCode: block.exitCode,
-    receipt: {
-      artifacts: block.receipts.map((entry) => entry.id),
-      rollback: block.status === 'rolled_back',
-    },
+    fileChanges,
   }
 }
 
 export function receiptSummaryLine(record: RinaExecutionRecord): string | null {
-  const receipt = executionReceiptFromRecord(record)
-  if (!receipt.actionsPerformed.length && !receipt.commandsExecuted.length) return null
-  return `Receipt: exit ${receipt.exitCode}, rollback ${receipt.rollbackOccurred ? 'yes' : 'no'}, commands ${receipt.commandsExecuted.join(' · ') || 'n/a'}`
+  const receipt = record.receipts[0]
+  const commands = getReceiptCommands(receipt)
+  if (!commands.length) return null
+  return `Receipt: exit ${receipt?.exitCode}, commands ${commands.map((c) => c.command).join(' · ') || 'n/a'}`
+}
+
+export function executionReceiptFromRecord(record: RinaExecutionRecord): ExecutionReceipt {
+  const receipt = record.receipts[0]
+  const startedAt = record.intent.createdAt || Date.now()
+  const commands = getReceiptCommands(receipt)
+  const fileChanges = getReceiptFileChanges(receipt)
+  const verificationChecks = getReceiptVerificationChecks(receipt)
+  const verificationStatus = getReceiptVerificationStatus(receipt)
+  const receiptId = getReceiptId(receipt)
+  const plan = record.plan
+  const planId =
+    plan && 'id' in plan && typeof plan.id === 'string'
+      ? plan.id
+      : receiptId
+  const artifacts = getReceiptArtifacts(receipt)
+
+  return {
+    id: receiptId,
+    sessionId: record.requestId,
+    workspaceId: '',
+    userIntent: record.intent.target,
+    planId,
+    startedAt: new Date(startedAt).toISOString(),
+    completedAt: new Date().toISOString(),
+    status: receipt?.exitCode === 0 ? 'succeeded' : 'failed',
+    commands,
+    fileChanges,
+    mcpCalls: [],
+    artifacts,
+    verification: {
+      status: verificationStatus,
+      checks: verificationChecks,
+      conclusion: receipt?.summary || '',
+      recoverySuggested: false,
+    },
+    risk: {
+      level: 'low',
+      reasons: [],
+      approvals: [],
+    },
+    summary: receipt?.summary || record.plan?.summary || '',
+  }
 }

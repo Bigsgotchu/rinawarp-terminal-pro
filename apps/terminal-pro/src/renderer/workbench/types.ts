@@ -1,4 +1,5 @@
-import type { ExecutionReceipt, RunBlock } from '../../workbench/runBlocks/types.js'
+import type { RunBlock } from '../../workbench/runBlocks/types.js'
+import type { ExecutionReceipt } from '@rinawarp/rina-contracts'
 
 export type CenterView = 'execution-trace' | 'runs' | 'marketplace' | 'code' | 'brain' | 'receipt'
 export type RightView = 'agent' | 'diagnostics'

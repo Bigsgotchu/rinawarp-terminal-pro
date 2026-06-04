@@ -2,6 +2,12 @@ import type { WorkbenchStore } from '../workbench/store.js'
 import type { ReceiptData } from '../workbench/types.js'
 import type { FixBlockModel, RunModel } from '../workbench/store.js'
 import type { ExecutionReceipt } from '../../workbench/runBlocks/types.js'
+import {
+  getReceiptCommands,
+  getReceiptFileChanges,
+  getReceiptRunId,
+  getReceiptVerificationChecks,
+} from '../../workbench/runBlocks/receiptCompat.js'
 
 export function revealReceiptInWorkbench(store: WorkbenchStore, receipt: ReceiptData): void {
   store.dispatch({ type: 'receipt/set', receipt })
@@ -11,44 +17,51 @@ export function revealReceiptInWorkbench(store: WorkbenchStore, receipt: Receipt
 export function structuredReceiptFromExecutionReceipt(receipt: ExecutionReceipt, run?: RunModel | null): ReceiptData {
   const startedAt = new Date(receipt.startedAt).toISOString()
   const endedAt = new Date(receipt.completedAt).toISOString()
+  const receiptRunId = getReceiptRunId(receipt)
+  const commands = getReceiptCommands(receipt)
+  const fileChanges = getReceiptFileChanges(receipt)
+  const verificationLabels = getReceiptVerificationChecks(receipt).map((check) => check.label)
+  const exitCode = commands.find((command) => typeof command.exitCode === 'number')?.exitCode ?? null
+  const rolledBack = receipt.status === 'cancelled'
   return {
     kind: 'structured_command_receipt',
-    id: receipt.runId,
-    receiptId: receipt.runId,
-    sessionId: run?.sessionId || receipt.transactionId || receipt.runId,
+    id: receiptRunId,
+    receiptId: receiptRunId,
+    sessionId: run?.sessionId || receiptRunId,
     session: {
-      id: run?.sessionId || receipt.transactionId || receipt.runId,
+      id: run?.sessionId || receiptRunId,
       updatedAt: endedAt,
       projectRoot: run?.projectRoot || run?.cwd || null,
       source: run?.source || 'renderer-execution-receipt',
       platform: navigator.platform || 'unknown',
     },
     command: {
-      input: receipt.commandsExecuted[0] || run?.command || run?.title || 'Unknown command',
+      input: commands[0]?.command || run?.command || run?.title || 'Unknown command',
       cwd: run?.cwd || run?.projectRoot || null,
       startedAt,
       endedAt,
-      exitCode: receipt.exitCode,
-      ok: receipt.exitCode === 0 && !receipt.rollbackOccurred,
+      exitCode,
+      ok: receipt.status === 'succeeded' && receipt.verification.status === 'passed',
       cancelled: false,
-      error: receipt.exitCode === 0 ? null : receipt.verificationResults.join('\n') || null,
+      error: receipt.status === 'succeeded' ? null : verificationLabels.join('\n') || null,
     },
     artifacts: {
       stdoutChunks: 0,
       stderrChunks: 0,
-      metaChunks: receipt.actionsPerformed.length,
+      metaChunks: verificationLabels.length,
       stdoutPreview: '',
       stderrPreview: '',
-      metaPreview: receipt.verificationResults.join('\n'),
-      changedFiles: receipt.filesChanged,
-      diffHints: receipt.rollbackOccurred ? ['rollback occurred'] : [],
+      metaPreview: verificationLabels.join('\n'),
+      changedFiles: fileChanges.map((change) => change.path),
+      diffHints: rolledBack ? ['rollback occurred'] : [],
       urls: [],
     },
   } as ReceiptData
 }
 
 export function revealExecutionReceiptInWorkbench(store: WorkbenchStore, receipt: ExecutionReceipt): void {
-  const run = store.getState().runs.find((entry) => entry.id === receipt.runId || entry.latestReceiptId === receipt.runId)
+  const receiptRunId = getReceiptRunId(receipt)
+  const run = store.getState().runs.find((entry) => entry.id === receiptRunId || entry.latestReceiptId === receiptRunId)
   revealReceiptInWorkbench(store, structuredReceiptFromExecutionReceipt(receipt, run))
 }
 

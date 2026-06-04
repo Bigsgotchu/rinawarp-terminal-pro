@@ -4,6 +4,7 @@
   "description": "RinaWarp package workspace",
   "private": true,
   "workspaces": [
+    "rina-contracts",
     "rinawarp-agent",
     "rinawarp-tools",
     "rinawarp-safety",

@@ -47,6 +47,7 @@
     "founder:check-repo": "node scripts/founder/check-repo-identity.mjs",
     "guard:no-stubs": "node scripts/guards/check-no-stubs.mjs",
     "guard:no-legacy-contracts": "node scripts/guards/check-no-legacy-contracts.mjs",
+    "guard:no-duplicate-rina-spine": "bash scripts/guards/no-duplicate-rina-spine.sh",
     "guard:runtime-integrity": "node scripts/guards/check-no-stubs.mjs",
     "guard:no-fake-success": "node scripts/guards/check-no-fake-success.mjs",
     "guard:feature-reality": "node scripts/guards/check-feature-reality-matrix.mjs",

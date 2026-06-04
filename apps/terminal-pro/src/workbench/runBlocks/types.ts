@@ -1,16 +1,12 @@
 import type { RinaExecutionEvent } from '@rinawarp/rina-core'
+import type { FileChangeReceipt, ExecutionReceipt } from '@rinawarp/rina-contracts'
 
 export type RunBlockStatus = 'planned' | 'running' | 'success' | 'failed' | 'rolled_back'
+export type { FileChangeReceipt, ExecutionReceipt } from '@rinawarp/rina-contracts'
 
 export type ReceiptRef = {
   id: string
   label?: string
-}
-
-export type DiffSummary = {
-  filesChanged: string[]
-  hint?: string
-  unifiedDiff?: string
 }
 
 export type RuntimeTimelineEvent = RinaExecutionEvent & {
@@ -39,26 +35,6 @@ export interface RunBlock {
   receipts: ReceiptRef[]
   timeline: RuntimeTimelineEvent[]
 
-  diffSummary?: DiffSummary
-
+  fileChanges?: FileChangeReceipt[]
   memoryNote?: string
-}
-
-export interface ExecutionReceipt {
-  runId: string
-  transactionId?: string
-
-  actionsPerformed: string[]
-  filesChanged: string[]
-
-  commandsExecuted: string[]
-
-  verificationResults: string[]
-
-  rollbackOccurred: boolean
-
-  exitCode: number
-
-  startedAt: number
-  completedAt: number
 }

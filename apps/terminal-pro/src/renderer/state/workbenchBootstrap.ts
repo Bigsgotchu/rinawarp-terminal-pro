@@ -2,6 +2,7 @@ import { WorkbenchStore, type WorkbenchState } from '../workbench/store.js'
 import { deriveDeploymentState } from '../workbench/deploymentState.js'
 import { EMPTY_EXECUTION_METRICS } from '../../workbench/store/executionMetrics.js'
 import { listPersistedReceiptRunIds, loadExecutionReceipt } from '../../workbench/runBlocks/receiptPersistence.js'
+import { getReceiptCommands, getReceiptRunId } from '../../workbench/runBlocks/receiptCompat.js'
 
 const WORKBENCH_STORAGE_KEY = 'rinawarp.workbench.state.v1'
 
@@ -57,23 +58,27 @@ export function createWorkbenchStore(initialWorkspaceKey?: string): WorkbenchSto
     .map((runId) => loadExecutionReceipt(runId))
     .filter((receipt): receipt is NonNullable<ReturnType<typeof loadExecutionReceipt>> => Boolean(receipt))
     .map((receipt) => {
+      const receiptRunId = getReceiptRunId(receipt)
+      const commands = getReceiptCommands(receipt)
       const startedAt = new Date(receipt.startedAt).toISOString()
       const endedAt = new Date(receipt.completedAt).toISOString()
-      const command = receipt.commandsExecuted[0] || receipt.actionsPerformed[0] || 'Persisted receipt'
+      const command = commands[0]?.command || 'Persisted receipt'
+      const exitCode = commands.find((entry) => typeof entry.exitCode === 'number')?.exitCode ?? null
+      const failed = receipt.status !== 'succeeded'
       return {
-        id: receipt.runId,
-        sessionId: receipt.transactionId || receipt.runId,
+        id: receiptRunId,
+        sessionId: receiptRunId,
         title: command,
         command,
         cwd: '',
-        status: receipt.exitCode === 0 && !receipt.rollbackOccurred ? 'ok' : 'failed',
+        status: failed ? 'failed' : 'ok',
         startedAt,
         updatedAt: endedAt,
         endedAt,
-        exitCode: receipt.exitCode,
-        commandCount: Math.max(1, receipt.commandsExecuted.length),
-        failedCount: receipt.exitCode === 0 && !receipt.rollbackOccurred ? 0 : 1,
-        latestReceiptId: receipt.runId,
+        exitCode,
+        commandCount: Math.max(1, commands.length),
+        failedCount: failed ? 1 : 0,
+        latestReceiptId: receiptRunId,
         source: 'renderer-execution-receipt',
         restored: true,
       }

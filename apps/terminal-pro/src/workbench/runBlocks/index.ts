@@ -1,10 +1,10 @@
 export type {
-  DiffSummary,
-  ExecutionReceipt,
   ReceiptRef,
   RunBlock,
   RunBlockStatus,
   RuntimeTimelineEvent,
+  FileChangeReceipt,
+  ExecutionReceipt,
 } from './types.js'
 
 export {
@@ -14,10 +14,9 @@ export {
 } from './cognitionStream.js'
 
 export {
-  executionReceiptFromRecord,
-  legacyProductRunBlock,
-  receiptSummaryLine,
   runBlockFromExecutionRecord,
+  receiptSummaryLine,
+  executionReceiptFromRecord,
 } from './fromExecutionRecord.js'
 
 export { loadExecutionReceipt, listPersistedReceiptRunIds, persistExecutionReceipt } from './receiptPersistence.js'

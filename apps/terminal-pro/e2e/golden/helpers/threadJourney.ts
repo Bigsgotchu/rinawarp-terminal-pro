@@ -37,24 +37,45 @@ export async function seedGoldenThreadJourney(page: Page, kind: GoldenJourneyKin
       const exitCode = verified ? 0 : 1
 
       const receipt = {
-        runId,
-        actionsPerformed: ['inspect', 'execute', 'verify'],
-        filesChanged: kind === 'build' || kind === 'memory-fix' ? ['src/index.ts'] : [],
-        commandsExecuted:
+        id: runId,
+        sessionId: runId,
+        workspaceId: workspaceKey,
+        userIntent: userText,
+        planId: runId,
+        startedAt: new Date(now - 4200).toISOString(),
+        completedAt: new Date(now).toISOString(),
+        status: verified ? 'succeeded' : 'failed',
+        fileChanges: kind === 'build' || kind === 'memory-fix' ? ['src/index.ts'] : [],
+        commands:
           kind === 'build'
-            ? ['pnpm build']
+            ? [{ id: `${runId}:command`, command: 'pnpm build', cwd: workspaceKey, startedAt: new Date(now - 4200).toISOString(), completedAt: new Date(now).toISOString(), exitCode, stdout: '', stderr: '' }]
             : kind === 'test'
-              ? ['pnpm test']
+              ? [{ id: `${runId}:command`, command: 'pnpm test', cwd: workspaceKey, startedAt: new Date(now - 4200).toISOString(), completedAt: new Date(now).toISOString(), exitCode, stdout: '', stderr: '' }]
               : kind === 'deploy'
-                ? ['pnpm run deploy']
-                : ['pnpm build'],
-        verificationResults: rollback
-          ? ['Verification failed; changes rolled back']
-          : ['All checks passed'],
-        rollbackOccurred: rollback,
-        exitCode,
-        startedAt: now - 4200,
-        completedAt: now,
+                ? [{ id: `${runId}:command`, command: 'pnpm run deploy', cwd: workspaceKey, startedAt: new Date(now - 4200).toISOString(), completedAt: new Date(now).toISOString(), exitCode, stdout: '', stderr: '' }]
+                : [{ id: `${runId}:command`, command: 'pnpm build', cwd: workspaceKey, startedAt: new Date(now - 4200).toISOString(), completedAt: new Date(now).toISOString(), exitCode, stdout: '', stderr: '' }],
+        mcpCalls: [],
+        artifacts: [],
+        verification: {
+          status: verified ? 'passed' : 'failed',
+          checks: [
+            {
+              label: rollback ? 'Verification failed; changes rolled back' : 'All checks passed',
+              type: 'command',
+              status: verified ? 'passed' : 'failed',
+              evidence: verified ? 'Command completed successfully.' : 'Rollback applied after verification failure.',
+              exitCode,
+            },
+          ],
+          conclusion: rollback ? 'Verification failed; changes rolled back' : 'All checks passed',
+          recoverySuggested: rollback,
+        },
+        risk: {
+          level: 'low',
+          reasons: [],
+          approvals: [],
+        },
+        summary: verified ? 'Execution completed with proof.' : 'Verification failed; workspace restored from backup.',
       }
 
       const runBlock = {
@@ -64,19 +85,19 @@ export async function seedGoldenThreadJourney(page: Page, kind: GoldenJourneyKin
         summary: verified
           ? 'I ran 1 command, updated 1 file in 4s, and verification passed.'
           : 'Verification failed; workspace restored from backup.',
-        command: receipt.commandsExecuted[0],
+        command: receipt.commands[0].command,
         cwd: workspaceKey !== '__none__' ? workspaceKey : '/tmp/rinawarp-e2e-project',
         status: rollback ? 'rolled_back' : verified ? 'success' : 'failed',
-        startedAt: receipt.startedAt,
-        completedAt: receipt.completedAt,
+        startedAt: now - 4200,
+        completedAt: now,
         exitCode,
         receipts: [{ id: runId, label: 'execution receipt' }],
         timeline: [
-          { type: 'execution.started', at: receipt.startedAt, cognitionLabel: 'Starting execution' },
-          { type: 'execution.progress', at: receipt.startedAt + 1, cognitionLabel: 'Running workspace checks' },
+          { type: 'execution.started', at: now - 4200, cognitionLabel: 'Starting execution' },
+          { type: 'execution.progress', at: now - 4199, cognitionLabel: 'Running workspace checks' },
           {
             type: rollback ? 'transaction.rolled_back' : 'execution.completed',
-            at: receipt.completedAt,
+            at: now,
             cognitionLabel: rollback ? 'Restored workspace backup' : 'Execution completed',
           },
         ],
@@ -131,7 +152,7 @@ export async function seedGoldenThreadJourney(page: Page, kind: GoldenJourneyKin
           id: `thread:verify:${runId}`,
           type: 'verification',
           runId,
-          results: receipt.verificationResults,
+          results: receipt.verification.checks.map((check) => check.label),
           createdAt: now - 3000,
           workspaceKey,
         },
@@ -147,12 +168,12 @@ export async function seedGoldenThreadJourney(page: Page, kind: GoldenJourneyKin
           id: runId,
           sessionId: runId,
           title: userText,
-          command: receipt.commandsExecuted[0],
+          command: receipt.commands[0].command,
           cwd: runBlock.cwd,
           status: verified ? 'ok' : 'failed',
-          startedAt: new Date(receipt.startedAt).toISOString(),
-          updatedAt: new Date(receipt.completedAt).toISOString(),
-          endedAt: new Date(receipt.completedAt).toISOString(),
+          startedAt: receipt.startedAt,
+          updatedAt: receipt.completedAt,
+          endedAt: receipt.completedAt,
           exitCode,
           commandCount: 1,
           failedCount: verified ? 0 : 1,

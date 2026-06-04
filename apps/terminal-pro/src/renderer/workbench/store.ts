@@ -338,12 +338,12 @@ function reduce(state: WorkbenchState, action: WorkbenchAction): WorkbenchState 
     }
 
     case 'executionReceipts/upsert': {
-      const runBlock = state.runBlocksById[action.receipt.runId]
+      const runBlock = state.runBlocksById[action.receipt.planId ?? action.receipt.id]
       const nextReceipts = {
         ...state.executionReceiptsByRunId,
-        [action.receipt.runId]: action.receipt,
+        [action.receipt.id]: action.receipt,
       }
-      const alreadyRecorded = Boolean(state.executionReceiptsByRunId[action.receipt.runId])
+      const alreadyRecorded = Boolean(state.executionReceiptsByRunId[action.receipt.id])
       const executionMetrics = alreadyRecorded
         ? state.analytics.executionMetrics
         : recordExecutionMetrics(state.analytics.executionMetrics, action.receipt, runBlock)

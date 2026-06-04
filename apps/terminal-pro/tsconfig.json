@@ -29,6 +29,7 @@
     "removeComments": true,
     "baseUrl": ".",
     "paths": {
+      "@rinawarp/rina-contracts": ["../../packages/rina-contracts/dist/index.d.ts"],
       "@rinawarp/rina-core": ["../../packages/rina-core/dist/index.d.ts"],
       "@rinawarp/rina-runtime/*": ["../../packages/rina-runtime/dist/*"]
     }
@@ -36,6 +37,7 @@
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
   "exclude": ["src/**/*.test.ts", "src/**/smoke-test.ts", "src/**/*-test.ts", "src/renderer/**/*", "dist", "node_modules"],
   "references": [
+    { "path": "../../packages/rina-contracts" },
     { "path": "../../packages/rina-core" },
     { "path": "../../packages/rina-runtime" },
     { "path": "../../packages/rinawarp-context" },

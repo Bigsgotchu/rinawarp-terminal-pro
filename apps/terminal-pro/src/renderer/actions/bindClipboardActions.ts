@@ -2,6 +2,7 @@ import type { WorkbenchActionControllerDeps } from './actionController.js'
 import { WorkbenchStore } from '../workbench/store.js'
 import { receiptReferenceForFix } from '../state/receiptOwnership.js'
 import { recordActivationTelemetry } from '../services/rendererTelemetry.js'
+import { getReceiptId, getReceiptRunId, getReceiptVerificationChecks } from '../../workbench/runBlocks/receiptCompat.js'
 
 type ReceiptExportPayload = {
   exportedAt: string
@@ -40,12 +41,12 @@ function asRecord(value: unknown): Record<string, any> {
 }
 
 function pickReceiptId(receipt: Record<string, any>): string {
-  return String(receipt.id || receipt.receiptId || receipt.runId || receipt.sessionId || receipt.session?.id || '').trim()
+  return String(getReceiptId(receipt) || receipt.receiptId || receipt.sessionId || receipt.session?.id || '').trim()
 }
 
 function pickReceiptRunId(receipt: Record<string, any>, store: WorkbenchStore): string | null {
   const receiptId = pickReceiptId(receipt)
-  const direct = String(receipt.runId || '').trim()
+  const direct = getReceiptRunId(receipt)
   if (direct) return direct
   const sessionId = String(receipt.sessionId || receipt.session?.id || '').trim()
   const run = store.getState().runs.find((entry) => {
@@ -82,11 +83,7 @@ function buildCurrentReceiptExport(store: WorkbenchStore): ReceiptExportPayload 
     })
     .map((block) => block.id)
 
-  const verificationResults = Array.isArray(runtimeReceipt?.verificationResults)
-    ? runtimeReceipt.verificationResults
-    : Array.isArray(source.verificationResults)
-      ? source.verificationResults.map(String)
-      : []
+  const verificationResults = getReceiptVerificationChecks(runtimeReceipt || source).map((check) => check.label)
 
   return {
     exportedAt: new Date().toISOString(),

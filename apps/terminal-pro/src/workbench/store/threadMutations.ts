@@ -1,6 +1,8 @@
 import type { RinaExecutionRecord } from '@rinawarp/rina-core'
-import { executionReceiptFromRecord, runBlockFromExecutionRecord } from '../runBlocks/fromExecutionRecord.js'
+import { runBlockFromExecutionRecord } from '../runBlocks/fromExecutionRecord.js'
+import { executionReceiptFromRecord } from '../runBlocks/fromExecutionRecord.js'
 import { buildExecutionSummaryText, buildMemorySurfaceText } from '../runBlocks/executionSummary.js'
+import { getReceiptVerificationChecks } from '../runBlocks/receiptCompat.js'
 import type {
   AssistantMessageItem,
   AssistantPlanItem,
@@ -233,12 +235,13 @@ export function threadItemsFromExecutionRecord(
     })
   }
 
-  if (receipt.verificationResults.length > 0) {
+  const verificationChecks = getReceiptVerificationChecks(receipt)
+  if (verificationChecks.length > 0) {
     items.push({
       id: `thread:verify:${record.runId}`,
       type: 'verification',
       runId: record.runId,
-      results: receipt.verificationResults,
+      results: verificationChecks.map((c) => c.label),
       createdAt: baseTs + 6,
       workspaceKey: opts.workspaceKey,
     })

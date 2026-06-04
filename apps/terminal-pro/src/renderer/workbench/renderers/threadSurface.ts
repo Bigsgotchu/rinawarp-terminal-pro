@@ -6,6 +6,12 @@ import type { ThreadItem } from '../../../workbench/store/threadTypes.js'
 import type { ExecutionReceipt } from '../../../workbench/runBlocks/types.js'
 import { resolveThreadItems } from '../../../workbench/store/threadMutations.js'
 import { buildRollbackFailureStory } from '../../../workbench/runBlocks/executionSummary.js'
+import {
+  getReceiptCommands,
+  getReceiptFileChanges,
+  getReceiptRunId,
+  getReceiptVerificationChecks,
+} from '../../../workbench/runBlocks/receiptCompat.js'
 
 function runModelFromThreadRun(state: WorkbenchState, runId: string, runBlock: ThreadItem & { type: 'run-block' }): RunModel {
   const existing = state.runs.find((run) => run.id === runId)
@@ -40,8 +46,10 @@ function runModelFromThreadRun(state: WorkbenchState, runId: string, runBlock: T
   }
 }
 
-function formatDurationMs(startedAt: number, completedAt: number): string {
-  const seconds = Math.max(1, Math.round((completedAt - startedAt) / 1000))
+function formatDurationMs(startedAt: string | number, completedAt: string | number): string {
+  const start = typeof startedAt === 'string' ? Date.parse(startedAt) : startedAt
+  const complete = typeof completedAt === 'string' ? Date.parse(completedAt) : completedAt
+  const seconds = Math.max(1, Math.round((complete - start) / 1000))
   return seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`
 }
 
@@ -144,48 +152,55 @@ function renderVerification(item: Extract<ThreadItem, { type: 'verification' }>)
 
 function receiptActionButtons(receipt: ExecutionReceipt): HTMLElement {
   const actions = el('div', { class: 'rw-receipt-actions' })
+  const receiptRunId = getReceiptRunId(receipt)
+  const fileChanges = getReceiptFileChanges(receipt)
   actions.appendChild(
-    el('button', { type: 'button', class: 'secondary-btn', dataset: { receiptViewLogs: receipt.runId } }, 'View logs'),
+    el('button', { type: 'button', class: 'secondary-btn', dataset: { receiptViewLogs: receiptRunId } }, 'View logs'),
   )
-  if (receipt.filesChanged.length > 0) {
+  if (fileChanges.length > 0) {
     actions.appendChild(
-      el('button', { type: 'button', class: 'secondary-btn', dataset: { receiptViewDiff: receipt.runId } }, 'View diff'),
+      el('button', { type: 'button', class: 'secondary-btn', dataset: { receiptViewDiff: receiptRunId } }, 'View diff'),
     )
   }
   actions.appendChild(
-    el('button', { type: 'button', class: 'secondary-btn', dataset: { receiptReplay: receipt.runId } }, 'Replay'),
+    el('button', { type: 'button', class: 'secondary-btn', dataset: { receiptReplay: receiptRunId } }, 'Replay'),
   )
   actions.appendChild(
-    el('button', { type: 'button', class: 'secondary-btn is-subtle', dataset: { receiptCopy: receipt.runId } }, 'Copy summary'),
+    el('button', { type: 'button', class: 'secondary-btn is-subtle', dataset: { receiptCopy: receiptRunId } }, 'Copy summary'),
   )
   return actions
 }
 
 function renderReceipt(state: WorkbenchState, item: Extract<ThreadItem, { type: 'receipt' }>): HTMLElement {
   const receipt = item.receipt
-  const verified = receipt.exitCode === 0 && !receipt.rollbackOccurred
+  const receiptRunId = getReceiptRunId(receipt)
+  const commands = getReceiptCommands(receipt)
+  const fileChanges = getReceiptFileChanges(receipt)
+  const verificationChecks = getReceiptVerificationChecks(receipt)
+  const verified = receipt.status === 'succeeded' && receipt.verification.status === 'passed'
+  const rolledBack = receipt.status === 'cancelled'
   const duration = formatDurationMs(receipt.startedAt, receipt.completedAt)
-  const runBlock = state.runBlocksById[receipt.runId]
+  const runBlock = state.runBlocksById[receiptRunId]
 
   const header = el('div', { class: 'rw-receipt-card-header' })
   header.appendChild(el('div', { class: 'rw-receipt-card-title' }, 'Proof'))
   header.appendChild(
     el(
       'span',
-      { class: ['rw-trust-badge', verified ? 'is-verified' : receipt.rollbackOccurred ? 'is-rolled-back' : 'is-failed'].join(' ') },
-      verified ? 'Verified' : receipt.rollbackOccurred ? 'Rolled back' : 'Failed',
+      { class: ['rw-trust-badge', verified ? 'is-verified' : rolledBack ? 'is-rolled-back' : 'is-failed'].join(' ') },
+      verified ? 'Verified' : rolledBack ? 'Rolled back' : 'Failed',
     ),
   )
 
   const grid = el('div', { class: 'rw-receipt-card-grid' })
   const rows: Array<[string, string]> = [
-    ['Run ID', receipt.runId],
+    ['Run ID', receiptRunId],
     ['Duration', duration],
-    ['Exit code', String(receipt.exitCode)],
-    ['Rollback', receipt.rollbackOccurred ? 'Yes — workspace restored' : 'No'],
-    ['Commands', receipt.commandsExecuted.join(' · ') || '—'],
-    ['Files changed', receipt.filesChanged.join(', ') || '—'],
-    ['Verification', receipt.verificationResults.join(' · ') || '—'],
+    ['Exit code', String(receipt.commands.find((command) => typeof command.exitCode === 'number')?.exitCode ?? '—')],
+    ['Rollback', rolledBack ? 'Yes — workspace restored' : 'No'],
+    ['Commands', commands.map((command) => command.command).join(' · ') || '—'],
+    ['Files changed', fileChanges.map((change) => change.path).join(', ') || '—'],
+    ['Verification', verificationChecks.map((check) => check.label).join(' · ') || '—'],
   ]
   for (const [label, value] of rows) {
     grid.appendChild(
@@ -194,17 +209,17 @@ function renderReceipt(state: WorkbenchState, item: Extract<ThreadItem, { type: 
   }
 
   const card = el('div', {
-    class: ['rw-receipt-card', verified ? 'is-verified' : receipt.rollbackOccurred ? 'is-rollback' : 'is-failed'].join(' '),
+    class: ['rw-receipt-card', verified ? 'is-verified' : rolledBack ? 'is-rollback' : 'is-failed'].join(' '),
   })
   card.appendChild(header)
   card.appendChild(grid)
 
-  if (receipt.rollbackOccurred) {
+  if (rolledBack) {
     card.appendChild(el('p', { class: 'rw-receipt-failure-story' }, buildRollbackFailureStory(receipt, runBlock)))
   }
 
   card.appendChild(receiptActionButtons(receipt))
-  return el('div', { class: 'rw-thread-receipt', dataset: { runId: receipt.runId, threadItem: item.type } }, card)
+  return el('div', { class: 'rw-thread-receipt', dataset: { runId: receiptRunId, threadItem: item.type } }, card)
 }
 
 export function renderThreadItem(state: WorkbenchState, item: ThreadItem): HTMLElement {
