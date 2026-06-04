@@ -76,6 +76,7 @@
     "beta:outreach:show-leads": "bash scripts/founder/beta-outreach/show-leads.sh",
     "beta:export-signups": "bash scripts/ops/beta-export-signups.sh",
     "beta:email-welcome": "bash scripts/ops/beta-email-welcome.sh",
+    "beta:run": "node scripts/founder/beta-outreach/run-beta.mjs",
     "verify:prelaunch:full": "bash scripts/qa/verify-prelaunch-full.sh",
     "e2e:revenue": "bash scripts/smoke/e2e-revenue.sh https://www.rinawarptech.com https://www.rinawarptech.com https://rinawarp-downloads.rinawarptech.workers.dev",
     "kpi:snapshot": "bash scripts/ops/kpi-snapshot.sh https://www.rinawarptech.com https://www.rinawarptech.com https://rinawarp-downloads.rinawarptech.workers.dev",
