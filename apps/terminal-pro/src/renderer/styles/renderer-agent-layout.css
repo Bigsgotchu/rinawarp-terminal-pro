@@ -283,18 +283,19 @@
 }
 
 .rw-agent-composer {
-  position: sticky;
-  bottom: 0;
+  position: relative;
   z-index: 10;
-  margin-inline: -14px;
-  background: linear-gradient(180deg, rgba(8, 12, 18, 0.88), rgba(5, 8, 12, 0.98));
+  background: linear-gradient(180deg, rgba(8, 12, 18, 0.95), rgba(5, 8, 12, 0.98));
   backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 8px 12px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px 12px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
+  margin: 0 0 8px 0;
+  box-shadow: 0 4px 20px rgba(4, 9, 18, 0.15);
 }
 
 .rw-agent-composer > * {
@@ -303,38 +304,25 @@
 }
 
 .rw-agent-body.is-recovery-focus {
-  padding-block-end: 44px;
-}
-
-
-.rw-agent-input-container {
-  position: fixed;
-  bottom: 0;
-  left: 41px;
-  right: 0;
-  z-index: 10;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  padding-block-end: 56px;
 }
 
 .rw-agent-input {
   flex: 1;
-  min-block-size: 38px;
-  block-size: 38px;
+  min-block-size: 48px;
+  block-size: auto;
+  max-block-size: 120px;
   resize: none;
   border: 1px solid rgba(124, 199, 255, 0.14);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.035);
   color: var(--rw-fg);
   font: 600 0.72rem/1.35 var(--font-ui);
-  padding: 10px 12px;
+  padding: 12px 14px;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .rw-agent-input:focus {
@@ -431,12 +419,18 @@
   display: flex;
 }
 
-#agent-starter-prompts {
+.rw-agent-suggestions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   align-items: flex-start;
   min-block-size: 0;
+  padding: 8px 0;
+  margin: 0;
+}
+
+.rw-agent-suggestions.is-hidden {
+  display: none;
 }
 
 .rw-agent-welcome-card {

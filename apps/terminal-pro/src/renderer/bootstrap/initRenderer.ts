@@ -1,24 +1,21 @@
 /**
  * Renderer Bootstrap
  *
- * Orchestrates startup for the canonical workbench shell.
+ * Orchestrates startup for the canonical Agent Shell.
  */
 
 import { domReady } from './domReady.js'
-import { initWorkbenchShellRenderer } from '../modern/initWorkbenchShellRenderer.js'
+import { initAgentShellRenderer } from '../modern/initAgentShellRenderer.js'
 import { applySelectedThemeFromApi } from '../theme/selectedTheme.js'
 
 export async function initRenderer(): Promise<void> {
-  console.log('[renderer] bootstrap starting')
   await domReady()
 
   document.documentElement.setAttribute(
     'data-rw-renderer-flavor-active',
-    'workbench-shell'
+    'agent-shell'
   )
 
-  await initWorkbenchShellRenderer()
+  await initAgentShellRenderer()
   await applySelectedThemeFromApi()
-
-  console.log('[renderer] bootstrap complete')
 }

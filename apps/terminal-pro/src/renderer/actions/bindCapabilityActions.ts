@@ -39,7 +39,7 @@ export function createCapabilityActionHandler<TFixBlockManager extends Workbench
       if (!agentName) return true
       resetUserTurnSubmitGuard()
 
-      const currentTier = String(store.getState().license.tier || 'free').toLowerCase()
+      const currentTier = String(store.getState().license?.tier || 'free').toLowerCase()
       const premiumLocked = (currentTier === 'free' || currentTier === 'starter')
         && store.getState().marketplace.agents.find((agent) => agent.name === agentName)?.price
       if (premiumLocked) {
@@ -74,7 +74,7 @@ export function createCapabilityActionHandler<TFixBlockManager extends Workbench
     if (capabilityInstallBtn?.dataset.capabilityInstall) {
       const packKey = capabilityInstallBtn.dataset.capabilityInstall
       resetUserTurnSubmitGuard()
-      const currentTier = String(store.getState().license.tier || 'free').toLowerCase()
+      const currentTier = String(store.getState().license?.tier || 'free').toLowerCase()
       const premiumLocked =
         (currentTier === 'free' || currentTier === 'starter') &&
         store.getState().capabilities.packs.some((pack) => pack.key === packKey && Number(pack.price || 0) > 0)

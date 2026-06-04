@@ -19,7 +19,7 @@ const requiredBuiltRendererPath = path.join(builtRendererRoot, 'renderer.html')
 const productionBootFiles = [
   requiredIndexTsPath,
   path.join(rendererRoot, 'bootstrap/initRenderer.ts'),
-  path.join(rendererRoot, 'modern/initWorkbenchShellRenderer.ts'),
+  path.join(rendererRoot, 'modern/initAgentShellRenderer.ts'),
   path.join(rendererRoot, 'workbench/render.ts'),
 ]
 

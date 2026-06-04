@@ -1,12 +1,12 @@
 import { createWorkbenchShellFrameModel } from '../modern/workbenchShellFrameModel.js'
 import { renderWorkbenchShellFrame } from '../modern/workbenchShellSurface.js'
 
-export function buildWorkbenchShellFrameMarkup(): string {
+export function buildAgentShellFrameMarkup(): string {
   return renderWorkbenchShellFrame(createWorkbenchShellFrameModel())
 }
 
-export function mountWorkbenchShellFrame(options?: { body?: HTMLElement }): void {
+export function mountAgentShellFrame(options?: { body?: HTMLElement }): void {
   const body = options?.body ?? document.body
   body.innerHTML = renderWorkbenchShellFrame(createWorkbenchShellFrameModel())
-  body.setAttribute('data-rw-shell-frame', 'workbench-shell')
+  body.setAttribute('data-rw-shell-frame', 'agent-shell')
 }

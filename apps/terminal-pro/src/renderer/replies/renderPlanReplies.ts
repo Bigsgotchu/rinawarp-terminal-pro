@@ -117,7 +117,7 @@ export function resolvePromptCapability(state: WorkbenchState, prompt: string): 
   if (!match) return null
   const pack = state.capabilities.packs.find((entry) => entry.key === match.key)
   if (!pack) return null
-  const isFreeTier = state.license.tier === 'free' || state.license.tier === 'starter'
+  const isFreeTier = state.license?.tier === 'free' || state.license?.tier === 'starter'
   if (isFreeTier && pack.tier !== 'starter') {
     return { state: 'locked', pack, reason: match.reason }
   }
@@ -147,7 +147,7 @@ export function buildCapabilityDecisionContent(decision: CapabilityDecision): Me
 
 export function resolvePlanCapabilityRequirements(state: WorkbenchState, steps: FixPlanStep[]): PlanCapabilityRequirement[] {
   const requirements = new Map<string, PlanCapabilityRequirement>()
-  const isFreeTier = state.license.tier === 'free' || state.license.tier === 'starter'
+  const isFreeTier = state.license?.tier === 'free' || state.license?.tier === 'starter'
   for (const step of steps) {
     const match = matchPlanStepCapability(step)
     if (!match) continue

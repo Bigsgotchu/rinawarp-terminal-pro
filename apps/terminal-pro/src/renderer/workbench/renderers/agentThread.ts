@@ -13,7 +13,15 @@ import { buildWorkspaceSetupCardModel } from '../view-models/agentThreadModel.js
 import { getStarterPromptViewModels } from '../view-models/suggestedActionsViewModel.js'
 
 function syncStarterPromptChips(): void {
-  // Launch chips are static; no tier/meta sync on empty state.
+  const container = document.getElementById('agent-starter-prompts')
+  if (!container) return
+  const hasThreadContent = document.querySelector('.rw-agent-body')?.classList.contains('has-thread-content')
+  if (hasThreadContent) {
+    clear(container)
+    return
+  }
+  const prompts = getStarterPromptViewModels({} as WorkbenchState)
+  mountStarterPromptMount(container, prompts)
 }
 
 function blocksSignature(content: WorkbenchState['chat'][number]['content']): string {
@@ -46,9 +54,11 @@ function renderComposerStarterPrompts(state: WorkbenchState, hasThreadContent: b
   const container = document.getElementById('agent-starter-prompts')
   if (!container) return
   if (hasThreadContent) {
-    clearStarterPromptMount(container)
+    clear(container)
+    container.classList.add('is-hidden')
     return
   }
+  container.classList.remove('is-hidden')
   mountStarterPromptMount(container, hasProofHistory(state) ? EMPTY_STATE_PROMPTS : getStarterPromptViewModels(state))
 }
 
@@ -109,7 +119,6 @@ export function renderAgentThreadSurface(state: WorkbenchState): void {
   const canShowRecovery = Boolean(stripModel)
   const recoveryFocus = canShowRecovery && hasAgentRecoveryOnly(state)
   const shouldCompactRecovery = recoveryMessages.length > 0 && !state.ui.recoveryExpanded
-  // Recovery intro should not persist once the user has started a real chat thread.
   const shouldShowRecoveryStrip = canShowRecovery && recoveryMessages.length > 0 && !hasThreadContent
 
   if (recoveryRoot) {

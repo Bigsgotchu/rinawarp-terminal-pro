@@ -1,0 +1,37 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "mcp": {
+    "browserbase": {
+      "type": "local",
+      "command": [
+        "npx",
+        "@browserbasehq/mcp"
+      ],
+      "environment": {
+        "BROWSERBASE_API_KEY": "1036725c-cd00-49d6-b968-86c44b3e2f2b",
+        "BROWSERBASE_PROJECT_ID": "81a2b0ce-faa7-4faf-a11d-e5d69b4b5008"
+      }
+    },
+    "figma-dev-mode": {
+      "type": "remote",
+      "url": "http://127.0.0.1:3845/sse"
+    },
+    "laravel-boost": {
+      "type": "local",
+      "command": [
+        "php",
+        "artisan",
+        "boost:mcp"
+      ]
+    },
+    "sentry": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "mcp-server-sentry",
+        "--auth-token",
+        "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"
+      ]
+    }
+  }
+}

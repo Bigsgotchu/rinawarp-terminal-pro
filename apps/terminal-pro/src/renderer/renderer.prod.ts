@@ -82,7 +82,6 @@ declare const window: RinaRendererWindow
 // Initialize when DOM is ready
 export async function initProductionRenderer(): Promise<void> {
   const bootStartedAt = performance.now()
-  console.log('[ui] renderer.prod boot', new Date().toISOString())
   document.documentElement.setAttribute('data-rw-renderer', 'prod')
   console.log('Initializing RinaWarp Terminal Pro - Production Renderer')
   if (location.pathname.includes('dist-electron/renderer')) {

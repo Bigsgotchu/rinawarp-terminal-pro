@@ -90,6 +90,9 @@ export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
             <div id="agent-recovery"></div>
             <div id="agent-output"></div>
             <div id="agent-plan-container"></div>
+            <div class="rw-agent-suggestions">
+              <div id="agent-starter-prompts" class="rw-agent-prompts"></div>
+            </div>
             <div class="rw-agent-composer">
               <textarea
                 id="agent-input"
@@ -99,7 +102,6 @@ export function createWorkbenchShellFrameModel(): WorkbenchShellFrameModel {
                 data-testid="rina-chat-input"
                 spellcheck="false"
               ></textarea>
-              <div id="agent-starter-prompts" class="rw-agent-prompts"></div>
               <div class="rw-agent-composer-actions">
                 <button id="agent-send" class="rw-agent-send" type="button" data-testid="rina-chat-send">Send</button>
               </div>

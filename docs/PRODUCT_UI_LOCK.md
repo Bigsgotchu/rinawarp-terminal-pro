@@ -1,4 +1,10 @@
-# RinaWarp Terminal Pro UI Lock
+# RinaWarp Terminal Pro Product UI Lock
+
+Product: RinaWarp Terminal Pro
+AI copilot: Rina
+Desktop container: Agent Shell
+Primary user experience: Agent Thread
+Agent Thread is the visual focus
 
 RinaWarp Terminal Pro uses a professional dark Agent Shell.
 
@@ -15,6 +21,24 @@ The product is not a workbench. Agent Shell is only the Electron container. Agen
 - No bubble/card-heavy design
 - No childish rounded cards
 - No duplicate panels
+
+## CSS Design Tokens
+
+Use these canonical tokens:
+
+- --bg-app: main application background
+- --bg-panel: panel/card background
+- --bg-elevated: elevated surface background
+- --text-primary: primary text color
+- --text-secondary: secondary text color
+- --accent-pink: pink accent color
+- --accent-cyan: cyan accent color
+- --accent-purple: purple accent color
+- --success: success state color
+- --warning: warning state color
+- --danger: danger/error color
+- --border-subtle: subtle border color
+- --glow-accent: accent glow effect
 
 ## Radius Rule
 
