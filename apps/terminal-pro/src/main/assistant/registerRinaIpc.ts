@@ -19,6 +19,7 @@ import {
   submitUiPrompt,
 } from './rinaIntentLoop.js'
 import { getOperationalTelemetry } from '../telemetry/operationalTelemetry.js'
+import { resolveSharedWorkspaceCwd } from '../runtime/runtimeAccess.js'
 
 type DiagnosticsBundleDeps = unknown
 
@@ -121,7 +122,7 @@ export function registerRinaIpc(deps: RegisterRinaIpcDeps): void {
   )
 
   replaceHandler(ipcMain, 'rina:agent:run', async (_event: IpcMainInvokeEvent, args: AgentRunRequest | undefined) => {
-    const projectRoot = String(args?.projectRoot || process.cwd())
+    const projectRoot = resolveSharedWorkspaceCwd(typeof args?.projectRoot === 'string' ? args.projectRoot : undefined)
     const prompt = String(args?.prompt || '').trim()
     const record = await submitUiPrompt(prompt, projectRoot, undefined, { memory, stream })
     assertRinaExecutionResult(record)
@@ -137,7 +138,8 @@ export function registerRinaIpc(deps: RegisterRinaIpcDeps): void {
     if (!intent) {
       return deniedExecutionRecord(`invalid:${Date.now()}`, 'The intent payload was invalid, so no runtime work was started.')
     }
-    const record = await submitRinaIntent(intent, String(args.context?.projectRoot || process.cwd()), args.context, {
+    const contextProjectRoot = args.context?.projectRoot
+    const record = await submitRinaIntent(intent, resolveSharedWorkspaceCwd(typeof contextProjectRoot === 'string' ? contextProjectRoot : undefined), args.context, {
       memory,
       stream,
     })

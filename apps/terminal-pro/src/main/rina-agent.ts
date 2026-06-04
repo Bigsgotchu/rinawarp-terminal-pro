@@ -6,6 +6,7 @@ import { decideNextStep, proposePatchForFailure, type AgentModelState } from "./
 import { evaluateToolCall } from "./rina-policy.js";
 import { executeTool, type RinaToolCall, type RinaToolDeps, type RinaToolResult } from "./rina-tools.js";
 import { recordPatchBytes, recordToolCall } from "./rina-usage-meter.js";
+import { resolveSharedWorkspaceCwd } from "./runtime/runtimeAccess.js";
 import type { UsageLimit } from "./rina-usage-limits.js";
 import type { ExecutionSandbox } from "@rinawarp/rina-runtime/execution/sandbox";
 
@@ -1843,7 +1844,7 @@ export async function continueRinaAgentAfterFilePatchApproval(
   payload: FilePatchApprovalPayload,
   deps: RinaAgentDeps = {},
 ): Promise<RinaAgentResult> {
-  const cwd = request.cwd || deps.cwd || process.cwd();
+  const cwd = resolveSharedWorkspaceCwd(request.cwd || deps.cwd);
   const relativePath = String(payload.path || "").trim();
   const newContent = String(payload.newContent ?? "");
   const expectedCurrentContent = String(payload.currentContent ?? "");

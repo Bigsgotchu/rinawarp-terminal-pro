@@ -1779,7 +1779,6 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
         <div class="nav-links">
           ${navLink('/', 'Home', active, 'home')}
           ${navLink('/products', 'Products', active, 'products')}
-          <a href="/matter-intelligence">Matter Intelligence</a>
           ${navLink('/pricing', 'Pricing', active, 'pricing')}
           ${navLink('/download', 'Download', active, 'download')}
           ${navLink('/docs', 'Docs', active, 'docs')}
@@ -2032,8 +2031,8 @@ function renderProducts(): Response {
             </div>
           </div>
           <div class="cta-row">
-            <a href="/matter-intelligence" class="btn btn-primary">Explore Matter Intelligence</a>
-            <a href="/matter-intelligence/demo" class="btn btn-secondary">Request demo</a>
+            <a href="/products" class="btn btn-primary">Explore RinaWarp products</a>
+            <a href="/support" class="btn btn-secondary">Contact RinaWarp</a>
           </div>
         </article>
       </div>
@@ -2053,8 +2052,8 @@ function renderMatterIntelligenceOverview(): Response {
           <p class="hero-copy">RinaWarp Matter Intelligence helps legal, finance, and compliance teams reconstruct what happened, what changed, what deadlines exist, and which evidence supports the answer.</p>
           <p class="lede">Connect Outlook and SharePoint. Open a matter. Ask a question. Get a cited answer and a draft status memo grounded in the source material.</p>
           <div class="cta-row">
-            <a href="/matter-intelligence/demo" class="btn btn-primary">Request demo</a>
-            <a href="/matter-intelligence/pricing" class="btn btn-secondary">See pricing</a>
+            <a href="/support" class="btn btn-primary">Request demo</a>
+            <a href="/pricing" class="btn btn-secondary">See pricing</a>
           </div>
           <div class="trust-row">
             <span class="trust-chip">Source-linked answers</span>
@@ -2496,11 +2495,11 @@ function renderMatterIntelligenceDownload(): Response {
           <h2>Current access model</h2>
           <p>Early customers are onboarded through a guided setup. That keeps account creation, entitlements, workspace creation, and connector setup aligned instead of mixing them with the Terminal Pro download path.</p>
           <div class="cta-row">
-            <a href="/matter-intelligence/demo" class="btn btn-primary">Request demo</a>
-            <a href="/matter-intelligence/contact" class="btn btn-secondary">Talk to sales</a>
+            <a href="/support" class="btn btn-primary">Request demo</a>
+            <a href="/support" class="btn btn-secondary">Talk to sales</a>
           </div>
           <div class="cta-row">
-            <a href="/matter-intelligence/pricing" class="btn btn-secondary" id="mi-start-solo">Start Solo checkout</a>
+            <a href="/pricing" class="btn btn-secondary" id="mi-start-solo">Start Solo checkout</a>
             <a href="/account" class="btn btn-secondary" id="mi-open-entitlements">Open account</a>
           </div>
         </article>

@@ -15,6 +15,7 @@ import type { RinaExecutionRecord } from "@rinawarp/rina-core";
 import type { RinaAgentStreamEvent } from "./rina-agent.js";
 import { submitUiPrompt } from "./assistant/rinaIntentLoop.js";
 import { recordAgentRunStarted } from "./rina-usage-meter.js";
+import { resolveSharedWorkspaceCwd } from "./runtime/runtimeAccess.js";
 import type { RinaPlan } from "./rina-usage-limits.js";
 
 const execFileAsync = promisify(execFile);
@@ -1069,7 +1070,7 @@ export async function runInlineRina(args: {
   }
 
   const transcript = tailLines(String(args.session?.transcriptBuffer || ""), 24);
-  const projectRoot = args.request.projectRoot || args.session?.cwd || process.cwd();
+  const projectRoot = resolveSharedWorkspaceCwd(args.request.projectRoot || args.session?.cwd);
 
   if (isDangerousActionPrompt(prompt)) {
     return dangerousActionRefusal(prompt);

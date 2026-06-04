@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import electron from "electron";
 import { RINA_USAGE_LIMITS, type RinaPlan } from "./rina-usage-limits.js";
@@ -28,7 +29,7 @@ function usagePath(): string {
   if (override) return override;
   const userDataDir = typeof app?.getPath === "function"
     ? app.getPath("userData")
-    : path.join(process.cwd(), ".rinawarp-test-data");
+    : path.join(os.tmpdir(), "rinawarp-test-data");
   return path.join(userDataDir, "rina-usage.json");
 }
 

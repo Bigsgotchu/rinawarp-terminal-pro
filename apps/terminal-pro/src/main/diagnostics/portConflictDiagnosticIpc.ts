@@ -5,6 +5,7 @@ import { createPortStopPlan, planRinaTask } from '../../rina-agent/agentPlanner.
 import { executeApprovedCommand, executeUserApprovedCommand } from '../../rina-agent/executionController.js'
 import { applySafety } from '../../rina-agent/safetyGate.js'
 import type { RinaCommandPlan, RinaTaskRequest } from '../../rina-agent/types.js'
+import { resolveSharedWorkspaceCwd } from '../runtime/runtimeAccess.js'
 
 const execAsync = promisify(exec)
 
@@ -74,7 +75,7 @@ function taskRequest(message: string): RinaTaskRequest {
   return {
     id: `port:${Date.now()}`,
     message,
-    cwd: process.cwd(),
+    cwd: resolveSharedWorkspaceCwd(),
   }
 }
 

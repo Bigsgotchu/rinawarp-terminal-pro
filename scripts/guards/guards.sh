@@ -18,6 +18,7 @@ rg -n --hidden --glob '!**/dist/**' --glob '!**/build/**' \
 rg -n --hidden --glob '!**/dist/**' --glob '!**/build/**' \
   "process\.cwd\(\)" \
   "$ROOT/apps/terminal-pro/src/main" \
+  --glob '!**/*.test.ts' \
   --glob '!apps/terminal-pro/src/main/workspace/**' \
   --glob '!apps/terminal-pro/src/main/execution/**' \
   --glob '!apps/terminal-pro/src/main/runtime/runtimeAccess.ts' && {

@@ -191,7 +191,8 @@ describe('Agent Tests', () => {
       latestRun: null,
     })
 
-    assert.match(reply.message, /Nothing has run yet|I can inspect/i)
+    assert.match(reply.message, /No verified run is available yet|Run an inspect pass/i)
+    assert.doesNotMatch(reply.message, /receipt/i)
     assert.doesNotMatch(reply.message, /starting a verification run/i)
   })
 

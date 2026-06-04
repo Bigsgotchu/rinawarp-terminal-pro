@@ -184,7 +184,7 @@ function buildWorkspaceResponse(rawText: string, latestRun?: ConversationRunRefe
       known.push(latestRun.latestExitCode === 0 ? 'Last run finished successfully' : 'Last run failed')
     }
     if (latestRun.latestReceiptId) {
-      known.push('A receipt reference exists for the run')
+      known.push('A Proof reference exists for the run')
     }
   } else {
     known.push('No verified run is available yet')
@@ -192,13 +192,13 @@ function buildWorkspaceResponse(rawText: string, latestRun?: ConversationRunRefe
 
   if (/\b(why|what happened|what failed|what broke|last run|changed)\b/.test(rawText)) {
     unknown.push('Exact root cause and stack trace details')
-    if (!latestRun?.latestReceiptId) unknown.push('Receipt-level execution details')
+    if (!latestRun?.latestReceiptId) unknown.push('Proof-level execution details')
   } else {
     unknown.push('Current workspace state beyond visible run metadata')
   }
 
   const nextMove = latestRun?.latestReceiptId
-    ? 'Open the latest receipt first, then inspect logs for the exact failure path.'
+    ? 'Open the latest Proof first, then inspect logs for the exact failure path.'
     : latestRun?.runId
       ? 'Inspect the latest run logs to confirm the failure cause and next fix.'
       : 'Run an inspect pass on the workspace to establish a verified baseline.'
@@ -219,17 +219,17 @@ function buildActionResponse(rawText: string, latestRun?: ConversationRunReferen
 
   const resumeIntent = /\b(resume|continue|pick up where we left off)\b/.test(rawText)
   const rerunIntent = /\b(rerun|run again|retry)\b/.test(rawText)
-  const receiptIntent = /\b(open receipt|show receipt|receipt)\b/.test(rawText)
+  const receiptIntent = /\b(open receipt|show receipt|receipt|open proof|show proof|proof)\b/.test(rawText)
 
   if (receiptIntent) {
     return `Action:
-- Open receipt
+- Open Proof
 
 Risk:
 - Low risk; read-only verification of prior actions
 
 Recommendation:
-- Open the latest receipt first to verify what already ran before taking any new action.`
+- Open the latest Proof first to verify what already ran before taking any new action.`
   }
 
   if (rerunIntent) {
@@ -240,7 +240,7 @@ Risk:
 - Rerunning may duplicate work or side effects
 
 Recommendation:
-- Check the latest receipt first; rerun only after confirming duplicate effects are acceptable.`
+- Check the latest Proof first; rerun only after confirming duplicate effects are acceptable.`
   }
 
   if (resumeIntent || latestRun?.interrupted) {
@@ -251,7 +251,7 @@ Risk:
 - May repeat steps if earlier execution had side effects
 
 Recommendation:
-- Resume if the task was local and idempotent; otherwise check the receipt first.`
+- Resume if the task was local and idempotent; otherwise check the Proof first.`
   }
 
   return `Action:
@@ -261,7 +261,7 @@ Risk:
 - May change workspace or repeat prior operations depending on command scope
 
 Recommendation:
-- Start with inspection or receipt review, then execute the smallest safe next step.`
+- Start with inspection or Proof review, then execute the smallest safe next step.`
 }
 
 function buildVerificationActionResponse(rawText: string): string | null {
@@ -283,7 +283,7 @@ Plan
 3. Run the matching verification command
 4. Capture stdout, stderr, and exit code
 5. Summarize what failed or passed
-6. Create an execution receipt`
+6. Create Proof for the run`
 }
 
 function buildHelpReply(args: { workspaceLabel?: string; canDeploy: boolean }): string {

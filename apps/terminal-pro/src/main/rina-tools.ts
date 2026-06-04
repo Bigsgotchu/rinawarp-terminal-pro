@@ -2,6 +2,7 @@ import fsp from "node:fs/promises";
 import path from "node:path";
 import { execFile } from "node:child_process";
 import type { ExecutionSandbox } from "@rinawarp/rina-runtime/execution/sandbox";
+import { resolveSharedWorkspaceCwd } from "./runtime/runtimeAccess.js";
 
 export type RinaToolCall =
   | { tool: "listFiles"; path: string }
@@ -60,7 +61,7 @@ async function execWithPtyCapture(command: string, cwd?: string): Promise<string
 }
 
 function defaultCwd(deps?: RinaToolDeps): string {
-  return deps?.cwd || process.cwd();
+  return resolveSharedWorkspaceCwd(deps?.cwd);
 }
 
 async function defaultExecText(command: string, cwd?: string, timeoutMs?: number): Promise<string> {

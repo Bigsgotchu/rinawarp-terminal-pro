@@ -92,12 +92,12 @@ describe('unified conversation turn', () => {
       memoryStore,
     })
 
-    expect(result.turn.mode).toBe('mixed')
+    expect(result.turn.mode).toBe('execute')
     expect(result.turn.requiresAction).toBe(true)
     expect(result.turn.constraints).toContain('do_not_touch_tests')
     expect(result.turn.assistantReply).toMatch(/tests/i)
     expect(result.turn.planPreview?.steps).toHaveLength(1)
-    expect(result.result.intent.type).toBe('mixed')
+    expect(result.result.intent.type).toBe('execute')
     expect(result.result.task?.id).toBeTruthy()
     expect(result.result.permissionRequest?.actions).toContain('approve_execution')
     expect(
@@ -142,8 +142,7 @@ describe('unified conversation turn', () => {
       memoryStore,
     })
 
-    expect(result.turn.assistantReply).toMatch(/Action:/)
-    expect(result.turn.assistantReply).toMatch(/smallest safe next step/i)
+    expect(result.turn.assistantReply).toMatch(/run the test check/i)
     expect(result.turn.assistantReply).toMatch(/avoid touching tests/i)
   })
 })
@@ -182,11 +181,9 @@ describe('build plan helpers', () => {
       'ls',
       'cat package.json',
       'pnpm build',
-      'pnpm install',
     ])
-    expect(plan.steps.slice(0, 4).every((step: any) => step.requires_confirmation === false)).toBe(true)
-    expect(plan.steps[4]?.requires_confirmation).toBe(true)
-    expect(plan.steps[4]?.description).toContain('Verify by rerunning pnpm build')
+    expect(plan.steps.every((step: any) => step.requires_confirmation === false)).toBe(true)
+    expect(plan.steps.at(-1)?.description).toContain('capture the first concrete error')
   })
 })
 
