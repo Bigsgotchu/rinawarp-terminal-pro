@@ -55,6 +55,7 @@
     "guard:site-account": "node scripts/guards/check-site-account-public-contract.mjs",
     "guard:rina-legacy": "node scripts/guards/check-rina-legacy.mjs",
     "guard:doc-source-of-truth": "node scripts/guards/check-doc-source-of-truth.mjs",
+    "report:large-files": "node scripts/guards/report-large-source-files.mjs",
     "guard:intent-contracts": "npm --workspace apps/terminal-pro run qa:intents",
     "guard:single-owner-events": "npm --workspace apps/terminal-pro run qa:ownership",
     "verify:desktop:rc": "bash scripts/qa/verify-desktop-rc.sh",
