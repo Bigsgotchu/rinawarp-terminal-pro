@@ -57,7 +57,7 @@ export class FixBlockManager {
   }
 
   async ensureProAccess(): Promise<boolean> {
-    const license = await window.rina.licenseState()
+    const license = await window.rina?.licenseState?.().catch(() => null)
     if (this.isPaidTier(license?.tier)) return true
     await this.openUpgradeModal()
     return this.refreshProWithRetry()
@@ -201,8 +201,14 @@ export class FixBlockManager {
   private async refreshProWithRetry(deadlineMs = 60_000): Promise<boolean> {
     const deadline = Date.now() + deadlineMs
     while (Date.now() < deadline) {
-      const state = window.rina.licenseRefresh ? await window.rina.licenseRefresh() : await window.rina.licenseState()
-      if (this.isPaidTier(state?.tier)) return true
+      try {
+        const state = window.rina?.licenseRefresh
+          ? await window.rina.licenseRefresh()
+          : await window.rina?.licenseState?.()
+        if (this.isPaidTier(state?.tier)) return true
+      } catch {
+        // continue retrying
+      }
       await new Promise((resolve) => setTimeout(resolve, 3_000))
     }
     return false

@@ -200,7 +200,7 @@ export function buildDebugSnapshot(state?: WorkbenchState | null): DebugSnapshot
     },
     receiptId: String(snapshot.receipt?.id || '') || null,
     featureFlags: {
-      licenseTier: snapshot.license.tier,
+      licenseTier: snapshot.license?.tier ?? 'free',
       autonomyEnabled: Boolean(snapshot.runtime.autonomyEnabled),
       autonomyLevel: snapshot.runtime.autonomyLevel,
       ipcCanonicalReady: Boolean(snapshot.runtime.ipcCanonicalReady),

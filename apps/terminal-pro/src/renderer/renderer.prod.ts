@@ -216,23 +216,25 @@ export async function initProductionRenderer(): Promise<void> {
     },
   })
   actionsController.mount()
+
+  // Create cleanup functions that will be called on beforeunload
+  let cleanupFns: Array<() => void> = []
+  cleanupFns.push(() => actionsController.unmount())
+  cleanupFns.push(() => agentPanel.destroy())
+  cleanupFns.push(() => workbenchShell.unmount())
+  cleanupFns.push(() => {
+    delete window.__rinaDebugEvidence
+  })
+  const cleanupBeforeUnload = () => {
+    cleanupFns.forEach((fn) => fn())
+    cleanupFns = []
+  }
   globalThis.addEventListener(
     'beforeunload',
-    () => {
-      actionsController.unmount()
-      commandPalette.unmount()
-      agentPanel.destroy()
-      refreshScheduler.stop()
-      unbindRendererEvents()
-      unbindDebugEvidence()
-      unbindRetentionLoop()
-      unbindRendererTelemetrySessionEnd()
-      workbenchShell.unmount()
-      unregisterShortcuts()
-      delete window.__rinaDebugEvidence
-    },
+    cleanupBeforeUnload,
     { once: true }
   )
+
   void refreshRuns(store, { markRestored: true })
   void refreshCode(store)
   void refreshDiagnostics(store)
@@ -246,6 +248,7 @@ export async function initProductionRenderer(): Promise<void> {
     { run: () => refreshRuntimeStatus(store), intervalMs: 10_000 },
   ])
   refreshScheduler.start()
+  cleanupFns.push(() => refreshScheduler.stop())
 
   const commandPalette = createPaletteController({
     sendPrompt: (prompt: string) => sendPromptToRina(store, prompt),
@@ -253,6 +256,8 @@ export async function initProductionRenderer(): Promise<void> {
     setRuntimeMode: (mode) => workbenchShell.setRuntimeMode(mode, { source: 'command_palette' }),
   })
   commandPalette.mount()
+  cleanupFns.push(() => commandPalette.unmount())
+
   const unregisterShortcuts = registerRendererShortcuts({
     togglePalette: () => commandPalette.toggle(),
     hidePalette: () => commandPalette.hide(),
@@ -265,6 +270,7 @@ export async function initProductionRenderer(): Promise<void> {
     },
     closeSettings: () => window.__rinaSettings?.close(),
   })
+  cleanupFns.push(() => unregisterShortcuts())
 
   const unbindRendererEvents = bindRendererEvents({
     store,
@@ -276,9 +282,13 @@ export async function initProductionRenderer(): Promise<void> {
     refreshDiagnostics,
     refreshCode,
   })
+  cleanupFns.push(() => unbindRendererEvents())
+  cleanupFns.push(() => unbindDebugEvidence())
+  cleanupFns.push(() => unbindRetentionLoop())
 
   await startRendererTelemetrySession()
   const unbindRendererTelemetrySessionEnd = bindRendererTelemetrySessionEnd()
+  cleanupFns.push(() => unbindRendererTelemetrySessionEnd())
 
   await finalizeRendererBoot(store)
   void trackRendererBootTiming(performance.now() - bootStartedAt, {

@@ -54,12 +54,12 @@ export function trackLicenseAnalytics(event: string, properties?: Record<string,
 
 export async function fetchLicenseState(): Promise<LicenseState> {
   try {
-    const state = await (window as any).rina.licenseState()
+    const state = await (window as any).rina?.licenseState?.().catch(() => null)
     return {
-      tier: normalizeLicenseTierForUi(state.tier),
-      status: state.status || 'unknown',
-      expires_at: state.expires_at || null,
-      has_token: state.has_token || false,
+      tier: normalizeLicenseTierForUi(state?.tier ?? 'free'),
+      status: state?.status ?? 'unknown',
+      expires_at: state?.expires_at ?? null,
+      has_token: state?.has_token ?? false,
     }
   } catch {
     return { tier: 'free', status: 'unknown', expires_at: null, has_token: false }
@@ -289,14 +289,18 @@ export function attachManageHandler(): void {
 }
 
 export async function refreshLicenseStateWithRetry(): Promise<boolean> {
-  const refresh = (window as any).rina.licenseRefresh
-  const readState = (window as any).rina.licenseState
+  const refresh = (window as any).rina?.licenseRefresh
+  const readState = (window as any).rina?.licenseState
   const deadline = Date.now() + 60_000
 
   while (Date.now() < deadline) {
-    const state = refresh ? await refresh() : await readState()
-    if (hasPaidTier(state?.tier)) return true
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    try {
+      const state = refresh ? await refresh() : await readState?.()
+      if (hasPaidTier(state?.tier)) return true
+    } catch {
+      // continue retrying
+    }
+    await new Promise((resolve) => setTimeout(resolve, 3_000))
   }
 
   return false
