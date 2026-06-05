@@ -38,6 +38,7 @@
     "dev": "unset ELECTRON_RUN_AS_NODE && npm run build:electron && npx electron .",
     "start": "npx electron .",
     "build": "npm run build:electron",
+    "install:electron-native": "bash scripts/install-electron-native.sh",
     "lint": "eslint . --ext .ts,.tsx,.js,.cjs,.mjs",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.cjs,.mjs --fix",
     "guard:product-realness": "node scripts/guard-product-realness.mjs",
@@ -57,6 +58,7 @@
     "dist:all": "npm run build:electron && electron-builder -mwl",
     "release:metadata": "node scripts/generate-update-metadata.mjs",
     "verify:update-artifacts": "node scripts/verify-electron-update-artifacts.mjs",
+    "verify:packaged-sqlite": "node scripts/verify-packaged-sqlite.mjs",
     "verify:signing": "node scripts/verify-signing-config.mjs"
   },
   "dependencies": {
