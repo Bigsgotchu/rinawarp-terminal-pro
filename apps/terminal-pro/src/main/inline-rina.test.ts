@@ -391,6 +391,53 @@ test("build-script project question answers from package.json without running an
   );
 });
 
+test("project run question inspects package scripts instead of prior run metadata", async () => {
+  await withTempRepo(
+    "rina-project-understand-",
+    (dir) => {
+      fs.writeFileSync(path.join(dir, "tsconfig.json"), JSON.stringify({ compilerOptions: { strict: true } }, null, 2));
+      fs.mkdirSync(path.join(dir, "src"));
+      fs.writeFileSync(path.join(dir, "src", "index.ts"), "export const answer = 42\n");
+      fs.writeFileSync(path.join(dir, "test.js"), "console.log('tests passed')\n");
+      fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({
+        name: "rina-test-project",
+        scripts: {
+          build: "tsc",
+          test: "node test.js",
+        },
+      }, null, 2));
+    },
+    async (dir) => {
+      const result = await withEnv(
+        {
+          RINAWARP_INLINE_RINA_TEST_JSON: "",
+          RINAWARP_INLINE_RINA_TEST_ERROR: "",
+          RINAWARP_INLINE_RINA_TEST_OUTPUT_TEXT: "",
+        },
+        () =>
+          runInlineRina({
+            request: {
+              prompt: "What is this project and how do I run it?",
+              projectRoot: dir,
+              action: "suggestNextCommand",
+            },
+            session: {
+              cwd: dir,
+              transcriptBuffer: "$ pwd\n",
+            },
+          }),
+      );
+
+      assert.match(result.explanation, /package\.json/);
+      assert.match(result.explanation, /npm run build/);
+      assert.match(result.explanation, /npm run test/);
+      assert.doesNotMatch(result.explanation, /Last run ID|Proof reference/i);
+      assert.equal(result.command, null);
+      assert.equal(result.confirmation, false);
+    },
+  );
+});
+
 test("tests-failing project question asks to run the existing test script first", async () => {
   await withTempRepo(
     "rina-project-tests-",

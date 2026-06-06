@@ -942,10 +942,13 @@ async function deterministicProjectQuestionResponse(prompt: string, projectRoot:
 
   if (/\bhow (?:do i|to) (?:run|start)\b/.test(value)) {
     const primary = pickScriptName(scripts, ["dev", "start", "serve", "preview"], [/^dev[:_-]/, /^start[:_-]/, /serve/i, /preview/i]);
+    const runnableScripts = primary ? [primary] : scriptNamesMatching(scripts, [/^build$/, /^test$/]);
     const command = primary ? packageManagerRunCommand(snapshot.packageManager, primary) : null;
     const explanation = primary
       ? `This looks like ${pkg?.name ? `\`${pkg.name}\`` : "a Node-style app"}. To run it locally, use the \`${primary}\` script from \`package.json\`: \`${scripts[primary]}\`. I found ${snapshot.packageManager === "unknown" ? "no lockfile, so npm is the safest default" : `a ${snapshot.packageManager} workspace`}.`
-      : `I inspected the project files but couldn't find a clear \`dev\`, \`start\`, \`serve\`, or \`preview\` script in \`package.json\`. Visible scripts: ${scriptNames.length ? scriptNames.map((name) => `\`${name}\``).join(", ") : "none"}.`;
+      : runnableScripts.length
+        ? `This looks like ${pkg?.name ? `\`${pkg.name}\`` : "a Node-style app"}. I inspected \`package.json\` and found no dev/start script, but useful scripts are available: ${runnableScripts.map((name) => `\`${packageManagerRunCommand(snapshot.packageManager, name)}\` -> \`${scripts[name]}\``).join(", ")}.`
+        : `I inspected the project files but couldn't find a clear \`dev\`, \`start\`, \`serve\`, \`preview\`, \`build\`, or \`test\` script in \`package.json\`. Visible scripts: ${scriptNames.length ? scriptNames.map((name) => `\`${name}\``).join(", ") : "none"}.`;
     return { explanation, command, risk: command ? "medium" : "low", confirmation: !!command, usage };
   }
 
@@ -989,6 +992,10 @@ async function deterministicProjectQuestionResponse(prompt: string, projectRoot:
     snapshot.importantFiles.includes("go.mod") ? "Go module" : null,
   ].filter(Boolean);
   const scriptSummary = scriptNames.length ? `Scripts include ${scriptNames.slice(0, 8).map((name) => `\`${name}\``).join(", ")}.` : "I didn't find package scripts.";
+  const runScriptNames = scriptNamesMatching(scripts, [/^dev$/, /^start$/, /^serve$/, /^preview$/, /^build$/, /^test$/]);
+  const runSummary = runScriptNames.length
+    ? `To run useful project commands, use ${runScriptNames.slice(0, 6).map((name) => `\`${packageManagerRunCommand(snapshot.packageManager, name)}\` (${scripts[name]})`).join(", ")}.`
+    : "I did not find clear run, build, or test scripts in `package.json`.";
   const topLevelDirs = Array.from(new Set(snapshot.shallowFiles
     .filter((file) => file.includes("/"))
     .map((file) => file.split("/")[0])
@@ -1013,7 +1020,9 @@ async function deterministicProjectQuestionResponse(prompt: string, projectRoot:
     pkg?.description ? pkg.description : snapshot.readmeSummary,
     languageHints.length ? `Signals: ${languageHints.join(", ")}.` : null,
     scriptSummary,
+    /\brun|start|script|build|test\b/.test(value) ? runSummary : null,
     fileSummary ? `Notable files near the top: ${fileSummary}.` : null,
+    "This was a read-only project inspection; I did not run commands or change files.",
   ].filter(Boolean).join(" ");
   return { explanation, command: null, risk: "low", confirmation: false, usage };
 }

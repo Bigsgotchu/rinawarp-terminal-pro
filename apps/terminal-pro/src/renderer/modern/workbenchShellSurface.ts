@@ -139,8 +139,9 @@ export function renderWorkbenchShellFrame(model: WorkbenchShellFrameModel): stri
             <button
 id="workspace-picker"
                class="rw-topbar-project"
-               data-pick-workspace="topbar"
+              data-pick-workspace="topbar"
               data-shell-project="true"
+              data-shell-workspace="true"
               data-shell-owned="true"
               data-shell-source="shell_project"
               type="button"

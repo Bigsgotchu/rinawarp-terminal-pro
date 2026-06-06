@@ -277,7 +277,8 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
           ? await rina.conversationRoute(trimmed, { workspaceRoot })
         : null) as ConversationRouteResult | null
       const turn = (routedTurn?.routedTurn || routedTurn || null) as RoutedTurnLike | null
-      if (routedTurn?.assistantReply) {
+      const shouldInspectWorkspace = Boolean(workspaceRoot && turn?.allowedNextAction === 'inspect')
+      if (routedTurn?.assistantReply && !shouldInspectWorkspace) {
         const memoryNote = deps.composeMemoryContextNote({
           memoryState,
           constraints: routedTurn.intent?.constraints || turn?.constraints,
@@ -370,7 +371,7 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
         }
       }
 
-      if (routedTurn?.assistantReply) {
+      if (routedTurn?.assistantReply && !shouldInspectWorkspace) {
         return
       }
 

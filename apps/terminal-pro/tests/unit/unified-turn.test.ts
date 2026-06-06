@@ -7,6 +7,7 @@ import {
   naturalizeReply,
   selectInteractionMode,
 } from '../../src/main/orchestration/personalityAdapter.js'
+import { routeConversationTurn } from '../../src/main/orchestration/conversationRouter.js'
 import { handleUnifiedConversationTurn } from '../../src/main/orchestration/unifiedTurn.js'
 import { createBuildPlanHelpers } from '../../src/main/planning/buildPlan.js'
 
@@ -49,6 +50,24 @@ function createMemoryStoreStub() {
 }
 
 describe('unified conversation turn', () => {
+  it('routes project understanding questions to workspace inspection instead of prior proof metadata', () => {
+    const turn = routeConversationTurn({
+      rawText: 'What is this project and how do I run it?',
+      workspaceId: '/home/karina/rina-test-project',
+      latestRun: {
+        runId: 'run_stale',
+        sessionId: 'session_stale',
+        latestReceiptId: 'proof_stale',
+        latestCommand: 'npm run build',
+      },
+    })
+
+    expect(turn.mode).toBe('inspect')
+    expect(turn.allowedNextAction).toBe('inspect')
+    expect(turn.references.runId).toBeUndefined()
+    expect(turn.references.receiptId).toBeUndefined()
+  })
+
   it('answers small talk through the personality adapter instead of system language', async () => {
     const memoryStore = createMemoryStoreStub()
     const result = await handleUnifiedConversationTurn({

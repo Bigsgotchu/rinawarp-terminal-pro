@@ -305,6 +305,52 @@ test("project architecture question answers locally from file tree", async () =>
   }
 });
 
+test("project run question answers from package scripts without prior run metadata", async () => {
+  const repo = withTempRepo((dir) => {
+    fs.mkdirSync(path.join(dir, "src"), { recursive: true });
+    fs.writeFileSync(path.join(dir, "src", "index.ts"), "export const answer = 42\n");
+    fs.writeFileSync(path.join(dir, "test.js"), "console.log('tests passed')\n");
+    fs.writeFileSync(path.join(dir, "tsconfig.json"), "{}");
+    fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({
+      name: "rina-test-project",
+      scripts: {
+        build: "tsc",
+        test: "node test.js",
+      },
+    }, null, 2));
+  });
+
+  try {
+    const result = await withEnv(
+      {
+        RINA_CLOUD_API_BASE: "",
+        RINAWARP_INLINE_RINA_TEST_JSON: "",
+      },
+      () =>
+        runInlineRina({
+          request: {
+            prompt: "What is this project and how do I run it?",
+            projectRoot: repo,
+            action: "suggestNextCommand",
+          },
+          session: {
+            cwd: repo,
+            transcriptBuffer: "$ pwd\n",
+          },
+        }),
+    );
+
+    assert.match(result.explanation, /package\.json/);
+    assert.match(result.explanation, /npm run build/);
+    assert.match(result.explanation, /npm run test/);
+    assert.doesNotMatch(result.explanation, /Last run ID|Proof reference/i);
+    assert.equal(result.command, null);
+    assert.equal(result.confirmation, false);
+  } finally {
+    fs.rmSync(repo, { recursive: true, force: true });
+  }
+});
+
 test("dangerous destructive prompt is explicitly blocked", async () => {
   const repo = withTempRepo((dir) => {
     fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({ name: "danger-demo" }, null, 2));
