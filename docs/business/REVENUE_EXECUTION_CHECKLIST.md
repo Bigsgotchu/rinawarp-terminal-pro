@@ -1,6 +1,6 @@
 # Revenue Execution Checklist
 
-This is the short operational checklist for moving from the frozen desktop RC to a revenue-capable launch.
+This is the short operational checklist for moving RinaWarp Terminal Pro v1.8.2-beta through controlled Linux public beta revenue testing.
 
 Use this with:
 
@@ -10,13 +10,14 @@ Use this with:
 - [COMPANY_STATUS_CHECKLIST.md](/home/karina/Documents/rinawarp-terminal-pro/docs/COMPANY_STATUS_CHECKLIST.md)
 - [METRICS_SCOREBOARD.md](/home/karina/Documents/rinawarp-terminal-pro/docs/METRICS_SCOREBOARD.md)
 
-As of `2026-03-29`, `RinaWarp Terminal Pro 1.1.10` is live. Use this checklist for post-launch verification, the next release, and revenue-ops follow-through.
+As of `2026-06-08`, `RinaWarp Terminal Pro v1.8.2-beta` is revenue-capable for a controlled Linux public beta. It has live production surfaces, working Linux public downloads, live Stripe checkout routing, healthy API checks, and passing production smoke/audit checks. It is not yet fully production-ready like Warp.dev.
 
 ## Phase 1: Revenue-Critical
 
 - [x] Publish the current desktop artifacts users are meant to install.
 - [x] Verify the updater/feed points to the same live release.
 - [x] Verify the download page points to one canonical release artifact path.
+- [x] Verify live checkout routing returns a Stripe Checkout URL.
 - [ ] Verify a brand-new customer can go from website to paid unlocked desktop app without manual help.
 - [ ] Verify restore purchase works for a returning customer.
 - [ ] Verify downgrade or expired-license behavior is understandable and honest.
@@ -29,8 +30,9 @@ As of `2026-03-29`, `RinaWarp Terminal Pro 1.1.10` is live. Use this checklist f
   - proof-first agent workbench
   - build, test, deploy
 - [ ] Keep one simple paid story:
-  - free tier or trial
-  - one paid Pro plan
+  - Linux early-access beta
+  - live checkout
+  - founder-led support
 - [ ] Tighten homepage copy so the trust/proof wedge is obvious in seconds.
 - [ ] Tighten pricing copy so it matches real app unlocks.
 - [ ] Tighten download page copy so supported platforms and install guidance are honest.
@@ -57,6 +59,7 @@ Treat these as blockers before public launch:
 - [ ] updater/feed does not match the final release
 - [ ] new users do not understand how to start
 - [ ] pricing or website claims do not match the app
+- [ ] public copy claims Warp.dev-level maturity or mature cross-platform support
 
 ## Non-Blockers
 

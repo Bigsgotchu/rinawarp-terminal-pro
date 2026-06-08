@@ -1,27 +1,30 @@
 # Current Release Status for RinaWarp Terminal Pro
 
 ## Released Versions
-- **Latest Public Released Version:** v1.0.4 (2026-03-17)
-  - Available platforms: Linux (AppImage, deb), macOS (dmg), Windows (exe)
-  - Release notes: See RELEASE_NOTES_1.1.10.md
-  - Downloads: https://rinawarp-downloads.rinawarptech.workers.dev/releases/1.0.4/
-  - Note: This appears to be a legacy release line. Current development is on the 1.8.x-beta track.
+- **Current Public Beta Version:** v1.8.2-beta
+  - Available public beta platforms: Linux (AppImage, deb)
+  - Release notes: See `docs/releases/v1.8.2-beta.md`
+  - Downloads: `https://www.rinawarptech.com/download/linux/appimage` and `https://www.rinawarptech.com/download/linux/deb`
+  - Note: Older v1.0.x and 1.1.x docs remain historical release records, not the current public beta truth.
 
 ## Current Development State
-- **Current Package Version:** 1.8.2-beta (as of package.json in rinawarp-production)
-- **Latest Git Tag:** v1.8.0-beta
-- **Commits Since Last Tag:** 15 commits (primarily fixes, tests, documentation)
-- **Current Branch:** ai/v1.8-beta-real-workflows (ahead of origin/main by 2 commits)
+- **Current Package Version:** 1.8.2-beta
+- **Latest Public Beta Tag:** v1.8.2-beta
+- **Current Branch:** main
 
 ## Version Lines Clarification
-There are two active version lines:
-1. **Public Release Line:** v1.0.x (latest: v1.0.4, March 2026) - appears to be legacy/maintenance
-2. **Private Development Line:** 1.8.x-beta (current: 1.8.2-beta, June 2026) - active development
+There is one current beta release line:
+1. **Controlled Linux Public Beta:** v1.8.2-beta - current revenue-testing line
 
-The v1.0.4 release appears to be from a different versioning scheme or component. All active development is on the 1.8.x-beta track as evidenced by:
+The v1.0.x and 1.1.x records are historical. Current release status should be judged from:
 - package.json versions in root and apps/terminal-pro
-- git tags showing v1.8.0-beta as latest
-- current work being done on 1.8.x-beta features
+- live `/releases/latest.json`
+- public Linux download routes
+- production smoke, audit, Stripe, and download verification checks
+
+## Controlled Beta Readiness Note
+
+RinaWarp Terminal Pro v1.8.2-beta has live production surfaces, working Linux public downloads, live Stripe checkout routing, healthy API checks, and passing production smoke/audit checks. The product is ready for controlled Linux beta revenue testing with founder-led support. The remaining production gate is the full customer revenue loop: purchase, entitlement webhook, desktop unlock, relaunch persistence, restore purchase, billing portal access, and support recovery without manual intervention.
 
 ## Current Implementation Status (1.8.2-beta)
 **Working Features:**
@@ -45,32 +48,27 @@ The v1.0.4 release appears to be from a different versioning scheme or component
 
 ## Release Preparation Status (1.8.2-beta)
 - **Current Package Version:** 1.8.2-beta
-- **Latest Git Tag:** v1.8.0-beta
+- **Latest Public Beta Tag:** v1.8.2-beta
 - **Next Candidate Version:** 1.8.2-beta (maintaining current package version unless intentionally changed)
 - **Release Readiness:** Requires running `npm --workspace apps/terminal-pro run release:readiness`
 - **Artifacts to Build (for validation):**
-  - RinaWarp-Terminal-Pro-1.8.2-beta.AppImage
-  - RinaWarp-Terminal-Pro-1.8.2-beta.deb
-  - RinaWarp-Terminal-Pro-1.8.2-beta.exe
+  - RinaWarp-Terminal-Pro-1.8.2-beta-linux-x86_64.AppImage
+  - RinaWarp-Terminal-Pro-1.8.2-beta-linux-amd64.deb
   - Associated checksums and metadata
 
-## Next Steps for Private Validation
-1. Confirm canonical versioning scheme (1.8.x-beta is active development line)
-2. Treat v1.0.4 as latest public release and 1.8.2-beta as current private/dev line
-3. Generate changelog from v1.8.0-beta to HEAD
-4. Run release readiness checks
-5. Build local/private artifacts
-6. Verify updater metadata
-7. Verify downloads locally/private only
-8. Do not publish, tag, or public release until explicitly approved
+## Next Steps for Controlled Linux Public Beta Revenue Testing
+1. Keep public positioning limited to Linux early-access beta.
+2. Run release readiness checks.
+3. Build local Linux artifacts.
+4. Verify updater metadata.
+5. Verify public Linux downloads.
+6. Prove the full purchase, entitlement, desktop unlock, relaunch, restore, and billing portal loop.
 
 ## Known Issues/Gaps
-- Public release line appears to be v1.0.4 (legacy)
-- Current development line is 1.8.2-beta (active)
-- Latest git tag is v1.8.0-beta
-- Need to confirm whether 1.8.x-beta is private beta/dev-only or intended public successor
-- Changelog should be based on commits since v1.8.0-beta
-- Release documentation needs reconciliation between version lines
+- macOS and Windows are not the current public beta promise.
+- The product is not fully production-ready like Warp.dev.
+- The mature zero-touch customer loop still needs repeated proof from real customers.
+- Release documentation should preserve historical entries while keeping current-status docs aligned to v1.8.2-beta.
 
 ## Immediate Next Milestone
-v1.8.2-beta Real Workflow Expansion (current branch: ai/v1.8-beta-real-workflows)
+v1.8.2-beta controlled Linux paid beta verification.

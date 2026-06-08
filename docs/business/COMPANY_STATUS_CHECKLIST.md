@@ -1,6 +1,6 @@
 # Company Status Checklist
 
-Date: 2026-03-29
+Date: 2026-06-08
 
 This is the blunt status view for whether RinaWarp Technologies, LLC is operating like a real company around `RinaWarp Terminal Pro`.
 
@@ -22,10 +22,11 @@ Related docs:
 
 ## Status Summary
 
-As of `2026-03-29`, the product, release, support, and launch-operation layer is largely in place.
+As of `2026-06-08`, RinaWarp Terminal Pro v1.8.2-beta is ready for controlled Linux public beta revenue testing with founder-led support.
 
-RinaWarp is not yet "fully complete" as a company because the remaining gaps are mostly:
+RinaWarp is not yet "fully complete" as a company, and it should not be positioned as fully production-ready like Warp.dev. The remaining gaps are mostly:
 
+- proof that strangers can repeatedly pay, install, unlock, restore, and get help without founder manual rescue
 - real growth execution
 - real-world business administration outside the repo
 - Windows signing
@@ -38,13 +39,14 @@ RinaWarp is not yet "fully complete" as a company because the remaining gaps are
 
 - [x] canonical website and product naming are aligned
 - [x] live pricing, checkout, restore, and billing portal paths exist
-- [x] desktop release `1.1.10` is live
+- [x] controlled Linux public beta release `1.8.2-beta` is live
 - [x] download pages and release feeds point to the current release
 - [x] activation metrics exist for website and Terminal Pro
-- [x] launch/revenue smoke commands exist and pass
+- [x] launch/revenue smoke commands exist
 
 ### Still incomplete
 
+- [ ] full purchase -> entitlement webhook -> desktop unlock -> relaunch persistence -> restore -> billing portal loop has been proven with a real low-risk buyer
 - [ ] real conversion data has been reviewed for multiple days, not just launch-day smoke
 - [ ] post-purchase friction has been categorized from actual customer cases
 - [ ] pricing/package decisions have been validated with real conversion behavior
@@ -61,6 +63,7 @@ RinaWarp is not yet "fully complete" as a company because the remaining gaps are
 
 ### Still incomplete
 
+- [ ] public beta promise is Linux-only until macOS/Windows artifacts are signed and validated
 - [ ] Windows signing is configured and used in the release lane
 - [ ] macOS signing and notarization are configured and used in the release lane
 - [ ] crash reporting and incident review are fully proven in live operation
@@ -116,7 +119,7 @@ RinaWarp is not yet "fully complete" as a company because the remaining gaps are
 ### Complete or substantially in place
 
 - [x] company operating cadence is documented
-- [x] launch review document exists for `1.1.10`
+- [x] current beta readiness docs exist for `1.8.2-beta`
 - [x] KPI and revenue review commands exist
 
 ### Still incomplete
@@ -131,7 +134,7 @@ RinaWarp is not yet "fully complete" as a company because the remaining gaps are
 These are the highest-value remaining actions:
 
 1. Run the support inbox workflow twice daily for the next several days.
-2. Review `npm run kpi:snapshot` and `npm run report:revenue-daily` every day during the `1.1.10` launch window.
+2. Review `npm run kpi:snapshot` and `npm run report:revenue-daily` every day during the `1.8.2-beta` beta window.
 3. Log every install, billing, unlock, and restore problem into one visible backlog.
 4. Choose one real acquisition channel and run it consistently for one week.
 5. Buy and configure Windows signing only when revenue or support pain clearly justifies it.

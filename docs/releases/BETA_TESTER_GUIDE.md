@@ -1,30 +1,26 @@
 # RinaWarp Terminal Pro v1.8.2 Beta Tester Guide
 
-RinaWarp Terminal Pro v1.8.2 beta now has Linux, macOS, and Windows beta artifacts. Linux is production-candidate validated; macOS and Windows are unsigned beta builds for tester validation. Production signing/notarization remains pending.
+RinaWarp Terminal Pro v1.8.2-beta is currently positioned for controlled Linux public beta revenue testing. The public beta promise is Linux early access with live checkout, live downloads, proof recovery, and founder-led support.
 
-## ⚠️ Important: Unsigned Beta Builds
+Do not position this beta as a fully polished cross-platform terminal replacement, an enterprise-grade Warp.dev competitor, or zero-touch mature production onboarding.
 
-**Beta builds may be unsigned and require OS security bypass steps.**
-**Production builds will be signed and notarized where applicable.**
+## Important: Controlled Linux Beta
 
-Do not hide the warning from testers. Make it explicit.
+Linux is the current supported public beta platform. macOS and Windows signing, notarization, and validation remain outside this controlled beta promise.
 
 ## What We're Testing
 
-This beta focuses on cross-platform packaging and core activation flow.
+This beta focuses on Linux packaging, checkout routing, core activation, proof recovery, and founder-led support.
 
 ### Platform Focus Order
-1. **Linux** (ready now) - Primary validation platform
-2. **macOS** (packaging ready, needs validation) - Secondary platform
-3. **Windows** (packaging ready, needs validation) - Tertiary platform
+1. **Linux** (ready now) - Primary and only public beta validation platform
+2. **macOS** - Not in the current public beta promise
+3. **Windows** - Not in the current public beta promise
 
 ### Artifact Names
 
 - Linux AppImage: `RinaWarp-Terminal-Pro-1.8.2-beta-linux-x86_64.AppImage`
 - Linux Debian package: `RinaWarp-Terminal-Pro-1.8.2-beta-linux-amd64.deb`
-- macOS DMG: `RinaWarp-Terminal-Pro-1.8.2-beta-mac-arm64.dmg`
-- macOS ZIP: `RinaWarp-Terminal-Pro-1.8.2-beta-mac-arm64.zip`
-- Windows installer: `RinaWarp-Terminal-Pro-1.8.2-beta-win-x64.exe`
 
 ### Critical User Journeys to Validate
 
@@ -47,15 +43,10 @@ chmod +x RinaWarp-Terminal-Pro-1.8.2-beta-linux-x86_64.AppImage
 ```
 
 **macOS:**
-- Double-click DMG
-- Drag to Applications
-- ⚠️ **Right-click and Open** (first launch requires this security workaround)
-- Gatekeeper will show a warning about unsigned app - click "Open"
+- Not part of the current controlled public beta.
 
 **Windows:**
-- Run the .exe installer
-- ⚠️ **If SmartScreen blocks:** Click "More info" → "Run anyway"
-- First launch will also show warnings - use same bypass
+- Not part of the current controlled public beta.
 
 ### 2. First-Run Activation Flow
 

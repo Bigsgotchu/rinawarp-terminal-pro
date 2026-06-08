@@ -148,7 +148,16 @@ FFMPEG_PID=$!
 sleep 2
 
 echo "Launching RinaWarp Terminal Pro..."
-"$APP" &
+env \
+  -u ELECTRON_RUN_AS_NODE \
+  -u OPENAI_API_KEY \
+  -u ANTHROPIC_API_KEY \
+  -u GROQ_API_KEY \
+  -u STRIPE_SECRET_KEY \
+  -u STRIPE_WEBHOOK_SECRET \
+  -u SENDGRID_API_KEY \
+  -u DEBUG \
+  "$APP" &
 APP_PID=$!
 
 echo ""

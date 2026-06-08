@@ -42,20 +42,25 @@ function main() {
   const pkg = readJson(appPackageJsonPath)
   const version = String(pkg.version)
 
-  const appImageName = `RinaWarp-Terminal-Pro-${version}.AppImage`
-  const debName = `RinaWarp-Terminal-Pro-${version}.deb`
-  const exeName = `RinaWarp-Terminal-Pro-${version}.exe`
-
-  const appImagePath = requireFile(path.join(installerDir, appImageName), 'AppImage artifact')
-  const debPath = requireFile(path.join(installerDir, debName), '.deb artifact')
-  const exePath = fs.existsSync(path.join(installerDir, exeName))
-    ? path.join(installerDir, exeName)
-    : null
   const checksumsPath = requireFile(path.join(installerDir, 'SHASUMS256.txt'), 'checksum manifest')
   const latestJsonPath = requireFile(path.join(installerDir, 'latest.json'), 'latest.json metadata')
   const latestYmlPath = requireFile(path.join(installerDir, 'latest.yml'), 'latest.yml metadata')
   const latestLinuxYmlPath = requireFile(path.join(installerDir, 'latest-linux.yml'), 'latest-linux.yml metadata')
 
+  const latestJson = readJson(latestJsonPath)
+  if (String(latestJson.version) !== version) {
+    fail(`latest.json version ${String(latestJson.version)} does not match package version ${version}`)
+  }
+
+  const appImageName = String(latestJson.files?.linux?.name || '')
+  const debName = String(latestJson.files?.deb?.name || '')
+  const exeName = String(latestJson.files?.windows?.name || '')
+  if (!appImageName.endsWith('.AppImage')) fail('latest.json is missing a Linux AppImage artifact')
+  if (!debName.endsWith('.deb')) fail('latest.json is missing a Debian artifact')
+
+  const appImagePath = requireFile(path.join(installerDir, appImageName), 'AppImage artifact')
+  const debPath = requireFile(path.join(installerDir, debName), '.deb artifact')
+  const exePath = exeName ? requireFile(path.join(installerDir, exeName), 'Windows artifact') : null
   const checksums = parseChecksums(checksumsPath)
   const expectedArtifacts = [
     [appImageName, appImagePath],
@@ -70,23 +75,6 @@ function main() {
     if (actualHash !== expectedHash) {
       fail(`Checksum mismatch for ${artifactName}: expected ${expectedHash}, got ${actualHash}`)
     }
-  }
-
-  const latestJson = readJson(latestJsonPath)
-  if (String(latestJson.version) !== version) {
-    fail(`latest.json version ${String(latestJson.version)} does not match package version ${version}`)
-  }
-  if (String(latestJson.files?.linux?.name || '') !== appImageName) {
-    fail(`latest.json linux artifact does not match ${appImageName}`)
-  }
-  if (String(latestJson.files?.deb?.name || '') !== debName) {
-    fail(`latest.json deb artifact does not match ${debName}`)
-  }
-  if (exePath && String(latestJson.files?.windows?.name || '') !== exeName) {
-    fail(`latest.json windows artifact does not match ${exeName}`)
-  }
-  if (!exePath && latestJson.files?.windows) {
-    fail(`latest.json advertises Windows but ${exeName} is missing`)
   }
 
   const latestYml = fs.readFileSync(latestYmlPath, 'utf8')
