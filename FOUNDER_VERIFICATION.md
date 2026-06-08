@@ -1,13 +1,22 @@
 # Founder Verification Checklist - v1.8.2-beta
 
-## Status: GUI COMPOSER FIXED - READY FOR VISUAL CONFIRMATION
+## Status: RECEIPT RECOVERY VISUALS FIXED - READY FOR DESKTOP CONFIRMATION
 
-- [x] Repo: clean (git status shows no changes)
+- [ ] Repo: clean (working tree currently has validation/test edits)
 - [x] Canonical repo: verified (Bigsgotchu/rinawarp-terminal-pro)
-- [x] Build: green (all guards passed)
-- [x] Tests: green (4/4 passing)
+- [x] Build: green (renderer, preload, TypeScript, and guards passed)
+- [x] Receipt recovery visual tests: green (4/4 passing)
 - [x] Linux package: built (AppImage ready)
 - [x] Test project: exists at /home/karina/rina-test-project
+
+## Current Validation - 2026-06-08 16:39 MDT
+
+| Check | Result |
+|------|--------|
+| `npm --workspace apps/terminal-pro run build:electron` | PASSED |
+| `bash apps/terminal-pro/scripts/run-electron-playwright.sh receipt-recovery-visual.spec.ts` | PASSED - 4/4 |
+
+**Note:** Electron Playwright requires unsandboxed/elevated execution in this environment. The sandboxed run fails before renderer startup with `sandbox_host_linux.cc(41) Operation not permitted`.
 
 ## Gate 24: Rina Real Capability Proof - COMPLETED
 
@@ -48,8 +57,9 @@
 
 **RinaWarp Terminal Pro v1.8.2-beta launches with the professional dark Agent Shell.**
 **Gate 25 composer fix is complete.**
+**Receipt recovery/proof visual coverage is passing again with seeded project workspace context.**
 
-**Remaining Blocker:** Founder visual confirmation of the complete Rina loop.
+**Remaining Blocker:** Founder visual confirmation of the complete Rina loop on the desktop AppImage.
 
 ### Next Steps - Run on Desktop
 

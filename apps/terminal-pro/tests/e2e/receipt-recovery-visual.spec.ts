@@ -90,11 +90,20 @@ async function seedWorkbenchRunFixture(page: Page, args: SeededRunArgs): Promise
   }, args)
 }
 
-async function getWorkspaceKey(page: Page): Promise<string> {
+async function seedProjectWorkspaceContext(page: Page): Promise<string> {
   return await page.evaluate(() => {
-    const bridge = (window as unknown as { __rinaE2EWorkbench?: { getState: () => { workspaceKey: string } } }).__rinaE2EWorkbench
+    const bridge = (window as unknown as {
+      __rinaE2EWorkbench?: {
+        dispatch: (action: unknown) => void
+        getState: () => { workspaceKey: string }
+      }
+    }).__rinaE2EWorkbench
     if (!bridge) throw new Error('E2E workbench bridge unavailable')
-    return bridge.getState().workspaceKey
+    const currentWorkspace = bridge.getState().workspaceKey
+    const workspaceKey = currentWorkspace && currentWorkspace !== '__none__' ? currentWorkspace : '/tmp/e2e-project'
+    bridge.dispatch({ type: 'workspace/set', workspaceKey })
+    bridge.dispatch({ type: 'code/setFiles', files: ['package.json', 'pnpm-lock.yaml', 'tsconfig.json'] })
+    return workspaceKey
   })
 }
 
@@ -135,15 +144,54 @@ async function seedStructuredReceipt(
       bridge.dispatch({
         type: 'executionReceipts/upsert',
         receipt: {
-          runId: run.id,
-          actionsPerformed: [run.command],
-          filesChanged: artifactSummary?.changedFiles || [],
-          commandsExecuted: [run.command],
-          verificationResults,
-          rollbackOccurred: false,
-          exitCode: run.exitCode ?? (run.status === 'ok' ? 0 : 1),
+          id: run.id,
+          sessionId: run.sessionId,
+          workspaceId: run.projectRoot || run.cwd,
+          userIntent: run.title,
+          planId: run.id,
           startedAt,
           completedAt,
+          status: run.status === 'ok' ? 'succeeded' : run.status === 'interrupted' ? 'cancelled' : 'failed',
+          commands: [
+            {
+              id: `${run.id}:command`,
+              command: run.command,
+              cwd: run.cwd,
+              startedAt: run.startedAt,
+              completedAt: run.endedAt || run.updatedAt,
+              exitCode: run.exitCode ?? (run.status === 'ok' ? 0 : 1),
+              stdout: artifactSummary?.stdoutPreview || '',
+              stderr: artifactSummary?.stderrPreview || '',
+            },
+          ],
+          fileChanges: (artifactSummary?.changedFiles || []).map((changedFile) => ({ path: changedFile, changeType: 'modified' })),
+          mcpCalls: [],
+          artifacts: [
+            {
+              type: 'log',
+              label: 'Output preview',
+              value: artifactSummary?.stderrPreview || artifactSummary?.stdoutPreview || 'Receipt evidence captured.',
+            },
+          ],
+          verification: {
+            status: run.status === 'ok' ? 'passed' : 'failed',
+            checks: verificationResults.map((result, index) => ({
+              label: index === 0 ? 'Command exit' : 'Evidence captured',
+              type: index === 0 ? 'command' : 'output',
+              status: run.status === 'ok' ? 'passed' : 'failed',
+              evidence: result,
+              exitCode: index === 0 ? (run.exitCode ?? (run.status === 'ok' ? 0 : 1)) : undefined,
+            })),
+            conclusion: verificationResults.join(' '),
+            recoverySuggested: run.status !== 'ok',
+          },
+          verificationResults,
+          risk: {
+            level: 'medium',
+            reasons: ['E2E seeded workspace-write proof'],
+            approvals: [],
+          },
+          summary: artifactSummary?.metaPreview || run.title,
         },
       })
     }
@@ -152,6 +200,7 @@ async function seedStructuredReceipt(
       receipt: {
         kind: 'structured_command_receipt',
         id: receiptId,
+        runId: run.id,
         sessionId: run.sessionId,
         commandId: run.id,
         session: {
@@ -190,12 +239,16 @@ async function seedStructuredReceipt(
 }
 
 async function openAgent(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Rina workbench' }).click()
+  await page.locator('[data-shell-source="shell_topbar"][data-shell-nav="agent"]').click()
   await page.waitForSelector('#agent-output, .rw-recovery-strip', { state: 'visible', timeout: 5000 })
 }
 
 async function openRunsInspector(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Run history' }).click()
+  await page.evaluate(() => {
+    const bridge = (window as unknown as { __rinaE2EWorkbench?: { dispatch: (action: unknown) => void } }).__rinaE2EWorkbench
+    if (!bridge) return
+    bridge.dispatch({ type: 'view/centerSet', view: 'runs' })
+  })
   await expect(page.locator('#runs-output')).toBeVisible()
 }
 
@@ -208,7 +261,7 @@ async function openReceiptView(page: Page): Promise<void> {
   await expect(page.locator('#receipt-output .rw-receipt-panel')).toBeVisible()
 }
 
-test('receipt recovery visual: failed build thread and receipt', async () => {
+test('proof recovery visual: failed build thread and proof', async () => {
   await withApp(async ({ app, page }) => {
     const now = new Date().toISOString()
     const fixture = {
@@ -253,18 +306,20 @@ test('receipt recovery visual: failed build thread and receipt', async () => {
     await seedStructuredReceipt(page, fixture)
 
     await openAgent(page)
-    await expect(page.locator('.rw-inline-runblock[data-run-id="visual_failed_build_run"]')).toBeVisible()
+    const failedBuildRun = page.locator('.rw-inline-runblock[data-run-id="visual_failed_build_run"]')
+    await expect(failedBuildRun).toBeVisible()
+    await expect(failedBuildRun.getByText(/Proof attached|Proof verified/i).first()).toBeVisible()
     await capture(page, 'failed-build-thread')
 
     await openReceiptView(page)
-    await expect(page.getByRole('button', { name: 'Copy receipt' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Export JSON' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Copy proof' })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Export proof JSON/i })).toBeVisible()
 
     await app.evaluate(({ clipboard }) => clipboard.clear())
-    await page.getByRole('button', { name: 'Copy receipt' }).click()
+    await page.getByRole('button', { name: 'Copy proof' }).click()
     await expect
       .poll(async () => app.evaluate(({ clipboard }) => clipboard.readText()), { timeout: 10_000 })
-      .toContain('RinaWarp receipt receipt_visual_failed_build')
+      .toContain('RinaWarp proof receipt_visual_failed_build')
 
     await page.evaluate(() => {
       ;(window as any).__rinaReceiptExportText = ''
@@ -279,7 +334,7 @@ test('receipt recovery visual: failed build thread and receipt', async () => {
         ;(window as any).__rinaReceiptExportDownload = this.download
       }
     })
-    await page.getByRole('button', { name: 'Export JSON' }).click()
+    await page.getByRole('button', { name: /Export proof JSON/i }).click()
     await expect.poll(async () => page.evaluate(() => String((window as any).__rinaReceiptExportText || '')), { timeout: 10_000 }).not.toBe('')
     const exported = await page.evaluate(() => {
       const text = String((window as any).__rinaReceiptExportText || '')
@@ -289,18 +344,18 @@ test('receipt recovery visual: failed build thread and receipt', async () => {
     expect(exported.timestamp).toBe(now)
     expect(exported.intent).toBe('structured_command_receipt')
     expect(exported.proofBlockIds).toContain('proof:visual_failed_build_run')
-    expect(exported.verificationResult.results).toContain('Command exited with code 1.')
+    expect(exported.verificationResult.results).toContain('Command exit')
     expect(exported.runtimeReceipt.id).toBe('receipt_visual_failed_build')
-    expect(await page.evaluate(() => (window as any).__rinaReceiptExportDownload)).toBe('rinawarp-receipt-receipt_visual_failed_build.json')
+    expect(await page.evaluate(() => (window as any).__rinaReceiptExportDownload)).toBe('rinawarp-proof-receipt_visual_failed_build.json')
 
     await capture(page, 'failed-build-receipt')
   })
 })
 
-test('receipt recovery visual: interrupted test recovery strip and receipt', async () => {
+test('proof recovery visual: interrupted run recovery strip and proof', async () => {
   await withApp(async ({ page }) => {
     const now = new Date().toISOString()
-    const workspaceKey = await getWorkspaceKey(page)
+    const workspaceKey = await seedProjectWorkspaceContext(page)
     const fixture = {
       run: {
         id: 'visual_interrupted_test_run',
@@ -332,6 +387,7 @@ test('receipt recovery visual: interrupted test recovery strip and receipt', asy
       message: {
         id: 'system:runs:restore:visual-interrupted-test',
         role: 'rina' as const,
+        workspaceKey,
         content: [
           {
             type: 'reply-card',
@@ -356,10 +412,10 @@ test('receipt recovery visual: interrupted test recovery strip and receipt', asy
   })
 })
 
-test('receipt recovery visual: failed deploy inspector and receipt', async () => {
+test('proof recovery visual: failed deploy inspector and proof', async () => {
   await withApp(async ({ page }) => {
     const now = new Date().toISOString()
-    const workspaceKey = await getWorkspaceKey(page)
+    const workspaceKey = await seedProjectWorkspaceContext(page)
     const fixture = {
       run: {
         id: 'visual_failed_deploy_run',
@@ -409,10 +465,10 @@ test('receipt recovery visual: failed deploy inspector and receipt', async () =>
   })
 })
 
-test('receipt recovery visual: restored session thread stays understandable', async () => {
+test('proof recovery visual: restored session thread stays understandable', async () => {
   await withApp(async ({ page }) => {
     const now = new Date().toISOString()
-    const workspaceKey = await getWorkspaceKey(page)
+    const workspaceKey = await seedProjectWorkspaceContext(page)
     const fixture = {
       run: {
         id: 'visual_restored_run',
@@ -444,6 +500,7 @@ test('receipt recovery visual: restored session thread stays understandable', as
       message: {
         id: 'system:runs:restore:visual-restored-session',
         role: 'rina' as const,
+        workspaceKey,
         content: [
           {
             type: 'reply-card',
