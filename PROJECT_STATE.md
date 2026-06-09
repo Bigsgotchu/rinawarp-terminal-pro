@@ -336,3 +336,91 @@ Storage note:
 - No SQLite schema changed.
 - No existing memory rows were migrated.
 - Existing owner memory store behavior is unchanged.
+
+## 2026-06-09 WorkspaceFact Classification Helper
+
+Added deterministic WorkspaceFact classification helper:
+
+- `classifyWorkspaceFact(input)`
+
+Location:
+
+- `apps/terminal-pro/src/main/memory/memoryTypes.ts`
+
+Input:
+
+- `key`
+- `value`
+- optional `source`
+
+Output:
+
+- `category`
+- `confidence`
+
+Classification rules:
+
+- architecture: framework, runtime, architecture, ui, shell, agent
+- dependency: package, dependency, database, auth, provider
+- convention: naming, lint, formatting, commit, branch
+- preference: user preference, coding preference, workflow preference
+- recurring failure: repeated build/runtime/test failures
+- runtime fact: runtime/proof sourced facts, plus low-confidence fallback
+
+Tests:
+
+- `apps/terminal-pro/tests/unit/workspace-fact-types.test.ts`
+
+Storage note:
+
+- No SQLite schema changed.
+- No existing memory rows were migrated.
+- Classification only proposes category/confidence before future storage integration.
+
+## 2026-06-09 WorkspaceFact Extraction Helper
+
+Added extraction helper for candidate WorkspaceFacts:
+
+- `extractWorkspaceFacts(input)`
+
+Location:
+
+- `apps/terminal-pro/src/main/memory/workspaceFactExtractor.ts`
+
+Input types:
+
+- `ProjectConfigInput`: runtime, shell, agent, ui, database, authProvider, modelProvider, packageManager
+- `ExecutionRecordInput`: command, exitCode, success, output, proofId
+- `ProofRecordInput`: proofId, verificationStatus, evidenceCount, command counts
+- `MemoryEntryInput`: scope, kind, content, source, salience
+
+Output:
+
+- `WorkspaceFact[]`: candidate facts (not persisted)
+
+Extraction rules:
+
+- Architecture facts from config: runtime, shell, agent, ui
+- Dependency facts from config: database, auth, model, package manager
+- Runtime facts from successful executions: proof-backed success markers
+- Runtime facts from failed executions: exit codes
+- Proof facts: verification status, evidence counts
+- Memory facts: preference and project_fact entries
+
+Key design decisions:
+
+- Deterministic extraction only - no AI inference
+- No memory writes - extraction creates candidates only
+- Uses existing `classifyWorkspaceFact` and `createWorkspaceFact` helpers
+- `last_verified_at` set from execution/proof timestamps when available
+
+Tests:
+
+- `apps/terminal-pro/tests/unit/workspace-fact-extractor.test.ts`
+
+Storage note:
+
+- No SQLite schema changed.
+- No existing memory rows were migrated.
+- Extraction completes the pipeline: Raw Data -> Extract -> Classify -> Normalize -> Validate -> Store
+- WorkspaceFactStore persistence layer will be added after extraction is stable.
