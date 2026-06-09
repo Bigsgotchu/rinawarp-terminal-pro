@@ -500,15 +500,16 @@ Fixed SQLite implementation drift:
 
 Location: `apps/terminal-pro/tests/unit/workspace-fact-sqlite-store.test.ts`
 
-## Next Milestone: Workspace Knowledge Hydration
+## Completed Milestones
 
-Startup
- ↓
-Load WorkspaceFacts
- ↓
-Hydrate Runtime Context
- ↓
-Rina understands project state
+- Planner Approval
+- Proof Verification
+- Proof UI
+- WorkspaceFact Foundation
+- WorkspaceFact Persistence
+- Placeholder Cleanup
+
+## Next: Workspace Knowledge Hydration
 
 At that point Rina can know things like:
 
@@ -520,8 +521,4 @@ At that point Rina can know things like:
 
 without the user repeatedly telling it.
 
-This is where the Remember phase of:
-
-Ask → Observe → Plan → Approve → Execute → Verify → Proof → Remember
-
-starts becoming real rather than a collection of memory entries.
+This is where the Remember phase starts becoming real rather than a collection of memory entries.
