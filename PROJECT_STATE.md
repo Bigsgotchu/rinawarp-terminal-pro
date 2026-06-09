@@ -203,3 +203,45 @@ Tests added to `apps/terminal-pro/tests/unit/planner-approval.test.ts` (6 tests)
 - `verifyProof` returns unverified when no evidence found
 
 All 67 unit tests pass, typecheck and build:electron pass.
+
+## 2026-06-09 Memory To Workspace Knowledge Audit
+
+Audit report:
+
+- `docs/audits/MEMORY_WORKSPACE_KNOWLEDGE_AUDIT_2026-06-09.md`
+
+Current memory state:
+
+- Active product memory is centered on owner memory with SQLite operational storage and JSON fallback.
+- The operational schema stores generic memory entries with scope, kind, status, source, confidence, salience, tags, and metadata.
+- Current kinds include `preference`, `constraint`, `project_fact`, `task_outcome`, and `conversation_fact`.
+- Repair knowledge is stored as task outcomes with repair-case metadata.
+- Older `src/rina/memory/*` modules still represent parallel short-term/session/long-term memory concepts and should be treated as legacy candidates unless proven active.
+
+Proposed direction:
+
+- Introduce Workspace Knowledge as a typed layer for durable project facts.
+- Keep user preferences and constraints separate from workspace facts.
+- Treat raw conversation turns and `conversation_fact` entries as transient context, not durable truth.
+
+Proposed `WorkspaceFact` minimum shape:
+
+- `key`
+- `value`
+- `source`
+- `confidence`
+- `last_verified_at`
+
+Recommended categories:
+
+- technologies
+- architecture
+- conventions
+- dependencies
+- recurring failures
+- verified facts
+
+Next safe slice:
+
+- Add a read-only `WorkspaceFact` contract and schema proposal tests.
+- Do not migrate existing memory rows until the fact extraction and proof-backed verification rules are explicit.
