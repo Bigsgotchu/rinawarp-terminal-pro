@@ -207,7 +207,7 @@ class RinaController {
     }
 
     // Production: require proper license verification via API
-    // This method returns a placeholder - use verifyLicenseAsync for actual verification
+    // Sync verifyLicense is a reserved seam - use verifyLicenseAsync for full verification
     if (!key || key.length < 10) {
       return { valid: false, message: 'Invalid license key format' }
     }

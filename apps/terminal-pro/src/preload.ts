@@ -362,6 +362,11 @@ contextBridge.exposeInMainWorld('rina', {
     projectRoot: string
     confirmed: boolean
     confirmationText: string
+    approval?: {
+      planId?: string
+      approvedAt?: string
+      actor?: string
+    }
   }) => ipcRenderer.invoke('rina:executePlanStream', args),
 executeCapability: (args: {
      packKey: string

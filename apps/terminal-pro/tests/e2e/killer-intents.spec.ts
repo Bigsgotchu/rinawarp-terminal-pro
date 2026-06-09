@@ -131,8 +131,8 @@ function promptForIntent(intentLabel: string): string {
 }
 
 async function assertProofBackedIntentRun(page: Page, intentLabel: string): Promise<void> {
-  await page.getByRole('button', { name: 'Rina workbench' }).click()
-  await ensureProjectContext(page)
+await page.locator('[data-shell-source="shell_topbar"][data-shell-nav="agent"]').click()
+   await ensureProjectContext(page)
   const thread = page.locator('#agent-output')
   await expect(page.locator('#agent-input')).toBeVisible()
 
@@ -166,7 +166,7 @@ async function assertProofBackedIntentRun(page: Page, intentLabel: string): Prom
     .poll(async () => (((await tail.textContent()) || '').trim().length), { timeout: 20_000 })
     .toBeGreaterThan(0)
 
-  await page.getByRole('button', { name: 'Runs Inspector' }).click()
+  await page.locator('[data-shell-source="shell_topbar"][data-shell-nav="runs"]').click()
   const runRow = page.locator(`.rw-run-block[data-run-id="${runId}"]`)
   await expect(runRow).toBeVisible({ timeout: 20_000 })
   await expect(runRow).toContainText(/Receipt|Exit|Command/i)

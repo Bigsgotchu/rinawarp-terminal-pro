@@ -52,7 +52,7 @@ export function buildAboutPanelModel(version: string, state: AboutUpdateState | 
   return {
     version: version || '\u2014',
     productName: 'RinaWarp Terminal Pro',
-    productTagline: 'Agent-first desktop workflow with background execution and proof.',
+    productTagline: 'Natural-language AI copilot with AgentRuntime execution and Proof.',
     updateStatusLabel: formatAboutUpdateStatus(state),
     lastCheckedLabel: state?.checkedAt ? new Date(state.checkedAt).toLocaleString() : 'never',
     canOpenDownload: state?.status === 'update_available' || state?.status === 'unsupported',

@@ -171,7 +171,7 @@ export function composeRinaReplyLead({ result, memoryState }: ComposeReplyLeadAr
 
   if (result.intent === 'execute') {
     return tone === 'detailed'
-      ? 'I kept the execution path and proof attached. You can inspect the trace and receipts directly from here.'
+      ? 'I kept the execution path and Proof attached. You can inspect the runtime evidence directly from here.'
       : 'I kept the execution path and proof attached below.'
   }
 
@@ -212,7 +212,7 @@ export function composeExecutionPlanLead({
     return addLightStyle(`${base} I treated the test pass as the real gate before anything louder happens next.`, tone, humor, true)
   }
   if (intent === 'deploy' && hasApprovedInference(memoryState, /\bdeploy\b.*\baware|deploy-aware/)) {
-    return addLightStyle(`${base} I kept the deploy path extra explicit so target and receipts stay easy to audit.`, tone, humor, true)
+    return addLightStyle(`${base} I kept the deploy path extra explicit so target and Proof stay easy to audit.`, tone, humor, true)
   }
   return addLightStyle(base, tone, humor, true)
 }
@@ -247,10 +247,10 @@ export function composeCapabilityLead({ state, title, reason, memoryState }: Com
     state === 'ready'
       ? `${reason} is ready through ${title}, and I can keep the run on the trusted path from here.`
       : state === 'install'
-        ? `${reason} still needs ${title} installed before I can run it with receipts.`
+        ? `${reason} still needs ${title} installed before I can run it with Proof.`
         : `${reason} is available, but ${title} is still behind a higher tier before I can execute it with proof.`
   if (state === 'ready' && hasApprovedInference(memoryState, /\bdeploy\b.*\baware|deploy-aware/)) {
-    return addLightStyle(`${base} I will keep the provider and receipt trail visible the whole way through.`, tone, humor, true)
+    return addLightStyle(`${base} I will keep the provider evidence and Proof visible the whole way through.`, tone, humor, true)
   }
   return state === 'ready' ? addLightStyle(base, tone, humor, true) : base
 }

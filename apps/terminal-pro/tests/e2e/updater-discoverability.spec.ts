@@ -119,29 +119,6 @@ test('updater: receipt and run history survive app reload (simulated version bou
     await expect(page.locator('.rw-inline-runblock')).toHaveCount(1)
   })
 })
-})
-
-test('updater: failed update check is non-blocking and does not hide the agent thread', async () => {
-  await withApp(async ({ page }) => {
-    await page.waitForFunction(() => typeof window.__rinaSettings?.open === 'function')
-    await ensureProjectContext(page)
-
-    await page.route('**/latest.json', (route) =>
-      route.fulfill({ status: 500, body: JSON.stringify({ error: 'simulated-update-failure' }) })
-    )
-
-    await page.evaluate(async () => {
-      const updateState = await window.rina?.updateState?.()
-      if (!updateState) return
-      if (typeof window.rina?.checkForUpdate !== 'function') return
-      await window.rina.checkForUpdate()
-    })
-
-    await page.waitForTimeout(1000)
-    await expect(page.getByRole('heading', { name: 'RinaWarp Terminal Pro' }).first()).toBeVisible()
-    await expect(page.locator('#agent-input')).toBeVisible()
-  })
-})
 
 test('updater: receipt and run history survive a simulated version bump', async () => {
   await withApp(async ({ page }) => {

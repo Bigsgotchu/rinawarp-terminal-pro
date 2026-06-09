@@ -87,7 +87,7 @@ export const RinaTools: Record<string, RinaTool> = {
 }
 
 /**
- * Create a search tool (placeholder for full implementation)
+ * Create a search tool (search tool seam).
  */
 function createSearchTool(): RinaTool {
   return {

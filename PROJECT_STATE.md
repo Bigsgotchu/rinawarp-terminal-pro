@@ -500,6 +500,23 @@ Fixed SQLite implementation drift:
 
 Location: `apps/terminal-pro/tests/unit/workspace-fact-sqlite-store.test.ts`
 
+## 2026-06-09 Workspace Knowledge Hydration
+
+Implemented read-only workspace knowledge hydration for agent startup:
+
+- `WorkspaceKnowledgeSnapshot` type with grouped facts (architecture, dependencies, conventions, preferences, recurring_failures, runtime_facts)
+- `hydrateWorkspaceKnowledge(store)` helper loads facts through `WorkspaceFactStore` interface only
+- Facts sorted by confidence (high → medium → low) within each category
+- `RinaAgentRequest` extended with optional `workspaceKnowledge` field
+- `AgentModelState.workspaceKnowledge` added to receive durable project facts
+- `buildAgentContext` merges architecture/dependencies/facts into state
+
+Tests:
+- `apps/terminal-pro/tests/unit/workspace-knowledge.test.ts` (6 tests)
+- `apps/terminal-pro/src/renderer/rina-agent-context.test.ts` (2 tests)
+
+All 96 unit tests pass. `typecheck` and `build:electron` pass.
+
 ## Completed Milestones
 
 - Planner Approval
@@ -508,16 +525,7 @@ Location: `apps/terminal-pro/tests/unit/workspace-fact-sqlite-store.test.ts`
 - WorkspaceFact Foundation
 - WorkspaceFact Persistence
 - Placeholder Cleanup
-
-## Next: Workspace Knowledge Hydration
-
-At that point Rina can know things like:
-
-- Product = RinaWarp Terminal Pro
-- Runtime = AgentRuntime
-- Proof = Enabled
-- Planner Approval = Enabled
-- Database = SQLite
+- Workspace Knowledge Hydration
 
 without the user repeatedly telling it.
 

@@ -23,7 +23,7 @@
     "test:plan-fallback": "npm run build:electron && node --test test/plan-fallback.test.mjs",
     "test:plans": "npm run build:electron && node --test test/plans.test.mjs",
     "test:input-classifier": "npm run build:electron && node --test test/terminal-input-classifier.test.mjs",
-    "test:unit": "vitest run --root . tests/unit/agent-narration.test.ts tests/unit/unified-turn.test.ts src/renderer/rina-agent-core.test.ts",
+    "test:unit": "vitest run --root . tests/unit/agent-narration.test.ts tests/unit/unified-turn.test.ts tests/unit/workspace-fact-store.test.ts tests/unit/workspace-fact-sqlite-store.test.ts tests/unit/workspace-knowledge.test.ts src/renderer/rina-agent-core.test.ts src/renderer/rina-agent-context.test.ts",
     "test:agent": "npm run build:electron && node tests/agent.test.mjs",
     "test:cli": "node tests/cli.test.mjs",
     "test:rina-runtime": "npm run build:electron && node test/inline-rina.test.mjs && node test/rina-agent-safe-patch.test.mjs && node test/legacy-mutation-paths.test.mjs && node test/plan-risk.test.mjs && node test/plan-fallback.test.mjs && node test/fix-project-flow.test.mjs && node test/policy-gate-loading.test.mjs && node test/code-helpers.test.mjs",

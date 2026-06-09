@@ -45,7 +45,7 @@ export function renderGeneralPanel(workspaceLabel: string): string {
         <div>
           <div class="rw-label">Workspace</div>
           <div class="rw-muted" id="rw-general-workspace-path">${esc(model.workspaceLabel)}</div>
-          <div class="rw-muted">Pick the folder Rina should use as the current workspace for runs, receipts, and code context.</div>
+          <div class="rw-muted">Pick the folder Rina should use as the current workspace for runs, Proof, and code context.</div>
         </div>
         <button type="button" class="rw-btn rw-btn-primary" id="rw-general-pick-workspace">Choose workspace</button>
       </div>

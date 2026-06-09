@@ -40,6 +40,17 @@ export type WorkspaceFactInput = {
   updated_at?: string
 }
 
+export type WorkspaceFactClassificationInput = {
+  key: string
+  value: string
+  source?: WorkspaceFactSource
+}
+
+export type WorkspaceFactClassification = {
+  category: WorkspaceFactCategory
+  confidence: WorkspaceFactConfidence
+}
+
 export const WORKSPACE_FACT_CATEGORIES: readonly WorkspaceFactCategory[] = [
   'architecture',
   'dependency',
@@ -90,6 +101,56 @@ export function isWorkspaceFact(value: unknown): value is WorkspaceFact {
     typeof value.created_at === 'string' &&
     typeof value.updated_at === 'string'
   )
+}
+
+function factText(input: WorkspaceFactClassificationInput): string {
+  return `${input.key || ''} ${input.value || ''}`.toLowerCase()
+}
+
+function includesAny(text: string, patterns: readonly string[]): boolean {
+  return patterns.some((pattern) => text.includes(pattern))
+}
+
+export function classifyWorkspaceFact(input: WorkspaceFactClassificationInput): WorkspaceFactClassification {
+  const text = factText(input)
+
+  if (input.source === 'proof') {
+    return { category: 'runtime_fact', confidence: 'high' }
+  }
+  if (input.source === 'runtime') {
+    return { category: 'runtime_fact', confidence: 'high' }
+  }
+
+  if (
+    includesAny(text, [
+      'repeated build error',
+      'repeated build errors',
+      'repeated runtime failure',
+      'repeated runtime failures',
+      'repeated test failure',
+      'repeated test failures',
+    ])
+  ) {
+    return { category: 'recurring_failure', confidence: 'high' }
+  }
+
+  if (includesAny(text, ['user preference', 'coding preference', 'workflow preference'])) {
+    return { category: 'preference', confidence: input.source === 'user' ? 'high' : 'medium' }
+  }
+
+  if (includesAny(text, ['naming', 'lint', 'formatting', 'commit', 'branch'])) {
+    return { category: 'convention', confidence: input.source === 'user' ? 'high' : 'medium' }
+  }
+
+  if (includesAny(text, ['package', 'dependency', 'database', 'auth', 'provider'])) {
+    return { category: 'dependency', confidence: input.source === 'config' ? 'high' : 'medium' }
+  }
+
+  if (includesAny(text, ['framework', 'runtime', 'architecture', 'ui', 'shell', 'agent'])) {
+    return { category: 'architecture', confidence: input.source === 'config' ? 'high' : 'medium' }
+  }
+
+  return { category: 'runtime_fact', confidence: 'low' }
 }
 
 export function createWorkspaceFact(input: WorkspaceFactInput): WorkspaceFact {

@@ -94,6 +94,11 @@ export interface RinaRendererWindow {
       projectRoot: string
       confirmed: boolean
       confirmationText: string
+      approval?: {
+        planId?: string
+        approvedAt?: string
+        actor?: string
+      }
     }) => Promise<{
       ok?: boolean
       runId?: string

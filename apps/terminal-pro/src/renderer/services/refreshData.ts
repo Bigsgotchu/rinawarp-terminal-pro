@@ -94,7 +94,7 @@ export function createRefreshActions(deps: RefreshDeps) {
                             ]
                           : [
                               copyBlock(
-                                `Your receipts are intact. I restored ${restoredRuns.length} recent run${restoredRuns.length === 1 ? '' : 's'} from your last session and can pick up the latest interrupted task when you are ready.`
+                                `Your Proof is intact. I restored ${restoredRuns.length} recent run${restoredRuns.length === 1 ? '' : 's'} from your last session and can pick up the latest interrupted task when you are ready.`
                               ),
                             ],
                       actions: [
@@ -113,7 +113,7 @@ export function createRefreshActions(deps: RefreshDeps) {
                         ...(latestInterrupted
                           ? [
                               {
-                                label: recovery?.receiptLabel || 'Open receipt',
+                                label: recovery?.receiptLabel || 'Open proof',
                                 runReveal: latestInterrupted.latestReceiptId || latestInterrupted.id,
                                 className: 'is-secondary',
                               },

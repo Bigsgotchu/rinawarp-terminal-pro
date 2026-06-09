@@ -27,7 +27,7 @@ test("smoke: agent home + settings persistence", async () => {
     await expect(page.locator("#panel-agent")).toBeVisible();
     await expect(page.locator(".rw-agent-launch-title")).toHaveText("RinaWarp Terminal Pro");
     await expect(page.locator(".rw-agent-launch-subtitle")).toHaveText("What would you like me to do?");
-    await expect(page.locator("#agent-starter-prompts .rw-prompt-chip")).toHaveCount(3);
+    await expect(page.locator("#agent-starter-prompts .rw-example-prompt")).toHaveCount(4);
 
     await page.waitForFunction(() => typeof window.__rinaSettings?.open === "function");
     await page.keyboard.press(modKey(","));

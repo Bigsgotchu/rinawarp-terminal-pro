@@ -21,6 +21,13 @@ type E2ePlanPayload = {
   confirmed: boolean
   confirmationText: string
   projectRoot: string
+  approval?: PlanApprovalMetadata
+}
+
+type PlanApprovalMetadata = {
+  planId?: string
+  approvedAt?: string
+  actor?: string
 }
 
 type StartStreamingStepResult = {
@@ -71,6 +78,7 @@ type PipeAgentdSseToRendererDeps = {
   localPlanRunId: string
   agentdPlanRunId: string
   runId: string
+  approval?: PlanApprovalMetadata
   e2ePlanPayloads: Map<unknown, unknown>
   createStreamId: () => string
   streamToPlanRun: Map<string, string>
@@ -92,6 +100,9 @@ type PipeAgentdSseToRendererDeps = {
     confirmed: boolean
     confirmationText: string
     projectRoot: string
+    approval?: PlanApprovalMetadata
+    runtimeId?: string
+    proofId?: string
   }) => Promise<StartStreamingStepResult>
   AGENTD_BASE_URL: string
   buildAgentdHeaders: (opts?: {
@@ -104,14 +115,13 @@ type PipeAgentdSseToRendererDeps = {
   redactChunkIfNeeded: (text: unknown) => string
 }
 
-export async function pipeAgentdSseToRenderer(
-  args: PipeAgentdSseToRendererDeps,
-) {
+export async function pipeAgentdSseToRenderer(args: PipeAgentdSseToRendererDeps) {
   const {
     eventSender,
     localPlanRunId,
     agentdPlanRunId,
     runId,
+    approval,
     e2ePlanPayloads,
     createStreamId,
     streamToPlanRun,
@@ -125,13 +135,10 @@ export async function pipeAgentdSseToRenderer(
     forRendererDisplay,
     redactChunkIfNeeded,
   } = args
-  const getStructuredSessionStore = () =>
-    structuredSessionStore() as StructuredSessionStoreLike | null | undefined
+  const getStructuredSessionStore = () => structuredSessionStore() as StructuredSessionStoreLike | null | undefined
 
   if (agentdPlanRunId.startsWith('e2e_plan_')) {
-    const payload = e2ePlanPayloads.get(agentdPlanRunId) as
-      | E2ePlanPayload
-      | undefined
+    const payload = e2ePlanPayloads.get(agentdPlanRunId) as E2ePlanPayload | undefined
     e2ePlanPayloads.delete(agentdPlanRunId)
     if (!payload) return 'missing_e2e_plan_payload'
     for (const rawStep of payload.plan || []) {
@@ -163,6 +170,9 @@ export async function pipeAgentdSseToRenderer(
         confirmed: payload.confirmed,
         confirmationText: payload.confirmationText,
         projectRoot: payload.projectRoot,
+        approval: payload.approval,
+        runtimeId: 'engine',
+        proofId: runId,
       })
       if (!result.ok) return result.error || 'execution_failed'
     }
@@ -211,6 +221,11 @@ export async function pipeAgentdSseToRenderer(
               cwd: cwd || undefined,
               risk: payload?.step?.risk_level || payload?.step?.risk,
               source: 'plan_stream_agentd',
+              planId: approval?.planId || localPlanRunId,
+              approvalTimestamp: approval?.approvedAt,
+              approvalActor: approval?.actor,
+              runtimeId: agentdPlanRunId,
+              proofId: runId,
             })
           })
         }
@@ -232,15 +247,14 @@ export async function pipeAgentdSseToRenderer(
           stream: payload.stream,
           data: forRendererDisplay(payload.data),
         })
-        const chunkStreamId =
-          typeof payload.streamId === 'string' ? payload.streamId : null
+        const chunkStreamId = typeof payload.streamId === 'string' ? payload.streamId : null
         if (chunkStreamId) {
           withStructuredSessionWrite(() => {
             const mapped = payload.stream === 'stderr' ? 'stderr' : payload.stream === 'meta' ? 'meta' : 'stdout'
             getStructuredSessionStore()?.appendChunk(
               chunkStreamId,
               mapped,
-              redactChunkIfNeeded(String(payload.data || '')),
+              redactChunkIfNeeded(String(payload.data || ''))
             )
           })
         }

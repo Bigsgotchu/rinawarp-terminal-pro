@@ -53,6 +53,9 @@ type StartStreamingArgs = {
   confirmed: boolean
   confirmationText: string
   projectRoot: string
+  approval?: PlanApprovalMetadata
+  runtimeId?: string
+  proofId?: string
 }
 
 type ExecuteStepStreamArgs = {
@@ -68,6 +71,12 @@ type ExecuteStepStreamArgs = {
 
 type AgentdExecutePlanResponse = {
   planRunId: string
+}
+
+type PlanApprovalMetadata = {
+  planId?: string
+  approvedAt?: string
+  actor?: string
 }
 
 type PlanExecutionRuntimeDeps = {
@@ -93,12 +102,9 @@ type PlanExecutionRuntimeDeps = {
   evaluatePolicyGate: (
     command: string,
     confirmed: boolean,
-    confirmationText: string,
+    confirmationText: string
   ) => { ok: boolean; message?: string }
-  ensureStructuredSession: (args: {
-    source: string
-    projectRoot: string
-  }) => string | null
+  ensureStructuredSession: (args: { source: string; projectRoot: string }) => string | null
   withStructuredSessionWrite: (fn: () => void) => void
   structuredSessionStore: () => unknown
   safeSend: SafeSendFn
@@ -110,7 +116,7 @@ type PlanExecutionRuntimeDeps = {
       method: string
       body?: unknown
       includeLicenseToken?: boolean
-    },
+    }
   ) => Promise<unknown>
   buildAgentdHeaders: (opts?: {
     includeLicenseToken?: boolean
@@ -127,9 +133,9 @@ type PlanExecutionRuntimeDeps = {
 }
 
 type StructuredSessionStoreLike = {
-    beginCommand(args: Record<string, unknown>): void
-    appendChunk(streamId: string, stream: string, data: string): void
-    endCommand(args: Record<string, unknown>): void
+  beginCommand(args: Record<string, unknown>): void
+  appendChunk(streamId: string, stream: string, data: string): void
+  endCommand(args: Record<string, unknown>): void
 }
 
 type SsePayload = {
@@ -167,8 +173,7 @@ export function createPlanExecutionRuntime(deps: PlanExecutionRuntimeDeps) {
     streamToPlanRun,
     addTranscriptEntry,
   } = deps
-  const getStructuredSessionStore = () =>
-    deps.structuredSessionStore() as StructuredSessionStoreLike | null | undefined
+  const getStructuredSessionStore = () => deps.structuredSessionStore() as StructuredSessionStoreLike | null | undefined
 
   function createConfirmationScope(step: PlanStep) {
     return `terminal.write:${step.command}`
@@ -178,9 +183,7 @@ export function createPlanExecutionRuntime(deps: PlanExecutionRuntimeDeps) {
     return `plan_${Date.now()}_${Math.random().toString(16).slice(2)}`
   }
 
-  function terminalWriteSafetyFields(
-    stepRisk: unknown,
-  ): PlanExecutionTerminalSafety {
+  function terminalWriteSafetyFields(stepRisk: unknown): PlanExecutionTerminalSafety {
     return {
       risk: 'safe-write',
       risk_level: 'medium',
@@ -206,7 +209,17 @@ export function createPlanExecutionRuntime(deps: PlanExecutionRuntimeDeps) {
   }
 
   async function startStreamingStepViaEngine(args: StartStreamingArgs) {
-    const { webContents, streamId, step, confirmed, confirmationText, projectRoot: rawProjectRoot } = args
+    const {
+      webContents,
+      streamId,
+      step,
+      confirmed,
+      confirmationText,
+      projectRoot: rawProjectRoot,
+      approval,
+      runtimeId,
+      proofId,
+    } = args
     const projectRoot = normalizeProjectRoot(rawProjectRoot)
     const risk = step.risk
     const profileGate = gateProfileCommand({
@@ -238,6 +251,11 @@ export function createPlanExecutionRuntime(deps: PlanExecutionRuntimeDeps) {
         cwd: projectRoot,
         risk,
         source: 'engine_step_stream',
+        planId: approval?.planId,
+        approvalTimestamp: approval?.approvedAt,
+        approvalActor: approval?.actor,
+        runtimeId: runtimeId || 'engine',
+        proofId: proofId || streamId,
       })
     })
     const policyGate = evaluatePolicyGate(step.command, confirmed, confirmationText)
@@ -281,11 +299,7 @@ export function createPlanExecutionRuntime(deps: PlanExecutionRuntimeDeps) {
       data: `$ ${step.command}\n`,
     })
     withStructuredSessionWrite(() => {
-      getStructuredSessionStore()?.appendChunk(
-        streamId,
-        'meta',
-        redactChunkIfNeeded(`$ ${step.command}\n`),
-      )
+      getStructuredSessionStore()?.appendChunk(streamId, 'meta', redactChunkIfNeeded(`$ ${step.command}\n`))
     })
     running.set(streamId, {
       cancelled: false,
@@ -367,9 +381,7 @@ export function createPlanExecutionRuntime(deps: PlanExecutionRuntimeDeps) {
     }
   }
 
-  async function cancelStream(
-    streamId: string,
-  ): Promise<PlanExecutionStreamControlResult> {
+  async function cancelStream(streamId: string): Promise<PlanExecutionStreamControlResult> {
     const id = String(streamId || '').trim()
     if (!id) return { ok: false, message: 'Missing streamId.' }
     const mappedPlanRunId = streamToPlanRun.get(id)
@@ -396,9 +408,7 @@ export function createPlanExecutionRuntime(deps: PlanExecutionRuntimeDeps) {
     return { ok: true, message: 'Cancellation requested.' }
   }
 
-  async function hardKillStream(
-    streamId: string,
-  ): Promise<PlanExecutionStreamControlResult> {
+  async function hardKillStream(streamId: string): Promise<PlanExecutionStreamControlResult> {
     const id = String(streamId || '').trim()
     if (!id) return { ok: false, message: 'Missing streamId.' }
     const ownerId = ptyStreamOwners.get(id)
@@ -431,9 +441,7 @@ export function createPlanExecutionRuntime(deps: PlanExecutionRuntimeDeps) {
     return { ok: false, message: 'No running process for that streamId.' }
   }
 
-  async function executeStepStreamForIpc(
-    args: ExecuteStepStreamArgs,
-  ): Promise<PlanExecutionStreamResult> {
+  async function executeStepStreamForIpc(args: ExecuteStepStreamArgs): Promise<PlanExecutionStreamResult> {
     const { eventSender, step, confirmed, confirmationText, projectRoot } = args
     const streamId = createStreamId()
     const normalizedRoot = resolveProjectRootSafe(projectRoot)
@@ -546,9 +554,7 @@ export function createPlanExecutionRuntime(deps: PlanExecutionRuntimeDeps) {
                 if (line.startsWith('data:')) dataLines.push(line.slice(5).trim())
               }
               const payloadText = dataLines.join('\n')
-              const payload = payloadText
-                ? (JSON.parse(payloadText) as SsePayload)
-                : {}
+              const payload = payloadText ? (JSON.parse(payloadText) as SsePayload) : {}
               if (eventName === 'chunk') {
                 safeSend(eventSender, 'rina:stream:chunk', {
                   streamId,
@@ -557,7 +563,11 @@ export function createPlanExecutionRuntime(deps: PlanExecutionRuntimeDeps) {
                 })
                 withStructuredSessionWrite(() => {
                   const mapped = payload.stream === 'stderr' ? 'stderr' : payload.stream === 'meta' ? 'meta' : 'stdout'
-                  getStructuredSessionStore()?.appendChunk(streamId, mapped, redactChunkIfNeeded(String(payload.data || '')))
+                  getStructuredSessionStore()?.appendChunk(
+                    streamId,
+                    mapped,
+                    redactChunkIfNeeded(String(payload.data || ''))
+                  )
                 })
                 continue
               }

@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { RinaToolCall } from "./rina-tools.js";
+import type { WorkspaceFact } from "./memory/memoryTypes.js";
 
 export type AgentModelDecision =
   | { type: "message"; text: string }
@@ -18,6 +19,11 @@ export type AgentModelState = {
   diagnosticOutput?: string | null;
   searchResults?: string[];
   executedCommands?: string[];
+  workspaceKnowledge?: {
+    architecture: WorkspaceFact[];
+    dependencies: WorkspaceFact[];
+    facts: WorkspaceFact[];
+  };
 };
 
 function buildDiagnosticCommand(packageJsonText: string | null | undefined, packageManager: AgentModelState["packageManager"]): string {

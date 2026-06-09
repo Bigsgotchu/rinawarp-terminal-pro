@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  classifyWorkspaceFact,
   createWorkspaceFact,
   isWorkspaceFact,
   isWorkspaceFactCategory,
@@ -165,5 +166,88 @@ describe('createWorkspaceFact', () => {
         confidence: 'certain' as never,
       })
     ).toThrow(/Invalid WorkspaceFact confidence/)
+  })
+})
+
+describe('classifyWorkspaceFact', () => {
+  it('classifies architecture facts deterministically', () => {
+    expect(classifyWorkspaceFact({ key: 'runtime.primary', value: 'AgentRuntime' })).toEqual({
+      category: 'architecture',
+      confidence: 'medium',
+    })
+    expect(
+      classifyWorkspaceFact({ key: 'framework.renderer', value: 'Electron Agent Shell', source: 'config' })
+    ).toEqual({
+      category: 'architecture',
+      confidence: 'high',
+    })
+  })
+
+  it('classifies dependency facts deterministically', () => {
+    expect(classifyWorkspaceFact({ key: 'database.local', value: 'SQLite' })).toEqual({
+      category: 'dependency',
+      confidence: 'medium',
+    })
+    expect(classifyWorkspaceFact({ key: 'auth.provider', value: 'Clerk', source: 'config' })).toEqual({
+      category: 'dependency',
+      confidence: 'high',
+    })
+  })
+
+  it('classifies convention facts deterministically', () => {
+    expect(classifyWorkspaceFact({ key: 'formatting.style', value: 'Use Prettier' })).toEqual({
+      category: 'convention',
+      confidence: 'medium',
+    })
+    expect(classifyWorkspaceFact({ key: 'commit.convention', value: 'Use focused commits', source: 'user' })).toEqual({
+      category: 'convention',
+      confidence: 'high',
+    })
+  })
+
+  it('classifies preference facts deterministically', () => {
+    expect(classifyWorkspaceFact({ key: 'user preference.package_manager', value: 'pnpm' })).toEqual({
+      category: 'preference',
+      confidence: 'medium',
+    })
+    expect(
+      classifyWorkspaceFact({ key: 'workflow preference.approval', value: 'Ask before write actions', source: 'user' })
+    ).toEqual({
+      category: 'preference',
+      confidence: 'high',
+    })
+  })
+
+  it('classifies recurring failure facts deterministically', () => {
+    expect(
+      classifyWorkspaceFact({ key: 'repeated build errors.typescript', value: 'tsc fails on stale dist' })
+    ).toEqual({
+      category: 'recurring_failure',
+      confidence: 'high',
+    })
+    expect(
+      classifyWorkspaceFact({ key: 'failures.tests', value: 'repeated test failures in planner approval' })
+    ).toEqual({
+      category: 'recurring_failure',
+      confidence: 'high',
+    })
+  })
+
+  it('classifies runtime and proof sourced facts as runtime facts', () => {
+    expect(classifyWorkspaceFact({ key: 'execution.command', value: 'npm test passed', source: 'runtime' })).toEqual({
+      category: 'runtime_fact',
+      confidence: 'high',
+    })
+    expect(classifyWorkspaceFact({ key: 'proof.verification', value: 'Proof verified', source: 'proof' })).toEqual({
+      category: 'runtime_fact',
+      confidence: 'high',
+    })
+  })
+
+  it('falls back to low-confidence runtime_fact for unknown facts', () => {
+    expect(classifyWorkspaceFact({ key: 'misc.note', value: 'Something observed' })).toEqual({
+      category: 'runtime_fact',
+      confidence: 'low',
+    })
   })
 })

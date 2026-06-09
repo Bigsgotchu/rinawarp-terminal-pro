@@ -123,7 +123,7 @@ export function renderWorkbenchShellFrame(model: WorkbenchShellFrameModel): stri
 
       <main class="rw-workbench-shell">
         <header class="rw-workbench-topbar">
-          <nav class="rw-workbench-tabs" aria-label="Workbench">
+          <nav class="rw-workbench-tabs" aria-label="Agent Shell">
             ${renderTab(model.tabs[0])}
             ${model.tabs.slice(1).map(renderTab).join('')}
           </nav>

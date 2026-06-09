@@ -129,6 +129,7 @@ export function buildPlannerApprovalContent(
         {
           label: 'Approve & Run',
           planApprove: encodeExecutionPlan(steps),
+          planId: plan.id || options.planRunId,
           executePlanPrompt: prompt,
           executePlanWorkspaceRoot: options.workspaceRoot,
         },

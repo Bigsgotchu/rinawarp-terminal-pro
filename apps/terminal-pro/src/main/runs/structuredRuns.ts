@@ -48,6 +48,7 @@ type CommandRow = {
   id?: string
   input?: string
   cwd?: string
+  proof_id?: string
   ok?: boolean
   exit_code?: number | null
   started_at?: string
@@ -133,7 +134,7 @@ export function listStructuredRunsFromSessionsRoot(sessionsRoot: string, limit =
           latestCommand: String(latestStart?.input || ''),
           latestExitCode: latestEnd?.exit_code ?? null,
           latestCwd: String(latestStart?.cwd || ''),
-          latestReceiptId: String(latestStart?.id || sessionId),
+          latestReceiptId: String(latestStart?.proof_id || latestStart?.id || sessionId),
           latestStartedAt,
           latestEndedAt,
           interrupted: Boolean(latestStart && !latestEnd),

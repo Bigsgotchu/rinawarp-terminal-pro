@@ -78,7 +78,10 @@ export function createRunActionHandler(
         msg: {
           id: `rina:plan-run-error:${Date.now()}`,
           role: 'rina',
-          content: deps.buildExecutionHaltContent(prompt, result?.error || result?.haltReason || 'The reviewed plan did not start.'),
+          content: deps.buildExecutionHaltContent(
+            prompt,
+            result?.error || result?.haltReason || 'The reviewed plan did not start.'
+          ),
           ts: Date.now(),
           workspaceKey: deps.getWorkspaceKey(),
         },
@@ -281,11 +284,18 @@ export function createRunActionHandler(
       }
       const hostMessage = planApproveBtn.closest<HTMLElement>('[data-msg-id]')
       const messageId = hostMessage?.dataset.msgId || `rina:plan-run:${Date.now()}`
+      const approvedAt = new Date().toISOString()
+      const planId = String(planApproveBtn.dataset.planId || '').trim() || messageId
       const result = await window.rina.executePlanStream({
         plan: planSteps,
         projectRoot: workspaceRoot,
         confirmed: true,
-        confirmationText: 'User approved via Planner Approval flow',
+        confirmationText: `User approved Planner Approval flow at ${approvedAt}`,
+        approval: {
+          planId,
+          approvedAt,
+          actor: 'user',
+        },
       })
       if (
         deps.commitStartedExecutionResult(
@@ -306,7 +316,10 @@ export function createRunActionHandler(
         msg: {
           id: `rina:plan-run-error:${Date.now()}`,
           role: 'rina',
-          content: deps.buildExecutionHaltContent(prompt, result?.error || result?.haltReason || 'The approved plan did not start.'),
+          content: deps.buildExecutionHaltContent(
+            prompt,
+            result?.error || result?.haltReason || 'The approved plan did not start.'
+          ),
           ts: Date.now(),
           workspaceKey: deps.getWorkspaceKey(),
         },

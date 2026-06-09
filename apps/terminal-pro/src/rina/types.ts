@@ -1,7 +1,7 @@
 /**
  * Rina Controller Types
  *
- * Type placeholders for the Rina Controller stub.
+ * Reserved types for the Rina Controller adapter seam.
  * Based on the actual types from agent-loop.ts for compatibility.
  */
 

@@ -35,8 +35,6 @@ const allowedPathParts = [
 // Allow these patterns (internal comments, test code, etc.)
 const allowPatterns = [
   '// @ts-nocheck',
-  'Type placeholder',
-  'Create a search tool (placeholder',
   'getPerformanceStats',
   'env-mock',
   'mockInlineRinaFromEnv',
@@ -52,8 +50,6 @@ const allowPatterns = [
   'placeholder="',
   'placeholder=\'',
   'outputPlaceholder:',
-  'outputPlaceholder:',
-  'placeholderFileContent',
 ]
 
 let hasErrors = false

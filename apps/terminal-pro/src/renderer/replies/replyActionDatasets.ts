@@ -22,5 +22,6 @@ export function buildReplyActionDataset(action: ReplyAction): Record<string, str
     runArtifacts: action.runArtifacts,
     planApprove: action.planApprove,
     planReject: action.planReject,
+    planId: action.planId,
   }
 }

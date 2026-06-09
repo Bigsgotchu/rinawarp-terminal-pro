@@ -565,6 +565,11 @@ export type PipeAgentdSseToRendererArgs = {
   localPlanRunId: string;
   agentdPlanRunId: string;
   runId: string;
+  approval?: {
+    planId?: string;
+    approvedAt?: string;
+    actor?: string;
+  };
 };
 
 export type PlanExecutionHelpers = {
