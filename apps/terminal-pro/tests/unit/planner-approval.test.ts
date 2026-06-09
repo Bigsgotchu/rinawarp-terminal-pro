@@ -10,6 +10,7 @@ import { buildReplyActionDataset } from '../../src/renderer/replies/replyActionD
 import { handleExecutePlanStream, handlePlanReject } from '../../src/main/ipc/agentExecutionFlow.js'
 import { StructuredSessionStore } from '../../src/structured-session.js'
 import { createApprovedPlanAdapter } from '../../src/main/runtime/approvedPlanAdapter.js'
+import type { VerificationStatus } from '../../src/structured-session-types.js'
 
 type FixPlanStep = {
   stepId?: string
@@ -769,11 +770,161 @@ it('handleExecutePlanStream delegates to adapter when approval present', async (
          confirmationText: 'direct execution without approval',
        })
 
-       expect(executeRemotePlan).toHaveBeenCalledWith(
-         expect.objectContaining({
-           confirmed: true,
-           approval: undefined,
+expect(executeRemotePlan).toHaveBeenCalledWith(
+          expect.objectContaining({
+            confirmed: true,
+            approval: undefined,
+          })
+        )
+      })
+    })
+
+   describe('Proof Verification pipeline', () => {
+     it('marks command as verified when execution completes with exit code and output', async () => {
+       const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-proof-verified-'))
+       try {
+         const store = new StructuredSessionStore(root, true)
+         store.init()
+         const sessionId = store.startSession({ source: 'test', projectRoot: '/tmp/test', preferredId: 'proof_verified_123' })
+         store.beginCommand({
+           sessionId,
+           streamId: 'stream_verified',
+           command: 'echo done',
+           cwd: '/tmp/test',
+           risk: 'read',
+           source: 'planner_approval',
+           proofId: 'proof:proof_verified_123',
          })
-       )
+         store.appendChunk('stream_verified', 'stdout', 'done\n')
+         store.endCommand({
+           streamId: 'stream_verified',
+           ok: true,
+           code: 0,
+           cancelled: false,
+         })
+
+         const commandsFile = path.join(root, 'sessions', sessionId, 'commands.ndjson')
+         const rows = fs.readFileSync(commandsFile, 'utf8').split('\n').filter(Boolean).map(JSON.parse)
+
+         const startRow = rows[0]
+         const endRow = rows[1]
+         expect(endRow.verification_status).toBe('verified')
+         expect(endRow.evidence_count).toBe(1)
+       } finally {
+         fs.rmSync(root, { recursive: true, force: true })
+       }
+     })
+
+     it('marks command as partially_verified when execution has exit code but no output', async () => {
+       const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-proof-partial-'))
+       try {
+         const store = new StructuredSessionStore(root, true)
+         store.init()
+         const sessionId = store.startSession({ source: 'test', projectRoot: '/tmp/test', preferredId: 'proof_partial_123' })
+         store.beginCommand({
+           sessionId,
+           streamId: 'stream_partial',
+           command: 'touch empty.txt',
+           cwd: '/tmp/test',
+           risk: 'safe-write',
+           source: 'planner_approval',
+           proofId: 'proof:proof_partial_123',
+         })
+         store.endCommand({
+           streamId: 'stream_partial',
+           ok: true,
+           code: 0,
+           cancelled: false,
+         })
+
+         const commandsFile = path.join(root, 'sessions', sessionId, 'commands.ndjson')
+         const rows = fs.readFileSync(commandsFile, 'utf8').split('\n').filter(Boolean).map(JSON.parse)
+
+         expect(rows[1].verification_status).toBe('partially_verified')
+       } finally {
+         fs.rmSync(root, { recursive: true, force: true })
+       }
+     })
+
+     it('marks command as unverified when execution has neither exit code nor output', async () => {
+       const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-proof-unverified-'))
+       try {
+         const store = new StructuredSessionStore(root, true)
+         store.init()
+         const sessionId = store.startSession({ source: 'test', projectRoot: '/tmp/test', preferredId: 'proof_unverified_123' })
+         store.beginCommand({
+           sessionId,
+           streamId: 'stream_unverified',
+           command: 'pending operation',
+           cwd: '/tmp/test',
+           risk: 'read',
+           source: 'planner_approval',
+           proofId: 'proof:proof_unverified_123',
+         })
+         store.appendChunk('stream_unverified', 'meta', 'starting...\n')
+         store.endCommand({
+           streamId: 'stream_unverified',
+           ok: false,
+           code: null,
+           cancelled: false,
+           error: 'Command timed out',
+         })
+
+         const commandsFile = path.join(root, 'sessions', sessionId, 'commands.ndjson')
+         const rows = fs.readFileSync(commandsFile, 'utf8').split('\n').filter(Boolean).map(JSON.parse)
+
+         expect(rows[1].verification_status).toBe('partially_verified')
+       } finally {
+         fs.rmSync(root, { recursive: true, force: true })
+       }
+     })
+
+     it('verifyProof returns verified when all evidence present', () => {
+       const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-verify-proof-'))
+       try {
+         const store = new StructuredSessionStore(root, true)
+         store.init()
+
+         store.recordEvidence({ sessionId: 's1', type: 'command_execution', status: 'present', payload: 'exec', proofId: 'proof:test' })
+         store.recordEvidence({ sessionId: 's1', type: 'exit_code', status: 'present', payload: '0', proofId: 'proof:test' })
+         store.recordEvidence({ sessionId: 's1', type: 'runtime_event', status: 'present', payload: 'event', proofId: 'proof:test' })
+
+         const result = store.verifyProof('proof:test')
+         expect(result.verification_status).toBe('verified')
+         expect(result.evidence_count).toBe(3)
+       } finally {
+         fs.rmSync(root, { recursive: true, force: true })
+       }
+     })
+
+     it('verifyProof returns unverified when no evidence', () => {
+       const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-verify-unverified-'))
+       try {
+         const store = new StructuredSessionStore(root, true)
+         store.init()
+
+         const result = store.verifyProof('proof:noevidence')
+         expect(result.verification_status).toBe('unverified')
+         expect(result.evidence_count).toBe(0)
+       } finally {
+         fs.rmSync(root, { recursive: true, force: true })
+       }
+     })
+
+     it('verifyProof returns partially_verified when some evidence present', () => {
+       const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-verify-partial-'))
+       try {
+         const store = new StructuredSessionStore(root, true)
+         store.init()
+
+         store.recordEvidence({ sessionId: 's1', type: 'command_execution', status: 'present', payload: 'exec', proofId: 'proof:partial' })
+         store.recordEvidence({ sessionId: 's1', type: 'exit_code', status: 'missing', payload: 'n/a', proofId: 'proof:partial' })
+
+         const result = store.verifyProof('proof:partial')
+         expect(result.verification_status).toBe('partially_verified')
+         expect(result.evidence_count).toBe(2)
+       } finally {
+         fs.rmSync(root, { recursive: true, force: true })
+       }
      })
    })

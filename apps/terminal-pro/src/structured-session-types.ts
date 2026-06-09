@@ -11,6 +11,30 @@ export type SessionMeta = {
   projectRoot?: string
 }
 
+export type VerificationStatus = 'verified' | 'partially_verified' | 'unverified'
+
+export type EvidenceType = 'command_execution' | 'exit_code' | 'file_change' | 'runtime_event' | 'agentd_record'
+
+export type EvidenceRecord = {
+  id: string
+  session_id: string
+  command_id?: string
+  proof_id?: string
+  type: EvidenceType
+  status: 'present' | 'missing' | 'failed'
+  payload: string
+  created_at: string
+}
+
+export type ProofVerification = {
+  proof_id: string
+  runtime_id?: string
+  verification_status: VerificationStatus
+  evidence_count: number
+  verification_ts: string
+  evidence_summary?: string
+}
+
 export type CommandStart = {
   sessionId?: string
   streamId: string
@@ -19,6 +43,11 @@ export type CommandStart = {
   shell?: string
   risk?: string
   source?: string
+  planId?: string
+  approvalTimestamp?: string
+  approvalActor?: string
+  runtimeId?: string
+  proofId?: string
 }
 
 export type CommandEnd = {
@@ -38,6 +67,13 @@ export type CommandRunRecord = {
   cwd?: string
   risk?: string
   source?: string
+  plan_id?: string
+  approval_timestamp?: string
+  approval_actor?: string
+  runtime_id?: string
+  proof_id?: string
+  verification_status?: VerificationStatus
+  evidence_count?: number
   started_at: string
   ended_at?: string
   exit_code?: number | null

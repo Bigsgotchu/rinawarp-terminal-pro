@@ -29,13 +29,14 @@ import type {
   CommandStart,
   CommandStream,
   EdgeRecord,
+  EvidenceRecord,
   IndexState,
   InvertedIndex,
+  ProofVerification,
   RunbookJson,
   SessionMeta,
+  VerificationStatus,
 } from './structured-session-types.js'
-
-export type { CommandSearchHit, RunbookJson } from './structured-session-types.js'
 
 export class StructuredSessionStore {
   private readonly rootDir: string
@@ -120,6 +121,11 @@ export class StructuredSessionStore {
       cwd: args.cwd ? redactText(args.cwd).redactedText : args.cwd,
       risk: args.risk,
       source: args.source,
+      plan_id: args.planId ? redactText(args.planId).redactedText : undefined,
+      approval_timestamp: args.approvalTimestamp,
+      approval_actor: args.approvalActor ? redactText(args.approvalActor).redactedText : undefined,
+      runtime_id: args.runtimeId ? redactText(args.runtimeId).redactedText : undefined,
+      proof_id: args.proofId ? redactText(args.proofId).redactedText : undefined,
       started_at: nowIso(),
     }
     this.idx.streams.set(args.streamId, record)
@@ -176,6 +182,14 @@ export class StructuredSessionStore {
     this.idx.streams.delete(args.streamId)
 
     const endedAt = nowIso()
+    const sessionId = command.session_id
+    const hasCommandExecution = true
+    const hasExitCode = args.code !== null
+    const buffer = this.idx.streamBuffers.get(args.streamId) || { stdout: '', stderr: '', meta: '' }
+    const hasOutput = buffer.stdout.length > 0 || buffer.stderr.length > 0
+
+    const verificationStatus: VerificationStatus = hasCommandExecution && hasExitCode && hasOutput ? 'verified' : hasCommandExecution ? 'partially_verified' : 'unverified'
+
     const endRecord: CommandRunRecord = {
       ...command,
       ended_at: endedAt,
@@ -183,11 +197,12 @@ export class StructuredSessionStore {
       exit_code: args.code,
       cancelled: args.cancelled,
       error: args.error ? redactText(args.error).redactedText : null,
+      verification_status: verificationStatus,
+      evidence_count: hasCommandExecution ? 1 : 0,
       duration_ms: this.computeDurationMs(command.started_at, endedAt),
     }
-    appendNdjson(commandsFile(this.rootDir, command.session_id), endRecord)
+    appendNdjson(commandsFile(this.rootDir, sessionId), endRecord)
 
-    const buffer = this.idx.streamBuffers.get(args.streamId) || { stdout: '', stderr: '', meta: '' }
     this.idx.streamBuffers.delete(args.streamId)
     const searchRow: CommandSearchRecord = {
       session_id: command.session_id,
@@ -201,7 +216,9 @@ export class StructuredSessionStore {
       started_at: endRecord.started_at,
       ended_at: endRecord.ended_at,
       output_excerpt: `${buffer.stdout}\n${buffer.stderr}`.trim().slice(0, 2500),
-      tokens: tokenize(`${endRecord.input} ${endRecord.cwd || ''} ${buffer.stdout} ${buffer.stderr} ${endRecord.error || ''}`),
+      tokens: tokenize(
+        `${endRecord.input} ${endRecord.cwd || ''} ${buffer.stdout} ${buffer.stderr} ${endRecord.error || ''}`
+      ),
     }
     appendNdjson(searchFile(this.rootDir, command.session_id), searchRow)
     this.persistSearchRow(searchRow)
@@ -210,6 +227,59 @@ export class StructuredSessionStore {
     if (session) {
       session.meta.updatedAt = endedAt
       safeWriteJson(path.join(sessionDir(this.rootDir, command.session_id), 'session.json'), session.meta)
+    }
+  }
+
+  recordEvidence(args: {
+    sessionId: string
+    commandId?: string
+    proofId?: string
+    type: EvidenceRecord['type']
+    status: EvidenceRecord['status']
+    payload: string
+  }): string {
+    if (!this.enabled) return randomId('evidence')
+    const evidence: EvidenceRecord = {
+      id: randomId('evidence'),
+      session_id: args.sessionId,
+      command_id: args.commandId,
+      proof_id: args.proofId,
+      type: args.type,
+      status: args.status,
+      payload: redactText(args.payload).redactedText,
+      created_at: nowIso(),
+    }
+    const evidenceFile = path.join(this.rootDir, 'evidence.ndjson')
+    fs.mkdirSync(path.dirname(evidenceFile), { recursive: true })
+    appendNdjson(evidenceFile, evidence)
+    return evidence.id
+  }
+
+  verifyProof(proofId: string): ProofVerification {
+    const evidenceFile = path.join(this.rootDir, 'evidence.ndjson')
+    const records = fs.existsSync(evidenceFile)
+      ? fs.readFileSync(evidenceFile, 'utf8').split('\n').filter((line) => line.trim()).map((line) => JSON.parse(line))
+      : []
+
+    const proofEvidence = records.filter((r: EvidenceRecord) => r.proof_id === proofId)
+    const presentCount = proofEvidence.filter((e: EvidenceRecord) => e.status === 'present').length
+    const totalCount = proofEvidence.length
+
+    let verificationStatus: VerificationStatus = 'unverified'
+    if (totalCount === 0) {
+      verificationStatus = 'unverified'
+    } else if (presentCount === totalCount) {
+      verificationStatus = 'verified'
+    } else if (presentCount > 0) {
+      verificationStatus = 'partially_verified'
+    }
+
+    return {
+      proof_id: proofId,
+      verification_status: verificationStatus,
+      evidence_count: totalCount,
+      verification_ts: nowIso(),
+      evidence_summary: `verified: ${presentCount}/${totalCount} evidence sources`,
     }
   }
 

@@ -173,3 +173,33 @@ Added to `apps/terminal-pro/tests/unit/planner-approval.test.ts`:
 - Guard: approved plans must pass through `executeApprovedPlan` adapter (cannot bypass)
 - Guard: Proof metadata must contain all required fields (plan_id, approval_timestamp, approval_actor, runtime_id, proof_id)
 - Guard: non-approved plans must not carry approval metadata to backend
+
+## 2026-06-09 Proof Verification Pipeline
+
+Runtime verification types added to `apps/terminal-pro/src/structured-session-types.ts`:
+
+- `VerificationStatus`: 'verified' | 'partially_verified' | 'unverified'
+- `EvidenceRecord`: id, session_id, command_id, proof_id, type, status, payload, created_at
+- `ProofVerification`: verification_status, evidence_count, proof_id
+
+Methods added to `StructuredSessionStore`:
+
+- `recordEvidence(args)`: Persists evidence record to `evidence.ndjson`, returns evidence id
+- `verifyProof(proofId)`: Computes verification status from evidence records for a proof
+
+Verification logic in `endCommand`:
+
+- Commands are marked 'verified' when exit_code present AND output exists
+- Commands are marked 'partially_verified' when exit_code present OR execution started (but no output)
+- Commands are marked 'unverified' when execution never started or no evidence
+
+Tests added to `apps/terminal-pro/tests/unit/planner-approval.test.ts` (6 tests):
+
+- Marks command as verified when exit code and output present
+- Marks command as partially_verified when exit code but no output
+- Marks command as unverified when neither exit code nor output
+- `verifyProof` returns verified when all evidence present
+- `verifyProof` returns partially_verified when some evidence present
+- `verifyProof` returns unverified when no evidence found
+
+All 67 unit tests pass, typecheck and build:electron pass.
