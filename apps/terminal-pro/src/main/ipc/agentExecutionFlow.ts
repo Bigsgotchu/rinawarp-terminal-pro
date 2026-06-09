@@ -322,37 +322,44 @@ function resolveCapabilityPlan(payload: ExecuteCapabilityPayload, projectRoot: s
 }
 
 export async function handleExecuteCapability(
-  args: RegisterAgentExecutionArgs,
-  eventSender: WebContents,
-  payload: ExecuteCapabilityPayload
-) {
-  if (!payload.projectRoot) {
-    return {
-      ok: false,
-      error: 'Missing projectRoot for capability execution',
-      code: 'MISSING_PROJECT_ROOT',
-    }
-  }
+   args: RegisterAgentExecutionArgs,
+   eventSender: WebContents,
+   payload: ExecuteCapabilityPayload
+ ) {
+   if (!payload.projectRoot) {
+     return {
+       ok: false,
+       error: 'Missing projectRoot for capability execution',
+       code: 'MISSING_PROJECT_ROOT',
+     }
+   }
 
-  const projectRoot = args.resolveProjectRootSafe(payload.projectRoot)
-  const resolved = resolveCapabilityPlan(payload, projectRoot)
-  if (!resolved.ok) {
-    return resolved
-  }
+   const projectRoot = args.resolveProjectRootSafe(payload.projectRoot)
+   const resolved = resolveCapabilityPlan(payload, projectRoot)
+   if (!resolved.ok) {
+     return resolved
+   }
 
-  const result = await handleExecutePlanStream(args, eventSender, {
-    plan: resolved.plan.steps,
-    projectRoot,
-    confirmed: payload.confirmed === true,
-    confirmationText: payload.confirmationText ?? '',
-  })
+   const result = await handleExecutePlanStream(args, eventSender, {
+     plan: resolved.plan.steps,
+     projectRoot,
+     confirmed: payload.confirmed === true,
+     confirmationText: payload.confirmationText ?? '',
+   })
 
-  return {
-    ...result,
-    packKey: resolved.pack.key,
-    actionId: resolved.plan.actionId,
-    prompt: resolved.plan.prompt,
-    reasoning: resolved.plan.reasoning,
-    plan: resolved.plan.steps,
-  }
+   return {
+     ...result,
+     packKey: resolved.pack.key,
+     actionId: resolved.plan.actionId,
+     prompt: resolved.plan.prompt,
+     reasoning: resolved.plan.reasoning,
+     plan: resolved.plan.steps,
+   }
+ }
+
+export async function handlePlanReject(
+  _args: RegisterAgentExecutionArgs,
+  planRunId: string
+): Promise<{ ok: boolean; error?: string }> {
+  return { ok: true }
 }

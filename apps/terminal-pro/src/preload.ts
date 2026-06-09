@@ -61,8 +61,9 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'rina:agent:approvePatch',
   'rina:fixProject',
   'rina:executePlanStream',
-  'rina:capabilities:execute',
-  'rina:analytics:funnel',
+'rina:capabilities:execute',
+   'rina:plan:reject',
+   'rina:analytics:funnel',
   'analytics:trackEvent',
   'rina:policy:explain',
   'rina:redaction:preview',
@@ -362,14 +363,15 @@ contextBridge.exposeInMainWorld('rina', {
     confirmed: boolean
     confirmationText: string
   }) => ipcRenderer.invoke('rina:executePlanStream', args),
-  executeCapability: (args: {
-    packKey: string
-    projectRoot: string
-    actionId?: string
-    confirmed?: boolean
-    confirmationText?: string
-  }) => ipcRenderer.invoke('rina:capabilities:execute', args),
-  trackEvent: (event: string, properties?: Record<string, unknown>) => ipcRenderer.invoke('analytics:trackEvent', event, properties),
+executeCapability: (args: {
+     packKey: string
+     projectRoot: string
+     actionId?: string
+     confirmed?: boolean
+     confirmationText?: string
+   }) => ipcRenderer.invoke('rina:capabilities:execute', args),
+   planReject: (planRunId: string) => ipcRenderer.invoke('rina:plan:reject', planRunId),
+   trackEvent: (event: string, properties?: Record<string, unknown>) => ipcRenderer.invoke('analytics:trackEvent', event, properties),
   trackFunnelStep: (step: string, properties?: Record<string, unknown>) =>
     ipcRenderer.invoke('rina:analytics:funnel', step, properties),
   policyExplain: (command: string) => ipcRenderer.invoke('rina:policy:explain', command),

@@ -75,15 +75,16 @@ export interface RinaAPI {
     confirmed: boolean
     confirmationText: string
   }): Promise<any>
-  executeCapability(args: {
-    packKey: string
-    projectRoot: string
-    actionId?: string
-    confirmed?: boolean
-    confirmationText?: string
-  }): Promise<any>
+executeCapability(args: {
+       packKey: string
+       projectRoot: string
+       actionId?: string
+       confirmed?: boolean
+       confirmationText?: string
+     }) => Promise<any>
+     planReject(planRunId: string): Promise<{ ok?: boolean; error?: string }>
 
-  // Analytics
+     // Analytics
   trackEvent(event: string, properties?: Record<string, unknown>): Promise<any>
   trackFunnelStep(step: string, properties?: Record<string, unknown>): Promise<any>
 

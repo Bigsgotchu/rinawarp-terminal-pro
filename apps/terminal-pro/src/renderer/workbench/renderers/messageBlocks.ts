@@ -151,6 +151,61 @@ export function buildMessageBlockNode(block: MessageBlock): HTMLElement | Docume
     }
     return container
   }
+  if (block.type === 'planner-approval') {
+    const riskBadge = block.riskLevel
+      ? el('span', { class: `rw-reply-card-badge rw-risk-${block.riskLevel}` }, block.riskLevel)
+      : undefined
+    const container = el('div', {
+      class: 'rw-reply-card rw-reply-card-planner-approval',
+      dataset: { msgId: `planner-approval:${Date.now()}` },
+    })
+    const head = el(
+      'div',
+      { class: 'rw-reply-card-head' },
+      el('div', { class: 'rw-reply-card-label' }, block.label || 'Approval Required'),
+    )
+    if (riskBadge) head.appendChild(riskBadge)
+    container.appendChild(head)
+    if (block.summary) {
+      container.appendChild(el('div', { class: 'rw-command-result-copy' }, block.summary))
+    }
+    if (block.steps && block.steps.length > 0) {
+      const stepsList = el('ul', { class: 'rw-reply-list' })
+      for (const step of block.steps) {
+        const li = el('li')
+        const titleRow = el('div', { class: 'rw-plan-step-title' })
+        titleRow.appendChild(el('strong', undefined, step.stepId || `Step`))
+        if (step.risk) {
+          titleRow.appendChild(el('span', { class: `rw-reply-card-badge rw-risk-${step.risk}` }, step.risk))
+        }
+        li.appendChild(titleRow)
+        if (step.command) {
+          li.appendChild(el('div', { class: 'rw-reply-inline-code' }, step.command))
+        }
+        stepsList.appendChild(li)
+      }
+      container.appendChild(stepsList)
+    }
+    if (Array.isArray(block.actions) && block.actions.length > 0) {
+      container.appendChild(
+        el(
+          'div',
+          { class: 'rw-inline-actions' },
+          ...block.actions.map((action) =>
+            el(
+              'button',
+              {
+                class: ['rw-inline-action', action.className].filter(Boolean).join(' '),
+                dataset: buildReplyActionDataset(action),
+              },
+              action.label
+            )
+          )
+        )
+      )
+    }
+    return container
+  }
   return document.createDocumentFragment()
 }
 

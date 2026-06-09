@@ -28,6 +28,8 @@ export type ReplyAction = {
   openRunsPanel?: string
   runReveal?: string
   runArtifacts?: string
+  planApprove?: string
+  planReject?: string
 }
 
 export type RunArtifactSummary = {
@@ -119,14 +121,14 @@ export type MessageBlock =
   | { type: 'section-label'; text: string }
   | { type: 'cognition'; lines: CognitionLine[] }
   | { type: 'memory-note'; text: string }
-  | {
-      type: 'reply-card'
-      kind?: ReplyCardKind
-      label: string
-      badge?: string
-      className?: string
-      bodyBlocks?: MessageBlock[]
-      actions?: ReplyAction[]
+| {
+    type: 'reply-card'
+    kind?: ReplyCardKind
+    label: string
+    badge?: string
+    className?: string
+    bodyBlocks?: MessageBlock[]
+    actions?: ReplyAction[]
     }
   | { type: 'agent-step'; statusClass: 'start' | 'running' | 'end'; text: string }
   | { type: 'inline-actions'; actions: ReplyAction[] }
@@ -135,6 +137,17 @@ export type MessageBlock =
   | { type: 'reply-list'; items: ReplyListItem[]; emptyText?: string }
   | { type: 'stat-grid'; items: StatGridItem[] }
   | { type: 'proof-summary'; items: ProofSummaryItem[] }
+  | {
+    type: 'planner-approval'
+    label: string
+    summary: string
+    steps: Array<{ stepId: string; tool: string; command: string; risk?: string }>
+    approvalReason?: string
+    riskLevel?: 'low' | 'medium' | 'high'
+    workspaceRoot?: string
+    planRunId?: string
+    actions?: ReplyAction[]
+    }
 
 export type ChatMessage = {
   id: string

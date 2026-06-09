@@ -56,7 +56,7 @@ export function buildExecutionPlanContent(
   options?: BuildExecutionPlanOptions
 ): MessageBlock[] {
   const steps = Array.isArray(plan.steps) ? plan.steps : []
-  const intro = options?.introText?.trim() || plan.reasoning?.trim() || `I mapped "${prompt}" to a receipts-backed run.`
+  const intro = options?.introText?.trim() || plan.reasoning?.trim() || `I mapped "${prompt}" to a proof-backed run.`
   const stepItems = steps
     .slice(0, 6)
     .map((step, index) => {
@@ -69,18 +69,21 @@ export function buildExecutionPlanContent(
       }
     })
 
+  const allReady = (requirements.length === 0) || requirements.every((r) => r.state === 'ready')
+  const isReviewOnly = options?.reviewOnly === true
+
   const blocks: MessageBlock[] = [
     bubbleBlock(intro),
     replyCardBlock({
       kind: 'plan',
       label: 'Plan',
-      badge: options?.reviewOnly ? 'Review only' : undefined,
+      badge: isReviewOnly ? 'Review only' : undefined,
       bodyBlocks: [replyListBlock(stepItems, 'No plan steps returned.')],
       actions:
-        options?.reviewOnly && steps.length > 0 && options.workspaceRoot
+        allReady && steps.length > 0 && options?.workspaceRoot
           ? [
               {
-                label: 'Run plan',
+                label: isReviewOnly ? 'Approve & Run' : 'Run',
                 executePlan: encodeExecutionPlan(steps),
                 executePlanPrompt: options.planActionPrompt || prompt,
                 executePlanWorkspaceRoot: options.workspaceRoot,
@@ -93,6 +96,73 @@ export function buildExecutionPlanContent(
   const capabilityCard = buildPlanCapabilityCard(requirements)
   if (capabilityCard) blocks.push(capabilityCard)
   return blocks
+}
+
+export function buildPlannerApprovalContent(
+  prompt: string,
+  plan: FixPlanResponse,
+  options: {
+    workspaceRoot?: string
+    approvalReason?: string
+    riskLevel?: 'low' | 'medium' | 'high'
+    planRunId?: string
+  } = {}
+): MessageBlock[] {
+  const steps = Array.isArray(plan.steps) ? plan.steps : []
+  const stepItems = steps
+    .slice(0, 6)
+    .map((step, index) => {
+      const title = step.stepId || `Step ${index + 1}`
+      const command = String(step.input?.command || '').trim()
+      return {
+        title,
+        code: command || undefined,
+        strongTitle: true,
+      }
+    })
+
+  const approvalReason = options.approvalReason || 'Plan ready for approval'
+  const riskLevel = options.riskLevel || 'low'
+
+  const actions: ReplyAction[] | undefined = steps.length > 0 && options.workspaceRoot
+    ? [
+        {
+          label: 'Approve & Run',
+          planApprove: encodeExecutionPlan(steps),
+          executePlanPrompt: prompt,
+          executePlanWorkspaceRoot: options.workspaceRoot,
+        },
+        {
+          label: 'Reject',
+          planReject: options.planRunId || '',
+        },
+      ]
+    : undefined
+
+  return [
+    bubbleBlock(approvalReason),
+    {
+      type: 'planner-approval',
+      label: 'Approval required',
+      summary: plan.reasoning?.trim() || `Proof-backed run for: "${prompt}"`,
+      steps: steps.map((step, index) => ({
+        stepId: step.stepId || `step_${index + 1}`,
+        tool: step.tool || 'terminal',
+        command: String(step.input?.command || ''),
+        risk: step.risk,
+      })),
+      approvalReason,
+      riskLevel,
+      workspaceRoot: options.workspaceRoot,
+      planRunId: options.planRunId,
+      actions,
+    },
+    replyCardBlock({
+      kind: 'plan',
+      label: 'Plan steps',
+      bodyBlocks: [replyListBlock(stepItems, 'No plan steps returned.')],
+    }),
+  ]
 }
 
 function encodeExecutionPlan(steps: FixPlanStep[]): string {

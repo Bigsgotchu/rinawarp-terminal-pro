@@ -56,3 +56,26 @@ export function proofSummaryBlock(
 ): MessageBlock {
   return { type: 'proof-summary', items }
 }
+
+export function plannerApprovalBlock(args: {
+  label: string
+  summary: string
+  steps: Array<{ stepId: string; tool: string; command: string; risk?: string }>
+  approvalReason?: string
+  riskLevel?: 'low' | 'medium' | 'high'
+  workspaceRoot?: string
+  planRunId?: string
+  actions?: ReplyAction[]
+}): MessageBlock {
+  return {
+    type: 'planner-approval',
+    label: args.label,
+    summary: args.summary,
+    steps: args.steps,
+    approvalReason: args.approvalReason,
+    riskLevel: args.riskLevel,
+    workspaceRoot: args.workspaceRoot,
+    planRunId: args.planRunId,
+    actions: args.actions,
+  }
+}

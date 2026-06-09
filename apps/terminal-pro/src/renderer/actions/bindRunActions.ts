@@ -7,6 +7,17 @@ import { copyReceiptSummary, replayRunFromReceipt } from '../state/executionRepl
 import { openRunsFolderOwned } from './utilityOwnership.js'
 import { loadExecutionReceipt } from '../../workbench/runBlocks/receiptPersistence.js'
 
+type ParsedPlanStep = {
+  stepId?: string
+  tool?: string
+  input?: {
+    command?: string
+    cwd?: string
+    timeoutMs?: number
+  }
+  risk?: 'inspect' | 'safe-write' | 'high-impact'
+}
+
 export function createRunActionHandler(
   store: WorkbenchStore,
   deps: Pick<
@@ -244,6 +255,78 @@ export function createRunActionHandler(
         store.dispatch({ type: 'ui/setStatusSummary', text: 'Proof summary copied.' })
       } else {
         store.dispatch({ type: 'ui/setStatusSummary', text: 'Proof summary unavailable.' })
+      }
+      return true
+    }
+
+    const planApproveBtn = target.closest<HTMLElement>('[data-plan-approve]')
+    if (planApproveBtn?.dataset.planApprove) {
+      const workspaceRoot = String(planApproveBtn.dataset.executePlanWorkspaceRoot || '').trim()
+      const prompt = String(planApproveBtn.dataset.executePlanPrompt || 'Run the approved plan.').trim()
+      if (!workspaceRoot) {
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'Missing workspace root for this plan.' })
+        return true
+      }
+      let parsedPlan: ParsedPlanStep[] = []
+      try {
+        parsedPlan = JSON.parse(planApproveBtn.dataset.planApprove)
+      } catch {
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'This saved plan could not be read.' })
+        return true
+      }
+      const planSteps = deps.normalizePlanSteps(Array.isArray(parsedPlan) ? parsedPlan : [])
+      if (planSteps.length === 0) {
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'This plan has no runnable steps.' })
+        return true
+      }
+      const hostMessage = planApproveBtn.closest<HTMLElement>('[data-msg-id]')
+      const messageId = hostMessage?.dataset.msgId || `rina:plan-run:${Date.now()}`
+      const result = await window.rina.executePlanStream({
+        plan: planSteps,
+        projectRoot: workspaceRoot,
+        confirmed: true,
+        confirmationText: 'User approved via Planner Approval flow',
+      })
+      if (
+        deps.commitStartedExecutionResult(
+          store,
+          {
+            messageId,
+            prompt,
+            workspaceRoot,
+            planSteps,
+          },
+          result || {}
+        )
+      ) {
+        return true
+      }
+      store.dispatch({
+        type: 'chat/add',
+        msg: {
+          id: `rina:plan-run-error:${Date.now()}`,
+          role: 'rina',
+          content: deps.buildExecutionHaltContent(prompt, result?.error || result?.haltReason || 'The approved plan did not start.'),
+          ts: Date.now(),
+          workspaceKey: deps.getWorkspaceKey(),
+        },
+      })
+      return true
+    }
+
+    const planRejectBtn = target.closest<HTMLElement>('[data-plan-reject]')
+    if (planRejectBtn?.dataset.planReject) {
+      const planRunId = planRejectBtn.dataset.planReject
+      recordDebugEvent('ui', 'plan.rejected', { planRunId })
+      if (typeof window.rina.planReject === 'function') {
+        const result = await window.rina.planReject(planRunId)
+        if (result?.ok) {
+          store.dispatch({ type: 'ui/setStatusSummary', text: 'Plan rejected. No changes were made.' })
+        } else {
+          store.dispatch({ type: 'ui/setStatusSummary', text: result?.error || 'Failed to reject plan.' })
+        }
+      } else {
+        store.dispatch({ type: 'ui/setStatusSummary', text: 'Plan rejected. No changes were made.' })
       }
       return true
     }

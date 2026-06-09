@@ -29,6 +29,18 @@ export interface AssistantPlanItem extends ThreadItemBase {
   summary: string
   steps: string[]
   runId?: string
+  approvalReason?: string
+  riskLevel?: 'low' | 'medium' | 'high'
+}
+
+export interface PlannerApprovalItem extends ThreadItemBase {
+  type: 'planner-approval'
+  summary: string
+  steps: Array<{ stepId: string; tool: string; command: string; risk?: string }>
+  workspaceRoot?: string
+  approvalReason?: string
+  riskLevel?: 'low' | 'medium' | 'high'
+  planRunId?: string
 }
 
 export interface RunBlockItem extends ThreadItemBase {
@@ -63,6 +75,7 @@ export type ThreadItem =
   | UserMessageItem
   | AssistantMessageItem
   | AssistantPlanItem
+  | PlannerApprovalItem
   | RunBlockItem
   | CognitionStreamItem
   | MemoryNoteItem

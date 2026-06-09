@@ -20,5 +20,7 @@ export function buildReplyActionDataset(action: ReplyAction): Record<string, str
     openRunsPanel: action.openRunsPanel,
     runReveal: action.runReveal,
     runArtifacts: action.runArtifacts,
+    planApprove: action.planApprove,
+    planReject: action.planReject,
   }
 }

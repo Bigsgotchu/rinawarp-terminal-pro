@@ -23,6 +23,8 @@ export {
   upsertThreadRunBlock,
 } from './threadMutations.js'
 
+export type { PlannerApprovalItem } from './threadTypes.js'
+
 export { hydrateCanonicalThread } from './hydrateThread.js'
 export {
   EMPTY_EXECUTION_METRICS,

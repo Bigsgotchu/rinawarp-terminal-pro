@@ -125,6 +125,7 @@ export interface RinaRendererWindow {
       code?: string
       retrySuggestion?: string
     }>
+    planReject?: (planRunId: string) => Promise<{ ok?: boolean; error?: string }>
     trackEvent?: (
       event: string,
       properties?: Record<string, unknown>
