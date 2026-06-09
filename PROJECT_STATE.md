@@ -455,15 +455,73 @@ Filter type `WorkspaceFactFilter`:
 In-memory implementation:
 
 - `createMemoryWorkspaceFactStore()` returns a store backed by a Map
-- Useful for testing and future SQLite implementation
+- Used for testing the interface contract
 - Returns copies of facts, not references
-
-Tests:
-
-- `apps/terminal-pro/tests/unit/workspace-fact-store.test.ts` (16 tests)
+- Implements all 5 methods: upsertFact, getFact, listFacts, deleteFact, findFactByKey
 
 Storage note:
 
-- No SQLite schema changed.
 - No existing memory rows were migrated.
-- This is only the contract - SQLite storage will be added next.
+- SQLite storage implementation at `apps/terminal-pro/src/main/memory/SqliteWorkspaceFactStore.ts` with schema `WORKSPACE_FACT_SCHEMA_SQL`.
+- Schema creates `workspace_facts` table with indexes on key, category, source, confidence.
+
+## 2026-06-09 WorkspaceFact Persistence Guard Tests
+
+Added tests proving deterministic and safe persistence behavior:
+
+- `upsertFact` preserves id through round-trip
+- `findFactByKey` returns latest version when fact updated by id
+- `listFacts` filters correctly by category, source, confidence, keyPrefix
+- `deleteFact` removes records and returns correct boolean
+- `confidence` persists through upsert and get
+- `category` persists through upsert and get
+- `source` persists through upsert and get
+- `timestamps` persist through upsert and get
+- `last_verified_at` persists through upsert and get
+- Invalid facts are rejected at creation time (empty key/value, invalid category/source)
+- Duplicate keys are intentionally allowed (multiple facts can share same key)
+- `findFactByKey` returns first match when multiple facts share same key
+- `upsertFact` updates existing fact by id, not by key
+
+Location: `apps/terminal-pro/tests/unit/workspace-fact-store.test.ts`
+
+## 2026-06-09 WorkspaceFact SQLite Store Tests
+
+Added persistence guard tests for `SqliteWorkspaceFactStore` to verify interface contract matches memory store:
+
+- Same 22 tests as memory store cover: upsertFact, getFact, listFacts, deleteFact, findFactByKey
+- Persistence guards for confidence, category, source, timestamps, last_verified_at
+- Duplicate key behavior verified
+- All 88 unit tests pass (75 workspace fact tests across: 30 memory store + 23 SQLite store + 14 extraction + 8 types/classification, plus 13 agent narration + 14 unified turn)
+
+Fixed SQLite implementation drift:
+- `upsertFact` now preserves `updated_at` from input fact (previously overwrote with current time)
+- Matches memory store behavior where timestamps are preserved
+
+Location: `apps/terminal-pro/tests/unit/workspace-fact-sqlite-store.test.ts`
+
+## Next Milestone: Workspace Knowledge Hydration
+
+Startup
+ ↓
+Load WorkspaceFacts
+ ↓
+Hydrate Runtime Context
+ ↓
+Rina understands project state
+
+At that point Rina can know things like:
+
+- Product = RinaWarp Terminal Pro
+- Runtime = AgentRuntime
+- Proof = Enabled
+- Planner Approval = Enabled
+- Database = SQLite
+
+without the user repeatedly telling it.
+
+This is where the Remember phase of:
+
+Ask → Observe → Plan → Approve → Execute → Verify → Proof → Remember
+
+starts becoming real rather than a collection of memory entries.
