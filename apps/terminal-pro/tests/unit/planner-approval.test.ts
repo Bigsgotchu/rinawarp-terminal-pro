@@ -653,32 +653,127 @@ describe('executeApprovedPlan adapter', () => {
 expect(receivedPlanRunId).toBe('thread_custom_123')
     })
 
-    it('handleExecutePlanStream delegates to adapter when approval present', async () => {
-      const executeRemotePlan = vi.fn(async () => ({ ok: true, planRunId: 'agentd_plan_delegated' }))
-      const pipeAgentdSseToRenderer = vi.fn(async () => '')
-      const safeSend = vi.fn()
-      const args = createExecutionArgs({
-        executeRemotePlan,
-        pipeAgentdSseToRenderer,
-        safeSend,
-        ensureStructuredSession: vi.fn(),
-      })
+it('handleExecutePlanStream delegates to adapter when approval present', async () => {
+       const executeRemotePlan = vi.fn(async () => ({ ok: true, planRunId: 'agentd_plan_delegated' }))
+       const pipeAgentdSseToRenderer = vi.fn(async () => '')
+       const safeSend = vi.fn()
+       const args = createExecutionArgs({
+         executeRemotePlan,
+         pipeAgentdSseToRenderer,
+         safeSend,
+         ensureStructuredSession: vi.fn(),
+       })
 
-      const result = await handleExecutePlanStream(args, createEventSender(), {
-        plan: [{ stepId: 's1', tool: 'terminal', input: { command: 'ls' } }],
-        projectRoot: '/tmp/test',
-        confirmed: true,
-        confirmationText: 'approved',
-        approval: {
-          planId: 'plan_delegated_123',
-          approvedAt: '2026-06-09T00:00:00.000Z',
-          actor: 'user',
-        },
-      })
+       const result = await handleExecutePlanStream(args, createEventSender(), {
+         plan: [{ stepId: 's1', tool: 'terminal', input: { command: 'ls' } }],
+         projectRoot: '/tmp/test',
+         confirmed: true,
+         confirmationText: 'approved',
+         approval: {
+           planId: 'plan_delegated_123',
+           approvedAt: '2026-06-09T00:00:00.000Z',
+           actor: 'user',
+         },
+       })
 
-      expect(result.ok).toBe(true)
-      expect(executeRemotePlan).toHaveBeenCalled()
-      expect(pipeAgentdSseToRenderer).toHaveBeenCalled()
-      expect(safeSend).toHaveBeenCalledWith(expect.anything(), 'rina:plan:run:start', expect.objectContaining({ planRunId: expect.any(String) }))
-    })
-  })
+       expect(result.ok).toBe(true)
+       expect(executeRemotePlan).toHaveBeenCalled()
+       expect(pipeAgentdSseToRenderer).toHaveBeenCalled()
+       expect(safeSend).toHaveBeenCalledWith(expect.anything(), 'rina:plan:run:start', expect.objectContaining({ planRunId: expect.any(String) }))
+     })
+   })
+
+   describe('product guard: approved plan execution must use executeApprovedPlan', () => {
+     it('fails when approval present but handleExecutePlanStream bypasses adapter (calls runRemotePlan directly)', async () => {
+       const executeRemotePlan = vi.fn(async () => ({ ok: true, planRunId: 'bypass_plan' }))
+       const pipeAgentdSseToRenderer = vi.fn(async () => '')
+       const safeSend = vi.fn()
+       const ensureStructuredSession = vi.fn()
+
+       const args = createExecutionArgs({
+         executeRemotePlan,
+         pipeAgentdSseToRenderer,
+         safeSend,
+         ensureStructuredSession,
+       })
+
+       await handleExecutePlanStream(args, createEventSender(), {
+         plan: [{ stepId: 's1', tool: 'terminal', input: { command: 'ls' } }],
+         projectRoot: '/tmp/test',
+         confirmed: true,
+         confirmationText: 'approved',
+         approval: { planId: 'p1', approvedAt: '2026-06-09T00:00:00.000Z' },
+       })
+
+       expect(executeRemotePlan).toHaveBeenCalledWith(
+         expect.objectContaining({
+           confirmed: true,
+           approval: expect.objectContaining({ planId: 'p1', approvedAt: expect.any(String) }),
+         })
+       )
+
+       expect(ensureStructuredSession).toHaveBeenCalledWith(
+         expect.objectContaining({ source: 'execute_approved_plan', projectRoot: '/tmp/test' })
+       )
+     })
+
+     it('ensures Proof metadata contains all required fields for approved plans', async () => {
+       const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-guard-proof-'))
+       try {
+         const store = new StructuredSessionStore(root, true)
+         store.init()
+         const sessionId = store.startSession({ source: 'test', projectRoot: '/tmp/test', preferredId: 'guard_plan_123' })
+         store.beginCommand({
+           sessionId,
+           streamId: 'stream_123',
+           command: 'test command',
+           cwd: '/tmp/test',
+           risk: 'safe-write',
+           source: 'planner_approval',
+           planId: 'guard_plan_123',
+           approvalTimestamp: '2026-06-09T00:00:00.000Z',
+           approvalActor: 'user',
+           runtimeId: 'runtime_123',
+           proofId: 'proof:guard_plan_123',
+         })
+         store.endCommand({ streamId: 'stream_123', ok: true, code: 0, cancelled: false })
+
+         const commandsFile = path.join(root, 'sessions', sessionId, 'commands.ndjson')
+         const rows = fs.readFileSync(commandsFile, 'utf8').split('\n').filter(Boolean).map(JSON.parse)
+
+         const requiredFields = ['plan_id', 'approval_timestamp', 'approval_actor', 'runtime_id', 'proof_id']
+         requiredFields.forEach((field) => {
+           expect(rows[0]).toHaveProperty(field)
+           expect(rows[0][field]).toBeTruthy()
+         })
+       } finally {
+         fs.rmSync(root, { recursive: true, force: true })
+       }
+     })
+
+     it('ensures non-approved plans do not carry approval metadata to backend', async () => {
+       const executeRemotePlan = vi.fn(async () => ({ ok: true, planRunId: 'no_approval_plan' }))
+       const pipeAgentdSseToRenderer = vi.fn(async () => '')
+       const safeSend = vi.fn()
+       const args = createExecutionArgs({
+         executeRemotePlan,
+         pipeAgentdSseToRenderer,
+         safeSend,
+         ensureStructuredSession: vi.fn(),
+       })
+
+       await handleExecutePlanStream(args, createEventSender(), {
+         plan: [{ stepId: 's1', tool: 'terminal', input: { command: 'ls' } }],
+         projectRoot: '/tmp/test',
+         confirmed: true,
+         confirmationText: 'direct execution without approval',
+       })
+
+       expect(executeRemotePlan).toHaveBeenCalledWith(
+         expect.objectContaining({
+           confirmed: true,
+           approval: undefined,
+         })
+       )
+     })
+   })
