@@ -14,6 +14,8 @@ export type RuntimeTimelineEvent = RinaExecutionEvent & {
   cognitionLabel?: string
 }
 
+import type { VerificationStatus } from '../../structured-session-types.js'
+
 export interface RunBlock {
   id: string
   runId: string
@@ -37,4 +39,7 @@ export interface RunBlock {
 
   fileChanges?: FileChangeReceipt[]
   memoryNote?: string
+
+  verificationStatus?: VerificationStatus
+  evidenceCount?: number
 }

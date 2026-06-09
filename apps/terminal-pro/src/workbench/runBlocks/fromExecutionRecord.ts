@@ -1,5 +1,6 @@
 import type { RinaExecutionEvent, RinaExecutionRecord } from '@rinawarp/rina-core'
 import type { ExecutionReceipt } from '@rinawarp/rina-contracts'
+import type { VerificationStatus } from '../../structured-session-types.js'
 import { cognitionLabelForIngressEvent } from './cognitionStream.js'
 import type { RunBlock, RunBlockStatus, RuntimeTimelineEvent } from './types.js'
 import {
@@ -47,15 +48,30 @@ function intentTitle(record: RinaExecutionRecord, fallback?: string): string {
   return record.intent.target
 }
 
+function runtimeVerificationFields(record: RinaExecutionRecord): {
+  verificationStatus?: VerificationStatus
+  evidenceCount?: number
+} {
+  const runtimeRecord = record as RinaExecutionRecord & {
+    verification_status?: VerificationStatus
+    evidence_count?: number
+  }
+  return {
+    verificationStatus: runtimeRecord.verification_status,
+    evidenceCount: typeof runtimeRecord.evidence_count === 'number' ? runtimeRecord.evidence_count : undefined,
+  }
+}
+
 export function runBlockFromExecutionRecord(
   record: RinaExecutionRecord,
-  opts?: { title?: string; workspaceRoot?: string },
+  opts?: { title?: string; workspaceRoot?: string }
 ): RunBlock {
   const startedAt = record.intent.createdAt || Date.now()
   const status = mapStatus(record)
   const receipt = record.receipts[0]
   const failed = record.events.find((event) => event.type === 'execution.failed')
   const pendingPayload = record.outcome?.pendingApproval?.payload as { path?: string } | undefined
+  const verification = runtimeVerificationFields(record)
 
   const fileChanges = getReceiptFileChanges(receipt)
   if (pendingPayload?.path) {
@@ -86,6 +102,8 @@ export function runBlockFromExecutionRecord(
       : [{ id: record.runId, label: 'proof pending' }],
     timeline: timelineFromRecord(record, startedAt),
     fileChanges,
+    verificationStatus: verification.verificationStatus,
+    evidenceCount: verification.evidenceCount,
   }
 }
 
@@ -105,10 +123,7 @@ export function executionReceiptFromRecord(record: RinaExecutionRecord): Executi
   const verificationStatus = getReceiptVerificationStatus(receipt)
   const receiptId = getReceiptId(receipt)
   const plan = record.plan
-  const planId =
-    plan && 'id' in plan && typeof plan.id === 'string'
-      ? plan.id
-      : receiptId
+  const planId = plan && 'id' in plan && typeof plan.id === 'string' ? plan.id : receiptId
   const artifacts = getReceiptArtifacts(receipt)
 
   return {

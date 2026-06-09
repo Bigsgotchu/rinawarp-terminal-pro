@@ -6,7 +6,11 @@ import type {
 } from '../view-models/agentThreadModel.js'
 import type { StarterPromptViewModel } from '../view-models/suggestedActionsViewModel.js'
 
-function renderActionButton(action: { label: string; className: string; dataset: Record<string, string | undefined> }): HTMLElement {
+function renderActionButton(action: {
+  label: string
+  className: string
+  dataset: Record<string, string | undefined>
+}): HTMLElement {
   return el('button', { class: action.className, dataset: action.dataset }, action.label)
 }
 
@@ -41,7 +45,11 @@ export function mountAgentHero(container: HTMLElement, model: AgentHeroViewModel
         ? el(
             'div',
             { class: 'rw-agent-welcome-meta' },
-            el('span', { class: 'rw-agent-welcome-pill is-warning', title: model.weakWorkspaceReason }, 'Project root not detected')
+            el(
+              'span',
+              { class: 'rw-agent-welcome-pill is-warning', title: model.weakWorkspaceReason },
+              'Project root not detected'
+            )
           )
         : null,
       model.actions.length
@@ -85,9 +93,26 @@ export function renderAgentCard(model: AgentEmptyCardViewModel): HTMLElement {
           )
         )
       : null,
-    model.prompts?.length ? el('div', { class: 'rw-agent-empty-prompts' }, ...model.prompts.map((prompt) => renderStarterPromptChip(prompt))) : null,
+    model.prompts?.length
+      ? el(
+          'div',
+          { class: 'rw-agent-empty-prompts' },
+          ...model.prompts.map((prompt) => renderStarterPromptChip(prompt))
+        )
+      : null,
     model.footerCopy ? el('div', { class: 'rw-agent-empty-footer' }, model.footerCopy) : null
   )
+}
+
+function proofVerificationLabel(status: InlineRunViewModel['verificationStatus']): string | null {
+  if (status === 'verified') return 'Proof verified'
+  if (status === 'partially_verified') return 'Proof partially verified'
+  if (status === 'unverified') return 'Proof unverified'
+  return null
+}
+
+function evidenceCountLabel(count: number): string {
+  return count === 1 ? '1 evidence item' : `${count} evidence items`
 }
 
 export function renderInlineRunBlock(model: InlineRunViewModel): HTMLElement {
@@ -108,7 +133,9 @@ export function renderInlineRunBlock(model: InlineRunViewModel): HTMLElement {
   const topActions = el(
     'div',
     { class: 'rw-inline-runblock-actions-top' },
-    ...model.topActions.map((action) => el('button', { class: action.className, dataset: action.dataset }, action.label)),
+    ...model.topActions.map((action) =>
+      el('button', { class: action.className, dataset: action.dataset }, action.label)
+    ),
     el(
       'details',
       { class: 'rw-inline-runblock-overflow' },
@@ -117,7 +144,11 @@ export function renderInlineRunBlock(model: InlineRunViewModel): HTMLElement {
         'div',
         { class: 'rw-inline-runblock-overflow-menu' },
         ...model.overflowActions.map((action) =>
-          el('button', { class: 'rw-link-btn rw-inline-runblock-overflow-action', dataset: action.dataset }, action.label)
+          el(
+            'button',
+            { class: 'rw-link-btn rw-inline-runblock-overflow-action', dataset: action.dataset },
+            action.label
+          )
         )
       )
     )
@@ -142,7 +173,18 @@ export function renderInlineRunBlock(model: InlineRunViewModel): HTMLElement {
     article.appendChild(
       el(
         'div',
-        { class: ['rw-inline-runblock-banner', model.banner.tone === 'attention' ? 'is-attention' : model.banner.tone === 'verifying' ? 'is-verifying' : ''].filter(Boolean).join(' ') },
+        {
+          class: [
+            'rw-inline-runblock-banner',
+            model.banner.tone === 'attention'
+              ? 'is-attention'
+              : model.banner.tone === 'verifying'
+                ? 'is-verifying'
+                : '',
+          ]
+            .filter(Boolean)
+            .join(' '),
+        },
         model.banner.text
       )
     )
@@ -156,7 +198,11 @@ export function renderInlineRunBlock(model: InlineRunViewModel): HTMLElement {
     const cognition = el('ol', { class: 'rw-cognition-stream rw-inline-runblock-cognition', 'aria-live': 'polite' })
     for (const line of model.cognitionLines.slice(-8)) {
       cognition.appendChild(
-        el('li', { class: 'rw-cognition-line', dataset: { eventType: line.eventType } }, el('span', { class: 'rw-cognition-label' }, line.label)),
+        el(
+          'li',
+          { class: 'rw-cognition-line', dataset: { eventType: line.eventType } },
+          el('span', { class: 'rw-cognition-label' }, line.label)
+        )
       )
     }
     article.appendChild(cognition)
@@ -164,7 +210,12 @@ export function renderInlineRunBlock(model: InlineRunViewModel): HTMLElement {
 
   if (model.verificationSummary) {
     article.appendChild(
-      el('div', { class: 'rw-inline-runblock-verification' }, el('span', { class: 'rw-inline-label' }, 'verification'), el('code', undefined, model.verificationSummary)),
+      el(
+        'div',
+        { class: 'rw-inline-runblock-verification' },
+        el('span', { class: 'rw-inline-label' }, 'verification'),
+        el('code', undefined, model.verificationSummary)
+      )
     )
   }
 
@@ -181,7 +232,12 @@ export function renderInlineRunBlock(model: InlineRunViewModel): HTMLElement {
     )
   )
   meta.appendChild(
-    el('div', { class: 'rw-inline-runblock-detail' }, el('span', { class: 'rw-inline-label' }, 'cwd'), el('code', undefined, model.cwd))
+    el(
+      'div',
+      { class: 'rw-inline-runblock-detail' },
+      el('span', { class: 'rw-inline-label' }, 'cwd'),
+      el('code', undefined, model.cwd)
+    )
   )
   meta.appendChild(
     el(
@@ -191,9 +247,35 @@ export function renderInlineRunBlock(model: InlineRunViewModel): HTMLElement {
       el('code', undefined, model.receiptId)
     )
   )
+  const proofVerification = proofVerificationLabel(model.verificationStatus)
+  if (proofVerification) {
+    meta.appendChild(
+      el(
+        'div',
+        { class: 'rw-inline-runblock-detail rw-inline-runblock-proof-status' },
+        el('span', { class: 'rw-inline-label' }, 'proof status'),
+        el('code', undefined, proofVerification)
+      )
+    )
+  }
+  if (typeof model.evidenceCount === 'number') {
+    meta.appendChild(
+      el(
+        'div',
+        { class: 'rw-inline-runblock-detail rw-inline-runblock-evidence-count' },
+        el('span', { class: 'rw-inline-label' }, 'evidence'),
+        el('code', undefined, evidenceCountLabel(model.evidenceCount))
+      )
+    )
+  }
   if (model.nextLabel) {
     meta.appendChild(
-      el('div', { class: 'rw-inline-runblock-detail' }, el('span', { class: 'rw-inline-label' }, 'next'), el('code', undefined, model.nextLabel))
+      el(
+        'div',
+        { class: 'rw-inline-runblock-detail' },
+        el('span', { class: 'rw-inline-label' }, 'next'),
+        el('code', undefined, model.nextLabel)
+      )
     )
   }
   article.appendChild(meta)

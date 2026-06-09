@@ -1,3 +1,4 @@
+import type { VerificationStatus } from '../../../structured-session-types.js'
 import type { RunModel, WorkbenchState } from '../store.js'
 import { formatExitState, formatProofBadge, formatRunDate, formatRunDuration, formatRunStatus } from '../renderers/format.js'
 import { analyzeFailure, formatFailureNarrative, getRecoveryGuidance } from '../renderers/runIntelligence.js'
@@ -59,6 +60,8 @@ export type InlineRunViewModel = {
   cognitionLines: Array<{ label: string; eventType: string }>
   memoryNote?: string
   verificationSummary?: string
+  verificationStatus?: VerificationStatus
+  evidenceCount?: number
   banner?: { tone: 'running' | 'attention' | 'verifying'; text: string }
   nextLabel?: string
   topActions: Array<{ label: string; className: string; dataset: Record<string, string | undefined> }>
@@ -279,6 +282,8 @@ export function buildInlineRunViewModel(state: WorkbenchState, run: RunModel): I
     cognitionLines,
     memoryNote: canonicalBlock?.memoryNote,
     verificationSummary: persistedReceipt?.verificationResults.join(' · '),
+    verificationStatus: canonicalBlock?.verificationStatus,
+    evidenceCount: canonicalBlock?.evidenceCount,
     banner,
     nextLabel: run.status === 'failed' || run.status === 'interrupted' ? recovery.bestNextActionLabel : undefined,
     topActions: [
