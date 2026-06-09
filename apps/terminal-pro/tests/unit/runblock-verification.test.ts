@@ -42,10 +42,18 @@ function installTestDocument(): void {
   })
 }
 
+function findByClass(node: TestDomNode, className: string): TestDomNode[] {
+  const matches = node.className.split(/\s+/).includes(className) ? [node] : []
+  return [...matches, ...node.children.flatMap((child) => findByClass(child, className))]
+}
+
 function executionRecord(fields: {
   verification_status?: VerificationStatus
   evidence_count?: number
+  receiptSummary?: string
+  events?: RinaExecutionRecord['events']
 }): RinaExecutionRecord {
+  const { receiptSummary = 'Done', events = [{ type: 'execution.completed' }], ...runtimeFields } = fields
   return {
     runId: 'run_123',
     requestId: 'request_123',
@@ -58,10 +66,10 @@ function executionRecord(fields: {
     },
     plan: { summary: 'Run tests' },
     transactions: [],
-    events: [{ type: 'execution.completed' }],
-    receipts: [{ runId: 'run_123', exitCode: 0, artifacts: [], summary: 'Done' }],
+    events,
+    receipts: [{ runId: 'run_123', exitCode: 0, artifacts: [], summary: receiptSummary }],
     outcome: { explanation: 'Done' },
-    ...fields,
+    ...runtimeFields,
   } as RinaExecutionRecord
 }
 
@@ -106,13 +114,38 @@ describe('RunBlock runtime verification mapping', () => {
     expect(runBlock.evidenceCount).toBe(3)
   })
 
-  it('does not infer verification fields when runtime status is missing', () => {
+  it('does not infer verified from exitCode 0 when runtime status is missing', () => {
     const runBlock = runBlockFromExecutionRecord(executionRecord({}))
 
     expect(runBlock.status).toBe('success')
     expect(runBlock.exitCode).toBe(0)
     expect(runBlock.verificationStatus).toBeUndefined()
     expect(runBlock.evidenceCount).toBeUndefined()
+  })
+
+  it('does not infer verified from output or summary text when runtime status is missing', () => {
+    const runBlock = runBlockFromExecutionRecord(
+      executionRecord({
+        receiptSummary: 'Proof verified. All tests passed.',
+        events: [
+          { type: 'execution.started' },
+          { type: 'stream.output', text: 'Proof verified\nverified by tests\nexit 0' },
+          { type: 'execution.completed' },
+        ],
+      })
+    )
+
+    expect(runBlock.status).toBe('success')
+    expect(runBlock.verificationStatus).toBeUndefined()
+    expect(runBlock.evidenceCount).toBeUndefined()
+  })
+
+  it('only sets verificationStatus when runtime record includes verification_status', () => {
+    const missingStatus = runBlockFromExecutionRecord(executionRecord({}))
+    const providedStatus = runBlockFromExecutionRecord(executionRecord({ verification_status: 'verified' }))
+
+    expect(missingStatus.verificationStatus).toBeUndefined()
+    expect(providedStatus.verificationStatus).toBe('verified')
   })
 })
 
@@ -155,10 +188,31 @@ describe('renderInlineRunBlock proof verification display', () => {
   it('does not crash or render inferred status when verificationStatus is missing', () => {
     installTestDocument()
 
-    const node = renderInlineRunBlock(inlineRunModel({ verificationStatus: undefined, evidenceCount: undefined }))
+    const node = renderInlineRunBlock(
+      inlineRunModel({ verificationStatus: undefined, evidenceCount: undefined })
+    ) as unknown as TestDomNode
 
     expect(node.textContent).not.toContain('Proof verified')
     expect(node.textContent).not.toContain('Proof partially verified')
     expect(node.textContent).not.toContain('Proof unverified')
+    expect(findByClass(node, 'rw-inline-runblock-proof-status')).toHaveLength(0)
+  })
+
+  it('does not infer verified from exit summary or output text', () => {
+    installTestDocument()
+
+    const node = renderInlineRunBlock(
+      inlineRunModel({
+        verificationStatus: undefined,
+        exitSummary: 'verified · exit=0',
+        expanded: true,
+        hasOutput: true,
+        outputText: 'Proof verified\nall checks passed',
+      })
+    ) as unknown as TestDomNode
+
+    expect(node.textContent).toContain('verified · exit=0')
+    expect(node.textContent).toContain('Proof verified\nall checks passed')
+    expect(findByClass(node, 'rw-inline-runblock-proof-status')).toHaveLength(0)
   })
 })
