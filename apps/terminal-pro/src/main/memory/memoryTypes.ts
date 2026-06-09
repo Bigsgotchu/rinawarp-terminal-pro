@@ -1,13 +1,76 @@
 export type MemoryScope = 'session' | 'user' | 'workspace' | 'episode'
 
-export type MemoryKind =
-  | 'preference'
-  | 'constraint'
-  | 'project_fact'
-  | 'task_outcome'
-  | 'conversation_fact'
+export type MemoryKind = 'preference' | 'constraint' | 'project_fact' | 'task_outcome' | 'conversation_fact'
 
 export type MemoryStatus = 'approved' | 'suggested' | 'rejected'
+
+export type WorkspaceFactCategory =
+  | 'architecture'
+  | 'dependency'
+  | 'convention'
+  | 'preference'
+  | 'recurring_failure'
+  | 'runtime_fact'
+
+export type WorkspaceFactSource = 'user' | 'runtime' | 'proof' | 'config' | 'inferred'
+
+export type WorkspaceFactConfidence = 'high' | 'medium' | 'low'
+
+export interface WorkspaceFact {
+  id: string
+  key: string
+  value: string
+  category: WorkspaceFactCategory
+  source: WorkspaceFactSource
+  confidence: WorkspaceFactConfidence
+  last_verified_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export const WORKSPACE_FACT_CATEGORIES: readonly WorkspaceFactCategory[] = [
+  'architecture',
+  'dependency',
+  'convention',
+  'preference',
+  'recurring_failure',
+  'runtime_fact',
+]
+
+export const WORKSPACE_FACT_SOURCES: readonly WorkspaceFactSource[] = ['user', 'runtime', 'proof', 'config', 'inferred']
+
+export const WORKSPACE_FACT_CONFIDENCE_LEVELS: readonly WorkspaceFactConfidence[] = ['high', 'medium', 'low']
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+export function isWorkspaceFactCategory(value: unknown): value is WorkspaceFactCategory {
+  return WORKSPACE_FACT_CATEGORIES.includes(value as WorkspaceFactCategory)
+}
+
+export function isWorkspaceFactSource(value: unknown): value is WorkspaceFactSource {
+  return WORKSPACE_FACT_SOURCES.includes(value as WorkspaceFactSource)
+}
+
+export function isWorkspaceFactConfidence(value: unknown): value is WorkspaceFactConfidence {
+  return WORKSPACE_FACT_CONFIDENCE_LEVELS.includes(value as WorkspaceFactConfidence)
+}
+
+export function isWorkspaceFact(value: unknown): value is WorkspaceFact {
+  if (!isRecord(value)) return false
+  return (
+    typeof value.id === 'string' &&
+    typeof value.key === 'string' &&
+    typeof value.value === 'string' &&
+    isWorkspaceFactCategory(value.category) &&
+    isWorkspaceFactSource(value.source) &&
+    isWorkspaceFactConfidence(value.confidence) &&
+    (typeof value.last_verified_at === 'string' || value.last_verified_at === null) &&
+    typeof value.created_at === 'string' &&
+    typeof value.updated_at === 'string'
+  )
+}
 
 export interface MemoryEntry {
   id: string

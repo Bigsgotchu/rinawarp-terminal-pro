@@ -245,3 +245,56 @@ Next safe slice:
 
 - Add a read-only `WorkspaceFact` contract and schema proposal tests.
 - Do not migrate existing memory rows until the fact extraction and proof-backed verification rules are explicit.
+
+## 2026-06-09 WorkspaceFact Type Seam
+
+Added Workspace Knowledge types without changing storage behavior:
+
+- `WorkspaceFact`
+- `WorkspaceFactCategory`
+- `WorkspaceFactSource`
+- `WorkspaceFactConfidence`
+
+Location:
+
+- `apps/terminal-pro/src/main/memory/memoryTypes.ts`
+
+Locked categories:
+
+- `architecture`
+- `dependency`
+- `convention`
+- `preference`
+- `recurring_failure`
+- `runtime_fact`
+
+Locked sources:
+
+- `user`
+- `runtime`
+- `proof`
+- `config`
+- `inferred`
+
+Locked confidence levels:
+
+- `high`
+- `medium`
+- `low`
+
+Guard helpers:
+
+- `isWorkspaceFactCategory`
+- `isWorkspaceFactSource`
+- `isWorkspaceFactConfidence`
+- `isWorkspaceFact`
+
+Tests:
+
+- `apps/terminal-pro/tests/unit/workspace-fact-types.test.ts`
+
+Storage note:
+
+- No existing memory rows were migrated.
+- No SQLite schema or owner memory store behavior changed.
+- This is only the typed seam for future Workspace Knowledge storage and extraction.
