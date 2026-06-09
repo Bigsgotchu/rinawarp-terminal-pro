@@ -47,7 +47,7 @@ Related validation plan:
 ### Rina Agent Core
 
 - [x] Rina is the primary product experience.
-  - Evidence: first-run and workbench docs center the Agent/Ask Rina surface.
+  - Evidence: first-run and Agent Thread docs center the Agent/Ask Rina surface.
 - [x] Rina can diagnose common developer workflow problems.
   - Evidence: disk, port, failed-build, and doctor flows exist in `apps/terminal-pro/src`.
 - [x] Rina explains actions before taking meaningful risk.
@@ -159,7 +159,7 @@ Related validation plan:
 ### Rina-First Experience
 
 - [x] The first screen makes Rina feel like the product.
-  - Evidence: first-run QA and workbench model center Ask Rina/Agent.
+  - Evidence: first-run QA and Agent Thread model center Ask Rina/Agent.
 - [x] Users can ask useful project questions immediately.
   - Evidence: Ask Rina composer, selection Ask Rina, palette, and help prompts exist.
 - [x] Terminal execution feels like Rina's tool, not the user's burden.

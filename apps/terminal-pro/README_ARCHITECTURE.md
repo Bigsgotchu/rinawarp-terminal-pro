@@ -1,8 +1,18 @@
-# Rinawarp Terminal Pro Architecture
+# RinaWarp Terminal Pro Architecture
 
 ## TL;DR
 
-`terminal-pro` is an Electron app with a strict preload boundary, a large main-process composition root, and a renderer organized around workbench panels, settings surfaces, and action/service modules.
+`terminal-pro` is an Electron + Vite desktop app with a strict preload boundary, IPC as the cross-process API, AgentRuntime-driven execution, structured runs, user-visible Proof, and local SQLite-backed memory.
+
+Product hierarchy:
+
+- Product: RinaWarp Terminal Pro
+- AI: Rina
+- Primary UX: Agent Thread
+- Container: Agent Shell
+- Runtime: AgentRuntime
+- Moat: proof-backed execution
+- Internal/export artifact: receipt
 
 The highest-signal architecture files today are [`src/main.ts`](./src/main.ts), [`src/preload.ts`](./src/preload.ts), and [`src/main/startup/createMainRuntime.ts`](./src/main/startup/createMainRuntime.ts).
 
@@ -14,7 +24,7 @@ The new framework extraction now also lives in:
 
 ## Architectural Model
 
-Rinawarp Terminal Pro follows a layered, progressively modular architecture with a central composition root that is being decomposed into a more plugin-oriented runtime.
+RinaWarp Terminal Pro follows a layered, progressively modular architecture with a central composition root that is being decomposed into a clearer runtime. The product narrative is not Convex, `useStream`, a deployed backend, a web dashboard, or panel/workbench driven; it is Electron + IPC + AgentRuntime + structured runs + Proof + local memory.
 
 ### Layers
 
@@ -32,7 +42,7 @@ Rinawarp Terminal Pro follows a layered, progressively modular architecture with
 5. Assistant Layer
    Cross-domain orchestration for Rina and doctor flows.
 6. Renderer
-   UI surfaces, panels, settings, state, and user interactions.
+   Agent Shell, Agent Thread, settings surfaces, state, and user interactions.
 
 ## Design Goals
 
@@ -54,12 +64,12 @@ Rinawarp Terminal Pro follows a layered, progressively modular architecture with
 
 ## What This App Is
 
-Rinawarp Terminal Pro is a desktop application that combines:
+RinaWarp Terminal Pro is a natural-language AI copilot for real computer work. It combines:
 
-- Electron shell and window lifecycle management
+- Electron Agent Shell and window lifecycle management
 - a main-process orchestration layer for licensing, IPC, PTY execution, planning, diagnostics, updates, and team features
 - an assistant layer for Rina/doctor flows
-- a renderer workbench with panels, settings surfaces, and reply rendering
+- Agent Thread rendering, settings surfaces, and reply/run/Proof presentation
 
 ## Process Boundaries
 
@@ -70,7 +80,7 @@ There are three main runtime zones:
 2. Preload
    Exposes a restricted IPC surface from Electron to the renderer through explicit channel whitelists.
 3. Renderer
-   Owns UI state, workbench surfaces, settings panels, action binding, and rendering of assistant/plan/run responses.
+   Owns UI state, Agent Shell surfaces, settings surfaces, action binding, and rendering of assistant/plan/run/Proof responses.
 
 ```mermaid
 flowchart LR
@@ -79,7 +89,7 @@ flowchart LR
   A --> D["PTY / Execution"]
   A --> E["Licensing / Updates / Memory"]
   A --> F["Assistant / Rina / Doctor"]
-  C --> G["Workbench Panels"]
+  C --> G["Agent Thread"]
   C --> H["Settings Surfaces"]
 ```
 
@@ -214,9 +224,9 @@ These files give the clearest picture of renderer structure:
 
 - [`src/renderer/index.ts`](./src/renderer/index.ts)
 - [`src/renderer/bootstrap/initRenderer.ts`](./src/renderer/bootstrap/initRenderer.ts)
-- [`src/renderer/shell/workbenchShell.ts`](./src/renderer/shell/workbenchShell.ts)
-- [`src/renderer/panels/AgentPanel.ts`](./src/renderer/panels/AgentPanel.ts)
-- [`src/renderer/panels/DiagnosticsPanel.ts`](./src/renderer/panels/DiagnosticsPanel.ts)
+- [`src/renderer/modern/initAgentShellRenderer.ts`](./src/renderer/modern/initAgentShellRenderer.ts)
+- [`src/renderer/workbench/renderers/agentThread.ts`](./src/renderer/workbench/renderers/agentThread.ts)
+- [`src/renderer/workbench/renderers/threadSurface.ts`](./src/renderer/workbench/renderers/threadSurface.ts)
 - [`src/renderer/settings/settingsShellSurface.ts`](./src/renderer/settings/settingsShellSurface.ts)
 
 ## Current High-Signal Design Characteristics

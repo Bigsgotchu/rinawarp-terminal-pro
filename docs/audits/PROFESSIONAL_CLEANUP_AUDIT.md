@@ -6,7 +6,7 @@ Scope: audit-only. No files were deleted, staged, or committed during this pass.
 
 ## Executive Summary
 
-- Canonical product should be narrowed to RinaWarp Terminal Pro: chat -> plan -> execute -> stream -> receipt -> memory.
+- Canonical product should be narrowed to RinaWarp Terminal Pro: ask -> observe -> plan -> execute -> verify -> proof -> remember.
 - The repo still contains multiple product directions, including Matter Intelligence, VS Code Companion, agents marketplace, deploy capability packs, old release docs, and generated artifact trees.
 - The local codebase is currently versioned as `1.8.2-beta`, but live updater/public release surfaces still advertise `1.8.1-beta`.
 - Local build and desktop packaging pass for `1.8.2-beta`; public updater checks fail because GitHub/latest and `releases.json` are behind.
@@ -19,7 +19,7 @@ Scope: audit-only. No files were deleted, staged, or committed during this pass.
 What stays:
 
 - `apps/terminal-pro` as the main desktop app.
-- Runtime path that supports chat -> plan -> execute -> stream -> receipt -> memory:
+- Runtime path that supports ask -> observe -> plan -> execute -> verify -> proof -> remember:
   - `apps/terminal-pro/src/main/ipc/registerAgentExecutionIpc.ts`
   - `apps/terminal-pro/src/renderer/services/agentExecutionFlow.ts`
   - `apps/terminal-pro/src/workbench/runBlocks/`
@@ -42,8 +42,8 @@ What stays:
 Core Product:
 
 - Agent Thread / chat input: keep as the primary user workflow.
-- Plan, execute, stream, receipt flow: keep as the core trust loop.
-- Runs, receipts, and proof inspectors: keep as supporting proof surfaces.
+- Plan, execute, stream, verify, and Proof flow: keep as the core trust loop.
+- Runs, Proof, and receipt export artifacts: keep as supporting proof surfaces.
 - Workspace picker/default workspace/demo workspace controls: keep, but keep demo language subordinate to real-project use.
 - Settings, About, Updates, Privacy/Telemetry: keep; these are trust and release surfaces.
 - Download page, Linux `.deb`, AppImage, release manifests, checksums: keep.
@@ -53,7 +53,7 @@ Core Product:
 Advanced Tool:
 
 - Terminal/PTY inspector: keep as a supporting execution inspector, not the product center.
-- Capability packs and secure-agent execution: keep only if every path routes through approval, receipts, and proof.
+- Capability packs and secure-agent execution: keep only if every path routes through approval, Proof, and receipt artifacts where needed.
 - Team/account/auth settings: keep only if entitlement and account flows are real and supportable.
 - Support bundles and diagnostics: keep as opt-in troubleshooting surfaces.
 

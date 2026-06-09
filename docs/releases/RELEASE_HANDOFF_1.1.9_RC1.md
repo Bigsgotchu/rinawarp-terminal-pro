@@ -28,7 +28,7 @@ Only reopen code for verified release blockers in these areas:
 - settings navigation
 - help and capabilities routing
 - self-check and proof
-- receipts and recovery
+- Proof, receipt artifacts, and recovery
 - packaged launch, install, or updater
 
 Everything else is post-RC.

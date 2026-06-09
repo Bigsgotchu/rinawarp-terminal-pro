@@ -17,17 +17,19 @@ RinaWarp is the platform and shared account layer behind the current product lin
 
 Today the platform has two product surfaces:
 
-- `RinaWarp Terminal Pro` - the flagship proof-first desktop workbench for build, test, deploy, and recovery workflows
+- `RinaWarp Terminal Pro` - the flagship natural-language AI copilot for proof-backed build, test, deploy, and recovery workflows
 - `RinaWarp Companion` - the chat-first VS Code on-ramp for account connect, diagnostics, pack discovery, and entitlement refresh
 
-Terminal Pro is the deeper execution environment. Companion is the fastest chat-first way to start inside the editor.
+Terminal Pro is the deeper execution environment. Its primary experience is the Agent Thread: users describe work in plain language, and Rina observes the project, plans the task, executes through AgentRuntime, streams progress, verifies outcomes, produces user-visible Proof, and remembers useful project context without storing secrets. Companion is the fastest chat-first way to start inside the editor.
 
 ### Key Features
 
 - **Natural Conversation** - Describe problems in plain English. Rina understands context and responds with explanation, plan, and actions.
 - **Safe Execution** - Every action is explained before execution. High-impact commands require explicit approval.
-- **Proof-Backed Work** - Runs, receipts, and execution traces are attached to the thread so “done” always has proof behind it.
+- **Proof-Backed Work** - Runs, verification, and runtime evidence are attached to the Agent Thread so “done” always has Proof behind it. Receipt exports are available as internal/export artifacts behind that Proof layer.
 - **Local-First** - Your system data never leaves your machine. No cloud dependencies, no privacy concerns.
+
+Agent Shell is only the Electron desktop container. RinaWarp Terminal Pro is not a dashboard, workbench, or panel-driven interface; the product moat is the proof-backed execution loop.
 
 ## Quick Install
 

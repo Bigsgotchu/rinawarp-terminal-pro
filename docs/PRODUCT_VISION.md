@@ -1,9 +1,19 @@
 # RinaWarp Product Vision
 
+RinaWarp Terminal Pro is a natural-language AI copilot for real computer work.
+
+The primary experience is the Agent Thread. Users describe work in plain language, and Rina observes the project, plans the task, executes through AgentRuntime, streams progress, verifies outcomes, produces user-visible Proof, and remembers useful project context without storing secrets.
+
+Agent Shell is only the Electron desktop container. The product is not a dashboard, workbench, or panel-driven interface.
+
+The moat is the proof-backed execution loop: runtime-controlled automation, observable execution, verification, run history, exportable receipt artifacts behind the Proof layer, and durable project memory.
+
+Current development focus is hardening the execution pipeline, planner approvals, proof generation, runtime reliability, and memory hydration while preserving a compact operator-first experience.
+
 RinaWarp is not a terminal wrapper with an AI chat panel. It is an execution agent whose primary product loop is:
 
 ```text
-chat -> plan -> execute -> stream -> receipt -> memory
+ask -> observe -> plan -> execute -> verify -> proof -> remember
 ```
 
 The product succeeds when a new user can install RinaWarp, type "Rina, fix my project", approve any mutation, watch execution happen, receive proof, and trust the result without needing to operate a terminal directly.
@@ -19,10 +29,10 @@ question
 -> plan
 -> execution stream
 -> proof
--> receipt
+-> receipt export when needed
 ```
 
-Terminal panels, logs, debug tabs, and raw diagnostic surfaces are supporting tools. If they become the main place users work, the product has drifted back toward a terminal wrapper.
+Logs, debug views, and raw diagnostic surfaces are supporting tools. If they become the main place users work, the product has drifted back toward a terminal wrapper.
 
 ## Runtime Ownership
 
@@ -33,10 +43,10 @@ The required flow is:
 ```text
 user
 -> intent
--> runtime
+-> AgentRuntime
 -> tools
 -> proof
--> receipt
+-> receipt export when needed
 ```
 
 The UI must not simulate completion, invent execution state, or treat renderer-local state as the source of truth for runtime behavior. Renderer state can display runtime facts, but runtime-owned execution records and receipts are the authority.
@@ -56,11 +66,11 @@ This applies to flows such as:
 
 Each flow must produce:
 
-- proof block
-- receipt
+- Proof
+- receipt export when needed
 - verification result
 
-No action should be considered complete because the assistant explained what it would do. Completion means Rina planned, executed or safely refused, verified, and left a receipt.
+No action should be considered complete because the assistant explained what it would do. Completion means Rina planned, executed or safely refused, verified, and produced user-visible Proof.
 
 ## Execution Memory
 
@@ -99,7 +109,7 @@ user asks
 Features should be evaluated against the product loop:
 
 ```text
-chat -> plan -> execute -> stream -> receipt -> memory
+ask -> observe -> plan -> execute -> verify -> proof -> remember
 ```
 
 Anything that does not support that loop is infrastructure, supporting capability, or legacy residue that should eventually be removed, refactored, or clearly demoted.
@@ -116,7 +126,7 @@ install RinaWarp
 -> approve mutation
 -> watch execution stream
 -> inspect proof
--> receive a receipt
+-> export receipt artifacts when needed
 -> trust the result
 ```
 
@@ -128,7 +138,8 @@ The codebase should be validated against this vision with special attention to:
 
 - Agent Thread architecture
 - runtime-owned execution records
-- receipts
+- Proof presentation
+- receipt export artifacts
 - approval gates
 - persistence
 - diagnostics workflows
@@ -144,7 +155,7 @@ The following areas require ongoing validation before they can be treated as com
 
 - professional updater channels
 - subscription entitlements
-- receipt export UX
+- Proof generation and receipt export UX
 - runtime recovery workflows
 - commercial licensing flow
 - public beta install and update experience

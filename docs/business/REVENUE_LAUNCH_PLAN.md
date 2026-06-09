@@ -70,7 +70,7 @@ The app must make the first few minutes obvious:
 - help response explains what the product can do
 - self-check works cleanly
 - build/test/deploy next steps are understandable
-- receipts and recovery feel trustworthy
+- Proof and recovery feel trustworthy
 
 Minimum acceptance:
 
@@ -85,8 +85,8 @@ These tasks determine whether people understand why to pay.
 Positioning should stay simple:
 
 - Product: `RinaWarp Terminal Pro`
-- Category: proof-first agent workbench
-- Job: build, test, deploy with receipts and recovery
+- Category: natural-language AI copilot for proof-backed execution
+- Job: build, test, deploy with Proof and recovery
 
 Initial pricing should stay simple:
 

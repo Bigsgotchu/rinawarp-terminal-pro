@@ -1,6 +1,6 @@
 # Gate 24: Rina Real Capability Proof
 
-**Date:** 2026-06-04T12:41:31.456Z
+**Date:** 2026-06-06T03:47:42.530Z
 
 ## 1. Conversation Test
 
@@ -56,7 +56,8 @@
 > rina-test-project@1.0.0 build
 > tsc
 
-src/index.ts(3,7): error TS2322: Type 'string' is not assignable to type 'number'.
+tsconfig.json(6,5): error TS5011: The common source directory of 'tsconfig.json' is './src'. The 'rootDir' setting must be explicitly set to this or another path to adjust your output's file layout.
+  Visit https://aka.ms/ts6 for migration information.
 
 ```
 
@@ -82,7 +83,7 @@ identifying that the project has build configuration issues and explaining them.
 
 ## 6. Proof Generation Test
 
-**Receipt path:** /home/karina/rina-test-project/runs/receipts/reality-demo-1780576893226-receipt.md
+**Receipt path:** /home/karina/rina-test-project/runs/receipts/reality-demo-1780717664347-receipt.md
 
 **Status:** ✅ PASSED
 

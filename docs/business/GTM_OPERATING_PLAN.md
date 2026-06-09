@@ -8,7 +8,7 @@ It is not a private investor memo and it is not a personal finance document.
 
 ## Core Story
 
-RinaWarp Terminal Pro is a proof-first agent workbench for developers who want AI help without losing trust, receipts, or recovery.
+RinaWarp Terminal Pro is a natural-language AI copilot for real computer work. It is built for developers who want AI help without losing trust, Proof, or recovery.
 
 ## Primary Audience
 

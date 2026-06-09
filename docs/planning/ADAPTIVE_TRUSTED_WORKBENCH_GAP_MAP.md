@@ -71,7 +71,7 @@ Evidence:
 
 - owner identity resolves in main process from license customer ID first, local-device fallback second in [memoryStore.ts](/home/karina/Documents/rinawarp-terminal-pro/apps/terminal-pro/src/main/memory/memoryStore.ts)
 - owner memory controls are live in the Settings overlay via [memory.ts](/home/karina/Documents/rinawarp-terminal-pro/apps/terminal-pro/src/renderer/settings/panels/memory.ts)
-- the Settings rail now includes the Memory panel through [bootstrap.ts](/home/karina/Documents/rinawarp-terminal-pro/apps/terminal-pro/src/renderer/settings/bootstrap.ts)
+- the Settings surface now includes memory controls through [bootstrap.ts](/home/karina/Documents/rinawarp-terminal-pro/apps/terminal-pro/src/renderer/settings/bootstrap.ts)
 - product-path persistence is covered in [settings.spec.ts](/home/karina/Documents/rinawarp-terminal-pro/apps/terminal-pro/tests/e2e/settings.spec.ts)
 
 ### Milestone 6 — Response composer integration

@@ -10,7 +10,7 @@ It is not a workbench, chatbot, terminal wrapper, code generator, CLI assistant,
 
 ## Product Loop
 
-chat → understand → plan → execute/observe → stream → verify → Proof → memory
+ask → observe → plan → execute → verify → Proof → remember
 
 Anything that does not support this loop is prototype residue and must be removed, hidden, or refactored.
 

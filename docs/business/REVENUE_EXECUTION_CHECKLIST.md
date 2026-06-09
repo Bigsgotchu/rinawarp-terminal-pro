@@ -27,8 +27,8 @@ As of `2026-06-08`, `RinaWarp Terminal Pro v1.8.2-beta` is revenue-capable for a
 
 - [ ] Keep one simple product story:
   - `RinaWarp Terminal Pro`
-  - proof-first agent workbench
-  - build, test, deploy
+  - natural-language AI copilot for proof-backed execution
+  - build, test, deploy with Proof
 - [ ] Keep one simple paid story:
   - Linux early-access beta
   - live checkout

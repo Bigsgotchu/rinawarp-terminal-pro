@@ -35,8 +35,8 @@ RinaWarp Terminal Pro v1.8.2-beta has live production surfaces, working Linux pu
 - Disk recovery diagnostics (read-only)
 - Port conflict diagnostics (read-only)
 - Failed build recovery workflows
-- Basic receipt generation and display
-- Workbench thread-first rendering architecture
+- Basic Proof generation with receipt export/display artifacts
+- Agent Thread-first rendering architecture
 
 **Known Limitations/Gaps:**
 - No cloud memory systems (intentionally omitted per constraints)

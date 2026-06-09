@@ -1,4 +1,4 @@
-# RinaWarp Product Workbench Requirements
+# RinaWarp Agent Thread Product Requirements
 
 > Last Updated: 2026-03-20
 
@@ -6,13 +6,13 @@
 
 RinaWarp should be the place where a user asks for work, watches verified execution happen, and stays in flow from idea to proof to recovery.
 
-The adaptive next-phase product spec lives in [ADAPTIVE_TRUSTED_WORKBENCH_SPEC.md](/home/karina/Documents/rinawarp-terminal-pro/docs/ADAPTIVE_TRUSTED_WORKBENCH_SPEC.md), and the current implementation status against that spec lives in [ADAPTIVE_TRUSTED_WORKBENCH_GAP_MAP.md](/home/karina/Documents/rinawarp-terminal-pro/docs/ADAPTIVE_TRUSTED_WORKBENCH_GAP_MAP.md).
+Earlier adaptive product specs used workbench terminology. Current product language is Agent Thread, Agent Shell, AgentRuntime, and Proof. The implementation status against the older spec lives in [ADAPTIVE_TRUSTED_WORKBENCH_GAP_MAP.md](/home/karina/Documents/rinawarp-terminal-pro/docs/ADAPTIVE_TRUSTED_WORKBENCH_GAP_MAP.md).
 
 The target desktop architecture for the next major renderer/conversation migration lives in [RINAWARP_V2_ARCHITECTURE.md](/home/karina/Documents/rinawarp-terminal-pro/docs/RINAWARP_V2_ARCHITECTURE.md).
 
 The core loop is:
 
-`ask -> act -> prove -> recover`
+`ask -> observe -> plan -> execute -> verify -> proof -> remember`
 
 This product is not trying to be:
 
@@ -36,7 +36,7 @@ The user should not need to jump between primary surfaces to understand what is 
 These three intents should feel more reliable than any other workflow before the product broadens.
 
 4. One execution spine only.
-One runner, one runs model, one receipts model, one workspace-root authority, one renderer store.
+One runner, one runs model, one Proof layer, one receipt export model, one workspace-root authority, one renderer store.
 
 5. Calm beats busy.
 The UI should reduce cognitive load, not advertise every subsystem at once.
@@ -57,7 +57,7 @@ When things fail, the product should become more useful, not less trustworthy.
 - Agent thread is the default and dominant home screen.
 - `Ask Rina` is the main CTA.
 - Every meaningful execution creates an inline run block under the related thread message.
-- No claim is shown as complete without a linked run, exit code, and receipt/proof artifact.
+- No claim is shown as complete without a linked run, exit code, and Proof.
 - Workspace root comes from one main-process authority only.
 - All user-facing execution flows go through one canonical runner path.
 - Terminal, Runs, Code, and Diagnostics behave as inspectors, not competing primary surfaces.
@@ -73,14 +73,15 @@ When things fail, the product should become more useful, not less trustworthy.
   - short plan
   - canonical execution
   - inline progress
-  - receipt/proof
+  - Proof
+  - receipt export artifact when needed
   - concise outcome
   - suggested next action
-- Renderer UI truth flows through the canonical workbench store.
+- Renderer UI truth flows through the canonical store.
 
 ### Should Have
 
-- A compact truth HUD is always visible in the Agent workbench showing:
+- A compact truth HUD is always visible in the Agent Thread showing:
   - workspace
   - mode
   - last run
@@ -136,10 +137,10 @@ The renderer refactor should be judged against this product direction:
 
 - home screen: Agent thread
 - execution surface: inline run blocks
-- proof model: run + exit + receipt
+- proof model: run + exit + Proof + receipt export artifact
 - inspection model: drawers
 - recovery model: first-class and inline
-- state model: canonical workbench store
+- state model: canonical store
 - execution model: one runner only
 
-If a change improves local implementation quality but weakens `ask -> act -> prove -> recover`, it is the wrong change.
+If a change improves local implementation quality but weakens `ask -> observe -> plan -> execute -> verify -> proof -> remember`, it is the wrong change.

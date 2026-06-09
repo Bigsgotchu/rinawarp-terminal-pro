@@ -4,9 +4,9 @@
 
 A build is shippable only when the paid promise is delivered under controlled proof:
 
-- Agent-first workbench is the primary surface
+- Agent Thread is the primary surface
 - execution flows only through the canonical trusted path
-- claims are backed by `runId` plus receipt/session proof
+- claims are backed by `runId` plus Proof and receipt/session artifacts where needed
 - recovery stays coherent after interruption and restart
 - packaged builds work on fresh state without builder-only assumptions
 
@@ -77,7 +77,7 @@ A build is shippable only when the paid promise is delivered under controlled pr
 ### Supportability
 
 - [x] Support bundle path exists
-- [x] Runs/receipts/session state are inspectable
+- [x] Runs, Proof, receipt artifacts, and session state are inspectable
 - [x] Version/build info is visible
 - [x] Release-readiness script exists
 - [x] VS Code Companion validation can be run from the repo root with `npm run test:companion`
