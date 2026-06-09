@@ -164,4 +164,12 @@ Completed work:
 
 - `handleExecutePlanStream` in `agentExecutionFlow.ts` now routes approved plans through `executeApprovedPlan` adapter
 - Existing `executeRemotePlan` and `/v1/execute-plan` backend preserved unchanged
-- All 58 unit tests pass, typecheck and build:electron pass
+- All 61 unit tests pass (3 new guard tests added), typecheck and build:electron pass
+
+## 2026-06-09 Product Guard Tests
+
+Added to `apps/terminal-pro/tests/unit/planner-approval.test.ts`:
+
+- Guard: approved plans must pass through `executeApprovedPlan` adapter (cannot bypass)
+- Guard: Proof metadata must contain all required fields (plan_id, approval_timestamp, approval_actor, runtime_id, proof_id)
+- Guard: non-approved plans must not carry approval metadata to backend
