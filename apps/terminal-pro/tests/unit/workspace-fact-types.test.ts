@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  createWorkspaceFact,
   isWorkspaceFact,
   isWorkspaceFactCategory,
   isWorkspaceFactConfidence,
@@ -70,5 +71,99 @@ describe('WorkspaceFact type guards', () => {
     expect(isWorkspaceFact({ ...validWorkspaceFact(), confidence: 0.95 })).toBe(false)
     expect(isWorkspaceFact({ ...validWorkspaceFact(), last_verified_at: undefined })).toBe(false)
     expect(isWorkspaceFact({ ...validWorkspaceFact(), updated_at: null })).toBe(false)
+  })
+})
+
+describe('createWorkspaceFact', () => {
+  it('normalizes key and value while preserving validated fields', () => {
+    const fact = createWorkspaceFact({
+      id: ' fact_456 ',
+      key: ' architecture.runtime ',
+      value: ' AgentRuntime ',
+      category: 'runtime_fact',
+      source: 'runtime',
+      confidence: 'high',
+      last_verified_at: '2026-06-09T00:00:00.000Z',
+      created_at: '2026-06-09T00:00:00.000Z',
+      updated_at: '2026-06-09T00:00:00.000Z',
+    })
+
+    expect(fact).toEqual({
+      id: 'fact_456',
+      key: 'architecture.runtime',
+      value: 'AgentRuntime',
+      category: 'runtime_fact',
+      source: 'runtime',
+      confidence: 'high',
+      last_verified_at: '2026-06-09T00:00:00.000Z',
+      created_at: '2026-06-09T00:00:00.000Z',
+      updated_at: '2026-06-09T00:00:00.000Z',
+    })
+  })
+
+  it('defaults confidence and timestamps for valid facts', () => {
+    const fact = createWorkspaceFact({
+      key: 'dependency.sqlite',
+      value: 'better-sqlite3',
+      category: 'dependency',
+      source: 'config',
+    })
+
+    expect(fact.id).toMatch(/^workspace_fact_/)
+    expect(fact.confidence).toBe('medium')
+    expect(fact.last_verified_at).toBeNull()
+    expect(new Date(fact.created_at).toString()).not.toBe('Invalid Date')
+    expect(new Date(fact.updated_at).toString()).not.toBe('Invalid Date')
+    expect(isWorkspaceFact(fact)).toBe(true)
+  })
+
+  it('rejects empty key and empty value', () => {
+    expect(() =>
+      createWorkspaceFact({
+        key: ' ',
+        value: 'Agent Thread',
+        category: 'architecture',
+        source: 'user',
+      })
+    ).toThrow(/key is required/)
+
+    expect(() =>
+      createWorkspaceFact({
+        key: 'architecture.ui',
+        value: ' ',
+        category: 'architecture',
+        source: 'user',
+      })
+    ).toThrow(/value is required/)
+  })
+
+  it('rejects invalid category, source, and confidence', () => {
+    expect(() =>
+      createWorkspaceFact({
+        key: 'architecture.ui',
+        value: 'Agent Thread',
+        category: 'conversation_fact' as never,
+        source: 'user',
+      })
+    ).toThrow(/Invalid WorkspaceFact category/)
+
+    expect(() =>
+      createWorkspaceFact({
+        key: 'architecture.ui',
+        value: 'Agent Thread',
+        category: 'architecture',
+        source: 'chat' as never,
+      })
+    ).toThrow(/Invalid WorkspaceFact source/)
+
+    expect(() =>
+      createWorkspaceFact({
+        key: 'architecture.ui',
+        value: 'Agent Thread',
+        category: 'architecture',
+        source: 'user',
+        confidence: 'certain' as never,
+      })
+    ).toThrow(/Invalid WorkspaceFact confidence/)
   })
 })

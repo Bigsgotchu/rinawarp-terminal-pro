@@ -28,6 +28,18 @@ export interface WorkspaceFact {
   updated_at: string
 }
 
+export type WorkspaceFactInput = {
+  id?: string
+  key: string
+  value: string
+  category: WorkspaceFactCategory
+  source: WorkspaceFactSource
+  confidence?: WorkspaceFactConfidence
+  last_verified_at?: string | null
+  created_at?: string
+  updated_at?: string
+}
+
 export const WORKSPACE_FACT_CATEGORIES: readonly WorkspaceFactCategory[] = [
   'architecture',
   'dependency',
@@ -43,6 +55,14 @@ export const WORKSPACE_FACT_CONFIDENCE_LEVELS: readonly WorkspaceFactConfidence[
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
+}
+
+function workspaceFactTimestamp(): string {
+  return new Date().toISOString()
+}
+
+function workspaceFactId(): string {
+  return `workspace_fact_${Date.now().toString(36)}_${Math.random().toString(16).slice(2, 10)}`
 }
 
 export function isWorkspaceFactCategory(value: unknown): value is WorkspaceFactCategory {
@@ -70,6 +90,39 @@ export function isWorkspaceFact(value: unknown): value is WorkspaceFact {
     typeof value.created_at === 'string' &&
     typeof value.updated_at === 'string'
   )
+}
+
+export function createWorkspaceFact(input: WorkspaceFactInput): WorkspaceFact {
+  const key = String(input.key || '').trim()
+  if (!key) throw new Error('WorkspaceFact key is required')
+
+  const value = String(input.value || '').trim()
+  if (!value) throw new Error('WorkspaceFact value is required')
+
+  if (!isWorkspaceFactCategory(input.category)) {
+    throw new Error(`Invalid WorkspaceFact category: ${String(input.category)}`)
+  }
+  if (!isWorkspaceFactSource(input.source)) {
+    throw new Error(`Invalid WorkspaceFact source: ${String(input.source)}`)
+  }
+
+  const confidence = input.confidence ?? 'medium'
+  if (!isWorkspaceFactConfidence(confidence)) {
+    throw new Error(`Invalid WorkspaceFact confidence: ${String(confidence)}`)
+  }
+
+  const timestamp = workspaceFactTimestamp()
+  return {
+    id: String(input.id || '').trim() || workspaceFactId(),
+    key,
+    value,
+    category: input.category,
+    source: input.source,
+    confidence,
+    last_verified_at: input.last_verified_at ?? null,
+    created_at: input.created_at ?? timestamp,
+    updated_at: input.updated_at ?? timestamp,
+  }
 }
 
 export interface MemoryEntry {

@@ -298,3 +298,41 @@ Storage note:
 - No existing memory rows were migrated.
 - No SQLite schema or owner memory store behavior changed.
 - This is only the typed seam for future Workspace Knowledge storage and extraction.
+
+## 2026-06-09 WorkspaceFact Normalization Helper
+
+Added storage-neutral WorkspaceFact creation helper:
+
+- `createWorkspaceFact(input)`
+
+Location:
+
+- `apps/terminal-pro/src/main/memory/memoryTypes.ts`
+
+Behavior:
+
+- trims `key`
+- trims `value`
+- validates category
+- validates source
+- defaults confidence to `medium`
+- defaults `last_verified_at` to `null`
+- fills `id`, `created_at`, and `updated_at` when omitted
+
+Rejected inputs:
+
+- empty key
+- empty value
+- invalid category
+- invalid source
+- invalid confidence
+
+Tests:
+
+- `apps/terminal-pro/tests/unit/workspace-fact-types.test.ts`
+
+Storage note:
+
+- No SQLite schema changed.
+- No existing memory rows were migrated.
+- Existing owner memory store behavior is unchanged.
