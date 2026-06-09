@@ -7,6 +7,7 @@ import {
 } from '../../rina/capabilities/execution.js'
 import { listCapabilityPacks } from '../../rina/capabilities/registry.js'
 import { executeSelfCheck } from '../tools/selfCheck.js'
+import { createApprovedPlanAdapter } from '../runtime/approvedPlanAdapter.js'
 
 export type PlanRunState = {
   stopped: boolean
@@ -16,11 +17,18 @@ export type PlanRunState = {
 
 export type RiskLevel = 'read' | 'safe-write' | 'high-impact'
 
+export type PlanApprovalMetadata = {
+  planId?: string
+  approvedAt?: string
+  actor?: string
+}
+
 export type ExecutePlanPayload = {
   plan: any[]
   projectRoot: string
   confirmed: boolean
   confirmationText: string
+  approval?: PlanApprovalMetadata
 }
 
 export type ExecuteCapabilityPayload = {
@@ -56,17 +64,25 @@ export type RegisterAgentExecutionArgs = {
     projectRoot: string
     confirmed: boolean
     confirmationText: string
+    approval?: PlanApprovalMetadata
   }) => Promise<{ ok: true; planRunId: string }>
   pipeAgentdSseToRenderer: (args: {
     eventSender: WebContents
     localPlanRunId: string
     agentdPlanRunId: string
     runId: string
+    approval?: PlanApprovalMetadata
   }) => Promise<string | undefined>
   createStreamId: () => string
   streamCancel: (streamId: string) => Promise<unknown>
   streamKill: (streamId: string) => Promise<unknown>
   planStop: (planRunId: string) => Promise<unknown>
+  recordPlanApprovalRejection?: (args: {
+    planRunId: string
+    proofId: string
+    rejectedAt: string
+    actor: string
+  }) => void
 }
 
 export function logDeprecatedExecutionChannelUsage(channel: string, replacement: string): void {
@@ -116,6 +132,7 @@ async function runRemotePlan(
     projectRoot,
     confirmed: payload.confirmed,
     confirmationText: payload.confirmationText ?? '',
+    approval: payload.approval,
   })
   const state = args.runningPlanRuns.get(planRunId)
   if (state) state.agentdPlanRunId = execResp.planRunId
@@ -125,6 +142,7 @@ async function runRemotePlan(
       localPlanRunId: planRunId,
       agentdPlanRunId: execResp.planRunId,
       runId,
+      approval: payload.approval,
     })) || ''
   )
 }
@@ -133,7 +151,9 @@ function isLocalSelfCheckPlan(payload: ExecutePlanPayload): boolean {
   const steps = Array.isArray(payload.plan) ? payload.plan : []
   if (steps.length !== 1) return false
   const step = steps[0]
-  const tool = String(step?.tool || '').trim().toLowerCase()
+  const tool = String(step?.tool || '')
+    .trim()
+    .toLowerCase()
   const command = String(step?.input?.command || '').trim()
   return tool === 'selfcheck' || command === 'executeSelfCheck'
 }
@@ -203,6 +223,35 @@ export async function handleExecutePlanStream(
       code: 'MISSING_PROJECT_ROOT',
     }
   }
+
+  const hasApproval = payload.approval?.planId && payload.approval?.approvedAt
+  if (hasApproval && payload.confirmed) {
+    const approval = payload.approval!
+    const adapter = createApprovedPlanAdapter({
+      executeRemotePlan: args.executeRemotePlan,
+      pipeAgentdSseToRenderer: args.pipeAgentdSseToRenderer,
+      createStreamId: args.createStreamId,
+      newPlanRunId: args.newPlanRunId,
+      ensureStructuredSession: args.ensureStructuredSession,
+      safeSend: args.safeSend,
+      resolveProjectRootSafe: args.resolveProjectRootSafe,
+    })
+    const result = await adapter.executeApprovedPlan(
+      {
+        plan_id: approval.planId!,
+        approved_plan: payload.plan,
+        approval_timestamp: approval.approvedAt!,
+        approval_actor: approval.actor || 'user',
+        session_id: payload.projectRoot,
+      },
+      eventSender
+    )
+    if (!result.ok) {
+      return { ok: false, runId, planRunId, haltReason: result.error, error: result.error, code: 'PLAN_REJECTED' }
+    }
+    return { ok: true, runId, planRunId, haltedStepId: null, haltReason: '' }
+  }
+
   const projectRoot = args.resolveProjectRootSafe(payload.projectRoot)
   args.ensureStructuredSession({ source: 'execute_plan_stream', projectRoot, preferredId: planRunId })
   args.runningPlanRuns.set(planRunId, { stopped: false })
@@ -274,9 +323,7 @@ export async function handleExecutePlanStream(
       error: haltReason,
       code: failureCode || 'RUN_FAILED',
       retrySuggestion:
-        failureCode === 'EXEC_BACKEND_UNAVAILABLE'
-          ? 'Retry after the execution backend is healthy again.'
-          : undefined,
+        failureCode === 'EXEC_BACKEND_UNAVAILABLE' ? 'Retry after the execution backend is healthy again.' : undefined,
     }
   }
 
@@ -322,44 +369,63 @@ function resolveCapabilityPlan(payload: ExecuteCapabilityPayload, projectRoot: s
 }
 
 export async function handleExecuteCapability(
-   args: RegisterAgentExecutionArgs,
-   eventSender: WebContents,
-   payload: ExecuteCapabilityPayload
- ) {
-   if (!payload.projectRoot) {
-     return {
-       ok: false,
-       error: 'Missing projectRoot for capability execution',
-       code: 'MISSING_PROJECT_ROOT',
-     }
-   }
+  args: RegisterAgentExecutionArgs,
+  eventSender: WebContents,
+  payload: ExecuteCapabilityPayload
+) {
+  if (!payload.projectRoot) {
+    return {
+      ok: false,
+      error: 'Missing projectRoot for capability execution',
+      code: 'MISSING_PROJECT_ROOT',
+    }
+  }
 
-   const projectRoot = args.resolveProjectRootSafe(payload.projectRoot)
-   const resolved = resolveCapabilityPlan(payload, projectRoot)
-   if (!resolved.ok) {
-     return resolved
-   }
+  const projectRoot = args.resolveProjectRootSafe(payload.projectRoot)
+  const resolved = resolveCapabilityPlan(payload, projectRoot)
+  if (!resolved.ok) {
+    return resolved
+  }
 
-   const result = await handleExecutePlanStream(args, eventSender, {
-     plan: resolved.plan.steps,
-     projectRoot,
-     confirmed: payload.confirmed === true,
-     confirmationText: payload.confirmationText ?? '',
-   })
+  const result = await handleExecutePlanStream(args, eventSender, {
+    plan: resolved.plan.steps,
+    projectRoot,
+    confirmed: payload.confirmed === true,
+    confirmationText: payload.confirmationText ?? '',
+  })
 
-   return {
-     ...result,
-     packKey: resolved.pack.key,
-     actionId: resolved.plan.actionId,
-     prompt: resolved.plan.prompt,
-     reasoning: resolved.plan.reasoning,
-     plan: resolved.plan.steps,
-   }
- }
+  return {
+    ...result,
+    packKey: resolved.pack.key,
+    actionId: resolved.plan.actionId,
+    prompt: resolved.plan.prompt,
+    reasoning: resolved.plan.reasoning,
+    plan: resolved.plan.steps,
+  }
+}
 
 export async function handlePlanReject(
-  _args: RegisterAgentExecutionArgs,
+  args: RegisterAgentExecutionArgs,
   planRunId: string
-): Promise<{ ok: boolean; error?: string }> {
-  return { ok: true }
+): Promise<{ ok: boolean; error?: string; proofId?: string; rejectedAt?: string; actor?: string }> {
+  const normalizedPlanRunId = String(planRunId || '').trim()
+  if (!normalizedPlanRunId) {
+    return { ok: false, error: 'Missing planRunId for planner approval rejection' }
+  }
+  const rejectedAt = new Date().toISOString()
+  const actor = 'user'
+  const proofId = `proof:${normalizedPlanRunId}:rejected`
+  args.recordPlanApprovalRejection?.({
+    planRunId: normalizedPlanRunId,
+    proofId,
+    rejectedAt,
+    actor,
+  })
+  args.safeSend(null, 'rina:plan:rejected', {
+    planRunId: normalizedPlanRunId,
+    proofId,
+    rejectedAt,
+    actor,
+  })
+  return { ok: true, proofId, rejectedAt, actor }
 }

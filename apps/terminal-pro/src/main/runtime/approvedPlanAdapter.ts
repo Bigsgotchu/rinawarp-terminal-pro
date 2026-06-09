@@ -1,3 +1,4 @@
+import type { IpcMain, WebContents } from 'electron'
 import type { PlanApprovalMetadata } from '../ipc/agentExecutionFlow.js'
 
 export type ApprovedPlanInput = {
@@ -23,10 +24,7 @@ export type ApprovedPlanRejectionResult = {
   proof_id?: string
 }
 
-type WebContentsLike = {
-  send(channel: string, payload?: unknown): void
-  isDestroyed(): boolean
-}
+type WebContentsLike = WebContents
 
 export type ApprovedPlanAdapterDeps = {
   executeRemotePlan: (payload: {
@@ -37,7 +35,7 @@ export type ApprovedPlanAdapterDeps = {
     approval?: PlanApprovalMetadata
   }) => Promise<{ ok: true; planRunId: string }>
   pipeAgentdSseToRenderer: (args: {
-    eventSender: WebContentsLike
+    eventSender: WebContents
     localPlanRunId: string
     agentdPlanRunId: string
     runId: string
@@ -46,7 +44,7 @@ export type ApprovedPlanAdapterDeps = {
   createStreamId: () => string
   newPlanRunId: () => string
   ensureStructuredSession: (args: { source: string; projectRoot: string; preferredId?: string }) => void
-  safeSend: (target: WebContentsLike | null | undefined, channel: string, payload?: unknown) => boolean
+  safeSend: (target: WebContents | null | undefined, channel: string, payload?: unknown) => boolean
   resolveProjectRootSafe: (input?: string) => string
 }
 
@@ -54,7 +52,7 @@ export function createApprovedPlanAdapter(deps: ApprovedPlanAdapterDeps) {
   return {
     async executeApprovedPlan(
       input: ApprovedPlanInput,
-      eventSender: WebContentsLike,
+      eventSender: WebContents,
     ): Promise<ApprovedPlanExecutionResult | ApprovedPlanRejectionResult> {
       const {
         plan_id,

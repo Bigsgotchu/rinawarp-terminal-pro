@@ -650,6 +650,35 @@ describe('executeApprovedPlan adapter', () => {
        createEventSender(),
      )
 
-     expect(receivedPlanRunId).toBe('thread_custom_123')
-   })
-})
+expect(receivedPlanRunId).toBe('thread_custom_123')
+    })
+
+    it('handleExecutePlanStream delegates to adapter when approval present', async () => {
+      const executeRemotePlan = vi.fn(async () => ({ ok: true, planRunId: 'agentd_plan_delegated' }))
+      const pipeAgentdSseToRenderer = vi.fn(async () => '')
+      const safeSend = vi.fn()
+      const args = createExecutionArgs({
+        executeRemotePlan,
+        pipeAgentdSseToRenderer,
+        safeSend,
+        ensureStructuredSession: vi.fn(),
+      })
+
+      const result = await handleExecutePlanStream(args, createEventSender(), {
+        plan: [{ stepId: 's1', tool: 'terminal', input: { command: 'ls' } }],
+        projectRoot: '/tmp/test',
+        confirmed: true,
+        confirmationText: 'approved',
+        approval: {
+          planId: 'plan_delegated_123',
+          approvedAt: '2026-06-09T00:00:00.000Z',
+          actor: 'user',
+        },
+      })
+
+      expect(result.ok).toBe(true)
+      expect(executeRemotePlan).toHaveBeenCalled()
+      expect(pipeAgentdSseToRenderer).toHaveBeenCalled()
+      expect(safeSend).toHaveBeenCalledWith(expect.anything(), 'rina:plan:run:start', expect.objectContaining({ planRunId: expect.any(String) }))
+    })
+  })
