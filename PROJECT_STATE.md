@@ -424,3 +424,46 @@ Storage note:
 - No existing memory rows were migrated.
 - Extraction completes the pipeline: Raw Data -> Extract -> Classify -> Normalize -> Validate -> Store
 - WorkspaceFactStore persistence layer will be added after extraction is stable.
+
+## 2026-06-09 WorkspaceFactStore Interface
+
+Added persistence contract for WorkspaceFact without implementing storage yet.
+
+- `WorkspaceFactStore` interface
+- `WorkspaceFactFilter` type
+- `createMemoryWorkspaceFactStore()` in-memory test implementation
+
+Location:
+
+- `apps/terminal-pro/src/main/memory/workspaceFactStore.ts`
+
+Interface methods:
+
+- `upsertFact(fact)` - Insert or update a fact
+- `getFact(id)` - Retrieve a fact by ID
+- `listFacts(filter?)` - List facts with optional filtering
+- `deleteFact(id)` - Remove a fact by ID
+- `findFactByKey(key)` - Find a fact by key
+
+Filter type `WorkspaceFactFilter`:
+
+- `category?: WorkspaceFactCategory`
+- `source?: WorkspaceFactSource`
+- `confidence?: WorkspaceFactConfidence`
+- `keyPrefix?: string`
+
+In-memory implementation:
+
+- `createMemoryWorkspaceFactStore()` returns a store backed by a Map
+- Useful for testing and future SQLite implementation
+- Returns copies of facts, not references
+
+Tests:
+
+- `apps/terminal-pro/tests/unit/workspace-fact-store.test.ts` (16 tests)
+
+Storage note:
+
+- No SQLite schema changed.
+- No existing memory rows were migrated.
+- This is only the contract - SQLite storage will be added next.
