@@ -119,6 +119,10 @@ function getHaltFromPreflight(args: RegisterAgentExecutionArgs, payload: Execute
   return null
 }
 
+/**
+ * @internal
+ * Plan execution for non-approved flows. Prefer `executeApprovedPlan` for planner approvals.
+ */
 async function runRemotePlan(
   args: RegisterAgentExecutionArgs,
   eventSender: WebContents,

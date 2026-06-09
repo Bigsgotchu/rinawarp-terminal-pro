@@ -208,8 +208,7 @@ Covered:
 
 ## Remaining Gaps
 
-- Planner Approval currently reaches the real agentd plan execution backend, but not a literal local `AgentRuntime.execute(...)` method.
-- The canonical `RinaRuntime.executeTransaction(...)` path exists for ingress/patch flows and should be unified with Planner Approval if the product contract requires one runtime entry point.
+- The canonical `RinaRuntime.executeTransaction(...)` path exists for ingress/patch flows. Planner Approval uses the dedicated `executeApprovedPlan` adapter which wraps the existing execution backend while maintaining `/v1/execute-plan` compatibility.
 - Current tests are focused unit/contract tests. A future Electron integration test should drive `Approve & Run` from the rendered Agent Thread through IPC and assert structured Proof artifacts on disk.
 
 ## 2026-06-09: Approved Plan Adapter
@@ -222,9 +221,10 @@ Created `apps/terminal-pro/src/main/runtime/approvedPlanAdapter.ts`:
 - Wraps existing `executeRemotePlan` and `pipeAgentdSseToRenderer` without breaking `/v1/execute-plan` backend
 - Proof metadata flows through adapter via `PlanApprovalMetadata` type
 
-Adapter tests (4 new):
+Adapter tests (5 tests):
 
 - Empty/invalid plan rejection
-- Valid plan execution with metadata
+- Valid plan execution with metadata  
 - Session ID propagation
 - Thread ID as planRunId option
+- `handleExecutePlanStream` delegates to adapter when approval present and confirmed

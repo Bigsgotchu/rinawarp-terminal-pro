@@ -140,12 +140,7 @@ Confirmed in this pass:
 
 Tests added/extended:
 
-- `apps/terminal-pro/tests/unit/planner-approval.test.ts`
-
-Remaining runtime-contract gap:
-
-- Planner Approval currently reaches the real agentd plan execution backend, but it does not directly call the canonical package runtime method `RinaRuntime.executeTransaction(...)`.
-- If the locked product direction requires a literal `AgentRuntime.execute(...)` entry point for all approved plans, the next slice should introduce or wire that first-class runtime adapter and route Planner Approval through it.
+- `apps/terminal-pro/tests/unit/planner-approval.test.ts` (23 tests)
 
 ## 2026-06-09 Approved Plan Adapter Implementation
 
@@ -163,3 +158,10 @@ Tests added to `apps/terminal-pro/tests/unit/planner-approval.test.ts`:
 - Executes valid plan with approval metadata to `executeRemotePlan` and `pipeAgentdSseToRenderer`
 - Passes `session_id` to `resolveProjectRootSafe`
 - Uses `thread_id` as `planRunId` when provided
+- `handleExecutePlanStream` delegates to adapter when `approval.present && confirmed`
+
+Completed work:
+
+- `handleExecutePlanStream` in `agentExecutionFlow.ts` now routes approved plans through `executeApprovedPlan` adapter
+- Existing `executeRemotePlan` and `/v1/execute-plan` backend preserved unchanged
+- All 58 unit tests pass, typecheck and build:electron pass
