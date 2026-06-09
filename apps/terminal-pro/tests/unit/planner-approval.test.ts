@@ -1,10 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 import { buildPlannerApprovalContent } from '../../src/renderer/replies/renderPlanReplies.js'
 import { plannerApprovalBlock } from '../../src/renderer/replies/renderFragments.js'
 import { buildMessageBlockNode } from '../../src/renderer/workbench/renderers/messageBlocks.js'
 import { buildReplyActionDataset } from '../../src/renderer/replies/replyActionDatasets.js'
-import { handlePlanReject } from '../../src/main/ipc/agentExecutionFlow.js'
+import { handleExecutePlanStream, handlePlanReject } from '../../src/main/ipc/agentExecutionFlow.js'
+import { StructuredSessionStore } from '../../src/structured-session.js'
+import { createApprovedPlanAdapter } from '../../src/main/runtime/approvedPlanAdapter.js'
 
 type FixPlanStep = {
   stepId?: string
@@ -98,6 +103,34 @@ function createTestPlan(overrides: Partial<FixPlanResponse> = {}): FixPlanRespon
     ],
     ...overrides,
   }
+}
+
+function createExecutionArgs(overrides: Record<string, unknown> = {}) {
+  return {
+    ipcMain: {} as any,
+    newPlanRunId: () => 'test_plan_run_123',
+    resolveProjectRootSafe: (input?: string) => input || '/tmp/test',
+    ensureStructuredSession: vi.fn(),
+    runningPlanRuns: new Map(),
+    safeSend: vi.fn(),
+    riskFromPlanStep: (step: FixPlanStep) => (step.risk === 'inspect' ? 'read' : step.risk || 'safe-write'),
+    gateProfileCommand: vi.fn(() => ({ ok: true })),
+    evaluatePolicyGate: vi.fn(() => ({ ok: true })),
+    executeRemotePlan: vi.fn(async () => ({ ok: true, planRunId: 'agentd_plan_123' })),
+    pipeAgentdSseToRenderer: vi.fn(async () => ''),
+    createStreamId: () => 'stream_123',
+    streamCancel: vi.fn(),
+    streamKill: vi.fn(),
+    planStop: vi.fn(),
+    ...overrides,
+  } as any
+}
+
+function createEventSender() {
+  return {
+    send: vi.fn(),
+    isDestroyed: () => false,
+  } as any
 }
 
 describe('planner-approval block content builder', () => {
@@ -243,9 +276,15 @@ describe('planner-approval block DOM rendering', () => {
 
 describe('ReplyAction dataset mapping', () => {
   it('maps planApprove to dataset attribute', () => {
-    const action = { label: 'Approve & Run', planApprove: '{"steps":[]}', executePlanWorkspaceRoot: '/tmp/test' }
+    const action = {
+      label: 'Approve & Run',
+      planApprove: '{"steps":[]}',
+      planId: 'plan_test_123',
+      executePlanWorkspaceRoot: '/tmp/test',
+    }
     const dataset = buildReplyActionDataset(action)
     expect(dataset.planApprove).toBe('{"steps":[]}')
+    expect(dataset.planId).toBe('plan_test_123')
   })
 
   it('maps planReject to dataset attribute', () => {
@@ -306,6 +345,104 @@ describe('planner approval execution gating', () => {
     expect(approvalBlock.actions?.[0].planApprove).toBeTruthy()
     expect(approvalBlock.actions?.[1].planReject).toBe('plan_run_789')
   })
+
+  it('does not start execution for a write plan before approval', async () => {
+    const args = createExecutionArgs({
+      gateProfileCommand: vi.fn(() => ({ ok: false, message: 'Confirmation required.' })),
+    })
+
+    const result = await handleExecutePlanStream(args, createEventSender(), {
+      plan: [{ stepId: 'write', tool: 'terminal', input: { command: 'touch file.txt' }, risk: 'safe-write' }],
+      projectRoot: '/tmp/test',
+      confirmed: false,
+      confirmationText: '',
+    })
+
+    expect(result.ok).toBe(false)
+    expect(result.code).toBe('PLAN_HALTED')
+    expect(args.executeRemotePlan).not.toHaveBeenCalled()
+    expect(args.pipeAgentdSseToRenderer).not.toHaveBeenCalled()
+  })
+
+  it('approve forwards approval metadata to the real execution backend and stream pipe', async () => {
+    const approval = {
+      planId: 'plan_test_123',
+      approvedAt: '2026-06-09T00:00:00.000Z',
+      actor: 'user',
+    }
+    const args = createExecutionArgs()
+
+    const result = await handleExecutePlanStream(args, createEventSender(), {
+      plan: [{ stepId: 'write', tool: 'terminal', input: { command: 'touch file.txt' }, risk: 'safe-write' }],
+      projectRoot: '/tmp/test',
+      confirmed: true,
+      confirmationText: 'User approved Planner Approval flow',
+      approval,
+    })
+
+    expect(result.ok).toBe(true)
+    expect(args.executeRemotePlan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        confirmed: true,
+        approval,
+      })
+    )
+    expect(args.pipeAgentdSseToRenderer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentdPlanRunId: 'agentd_plan_123',
+        approval,
+      })
+    )
+  })
+
+  it('structured command proof records retain plan, approval, actor, runtime, and proof ids', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-approval-proof-'))
+    try {
+      const store = new StructuredSessionStore(root, true)
+      store.init()
+      const sessionId = store.startSession({ source: 'test', projectRoot: '/tmp/test', preferredId: 'plan_test_123' })
+      store.beginCommand({
+        sessionId,
+        streamId: 'stream_123',
+        command: 'touch file.txt',
+        cwd: '/tmp/test',
+        risk: 'safe-write',
+        source: 'planner_approval',
+        planId: 'plan_test_123',
+        approvalTimestamp: '2026-06-09T00:00:00.000Z',
+        approvalActor: 'user',
+        runtimeId: 'agentd_plan_123',
+        proofId: 'proof:plan_test_123',
+      })
+      store.endCommand({
+        streamId: 'stream_123',
+        ok: true,
+        code: 0,
+        cancelled: false,
+      })
+
+      const commandsFile = path.join(root, 'sessions', sessionId, 'commands.ndjson')
+      const rows = fs
+        .readFileSync(commandsFile, 'utf8')
+        .split('\n')
+        .filter(Boolean)
+        .map((line) => JSON.parse(line))
+      expect(rows[0]).toMatchObject({
+        plan_id: 'plan_test_123',
+        approval_timestamp: '2026-06-09T00:00:00.000Z',
+        approval_actor: 'user',
+        runtime_id: 'agentd_plan_123',
+        proof_id: 'proof:plan_test_123',
+      })
+      expect(rows[1]).toMatchObject({
+        proof_id: 'proof:plan_test_123',
+        ok: true,
+        exit_code: 0,
+      })
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true })
+    }
+  })
 })
 
 describe('handlePlanReject cancelled Proof event recording', () => {
@@ -326,32 +463,193 @@ describe('handlePlanReject cancelled Proof event recording', () => {
       streamCancel: vi.fn(),
       streamKill: vi.fn(),
       planStop: vi.fn(),
-    }
+      recordPlanApprovalRejection: vi.fn(),
+    } as any
 
     const result = await handlePlanReject(args, 'test_plan_run_123')
     expect(result.ok).toBe(true)
+    expect(result.proofId).toBe('proof:test_plan_run_123:rejected')
+    expect(args.executeRemotePlan).not.toHaveBeenCalled()
+    expect(args.recordPlanApprovalRejection).toHaveBeenCalledWith(
+      expect.objectContaining({
+        planRunId: 'test_plan_run_123',
+        proofId: 'proof:test_plan_run_123:rejected',
+        actor: 'user',
+      })
+    )
   })
 
   it('handles missing planRunId gracefully', async () => {
-    const args = {
-      ipcMain: {} as any,
-      newPlanRunId: () => 'test_plan_run_456',
-      resolveProjectRootSafe: (input?: string) => '/tmp/test',
-      ensureStructuredSession: vi.fn(),
-      runningPlanRuns: new Map(),
-      safeSend: vi.fn(),
-      riskFromPlanStep: () => 'safe-write' as const,
-      gateProfileCommand: () => ({ ok: true }),
-      evaluatePolicyGate: () => ({ ok: true }),
-      executeRemotePlan: vi.fn(),
-      pipeAgentdSseToRenderer: vi.fn(),
-      createStreamId: () => 'stream_456',
-      streamCancel: vi.fn(),
-      streamKill: vi.fn(),
-      planStop: vi.fn(),
-    }
+    const args = createExecutionArgs({ newPlanRunId: () => 'test_plan_run_456' })
 
     const result = await handlePlanReject(args, '')
-    expect(result.ok).toBe(true)
+    expect(result.ok).toBe(false)
+    expect(args.executeRemotePlan).not.toHaveBeenCalled()
   })
+
+  it('records rejected plans as cancelled proof evidence', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-rejected-proof-'))
+    try {
+      const store = new StructuredSessionStore(root, true)
+      store.init()
+      const args = createExecutionArgs({
+        recordPlanApprovalRejection: ({ planRunId, proofId, rejectedAt, actor }: any) => {
+          const sessionId = store.startSession({
+            source: 'planner_approval_reject',
+            preferredId: planRunId,
+          })
+          store.beginCommand({
+            sessionId,
+            streamId: planRunId,
+            command: `Planner approval rejected: ${planRunId}`,
+            risk: 'cancelled',
+            source: 'planner_approval_reject',
+            planId: planRunId,
+            approvalTimestamp: rejectedAt,
+            approvalActor: actor,
+            runtimeId: 'not_started',
+            proofId,
+          })
+          store.endCommand({
+            streamId: planRunId,
+            ok: false,
+            code: null,
+            cancelled: true,
+            error: 'Plan rejected before execution.',
+          })
+        },
+      })
+
+      const result = await handlePlanReject(args, 'test_plan_run_reject')
+      expect(result.ok).toBe(true)
+
+      const commandsFile = path.join(root, 'sessions', 'test_plan_run_reject', 'commands.ndjson')
+      const rows = fs
+        .readFileSync(commandsFile, 'utf8')
+        .split('\n')
+        .filter(Boolean)
+        .map((line) => JSON.parse(line))
+
+expect(rows[0]).toMatchObject({
+         plan_id: 'test_plan_run_reject',
+         approval_actor: 'user',
+         runtime_id: 'not_started',
+         proof_id: 'proof:test_plan_run_reject:rejected',
+       })
+       expect(rows[1]).toMatchObject({
+         proof_id: 'proof:test_plan_run_reject:rejected',
+         cancelled: true,
+         ok: false,
+       })
+     } finally {
+       fs.rmSync(root, { recursive: true, force: true })
+     }
+   })
+})
+
+describe('executeApprovedPlan adapter', () => {
+   it('rejects when approved_plan is empty or invalid', async () => {
+     const mockDeps = {
+       executeRemotePlan: vi.fn(),
+       pipeAgentdSseToRenderer: vi.fn(),
+       createStreamId: vi.fn(() => 'stream_test'),
+       newPlanRunId: vi.fn(() => 'plan_run_test'),
+       ensureStructuredSession: vi.fn(),
+       safeSend: vi.fn(),
+       resolveProjectRootSafe: vi.fn((input) => input || '/tmp/test'),
+     }
+
+     const adapter = createApprovedPlanAdapter(mockDeps)
+
+     const result = await adapter.executeApprovedPlan(
+       { plan_id: 'plan_123', approved_plan: [], approval_timestamp: '2026-06-09T00:00:00.000Z', approval_actor: 'user' },
+       createEventSender(),
+     )
+
+     expect(result.ok).toBe(false)
+     expect((result as { error: string }).error).toContain('Empty or invalid approved plan')
+   })
+
+   it('executes approved plan with metadata when valid input provided', async () => {
+     const executeRemotePlan = vi.fn(async () => ({ ok: true, planRunId: 'agentd_plan_123' }))
+     const pipeAgentdSseToRenderer = vi.fn(async () => undefined)
+     const safeSend = vi.fn()
+     const ensureStructuredSession = vi.fn()
+
+     const adapter = createApprovedPlanAdapter({
+       executeRemotePlan,
+       pipeAgentdSseToRenderer,
+       createStreamId: () => 'stream_test',
+       newPlanRunId: () => 'plan_run_test',
+       ensureStructuredSession,
+       safeSend,
+       resolveProjectRootSafe: (input) => input || '/tmp/test',
+     })
+
+     const eventSender = createEventSender()
+     const input = {
+       plan_id: 'plan_123',
+       approved_plan: [{ stepId: 's1', tool: 'terminal', input: { command: 'ls' } }],
+       approval_timestamp: '2026-06-09T00:00:00.000Z',
+       approval_actor: 'user',
+     }
+
+     const result = await adapter.executeApprovedPlan(input, eventSender)
+
+     expect(result.ok).toBe(true)
+     expect((result as { runtime_id: string }).runtime_id).toBe('agentd_plan_123')
+     expect(executeRemotePlan).toHaveBeenCalledWith(
+       expect.objectContaining({
+         confirmed: true,
+         approval: { planId: 'plan_123', approvedAt: '2026-06-09T00:00:00.000Z', actor: 'user' },
+       }),
+     )
+     expect(pipeAgentdSseToRenderer).toHaveBeenCalledWith(
+       expect.objectContaining({
+         agentdPlanRunId: 'agentd_plan_123',
+         approval: { planId: 'plan_123', approvedAt: '2026-06-09T00:00:00.000Z', actor: 'user' },
+       }),
+     )
+   })
+
+   it('passes session_id to resolveProjectRootSafe', async () => {
+     const resolveProjectRootSafe = vi.fn((input) => input || '/default')
+     const adapter = createApprovedPlanAdapter({
+       executeRemotePlan: vi.fn(async () => ({ ok: true, planRunId: 'test' })),
+       pipeAgentdSseToRenderer: vi.fn(),
+       createStreamId: () => 'stream_test',
+       newPlanRunId: () => 'plan_run_test',
+       ensureStructuredSession: vi.fn(),
+       safeSend: vi.fn(),
+       resolveProjectRootSafe,
+     })
+
+     await adapter.executeApprovedPlan(
+       { plan_id: 'p1', approved_plan: [{ stepId: 's1' }], approval_timestamp: '2026-06-09T00:00:00Z', approval_actor: 'user', session_id: '/custom/workspace' },
+       createEventSender(),
+     )
+
+     expect(resolveProjectRootSafe).toHaveBeenCalledWith('/custom/workspace')
+   })
+
+   it('uses thread_id as planRunId when provided', async () => {
+     let receivedPlanRunId = ''
+     const ensureStructuredSession = vi.fn((args) => { receivedPlanRunId = args.preferredId })
+     const adapter = createApprovedPlanAdapter({
+       executeRemotePlan: vi.fn(async () => ({ ok: true, planRunId: 'remote_plan' })),
+       pipeAgentdSseToRenderer: vi.fn(),
+       createStreamId: () => 'stream_test',
+       newPlanRunId: vi.fn(() => 'generated_plan_run_id'),
+       ensureStructuredSession,
+       safeSend: vi.fn(),
+       resolveProjectRootSafe: () => '/tmp/test',
+     })
+
+     await adapter.executeApprovedPlan(
+       { plan_id: 'p1', approved_plan: [{ stepId: 's1' }], approval_timestamp: '2026-06-09T00:00:00Z', approval_actor: 'user', thread_id: 'thread_custom_123' },
+       createEventSender(),
+     )
+
+     expect(receivedPlanRunId).toBe('thread_custom_123')
+   })
 })

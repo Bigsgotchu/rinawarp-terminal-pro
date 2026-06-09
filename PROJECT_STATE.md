@@ -118,3 +118,48 @@ Regenerate required package outputs with:
 - `npm --workspace packages/runtime-platform-electron run build`
 
 Do not delete those package `dist/` folders blindly. Terminal Pro currently imports package exports that resolve to `dist` files, and some source imports reference `packages/*/dist/index.js` directly. They can be removed permanently only after the monorepo is converted to source-based workspace imports or project-reference paths that do not require generated package output.
+
+## 2026-06-09 Planner Approval Runtime Contract
+
+Runtime trace report:
+
+- `docs/audits/PLANNER_APPROVAL_RUNTIME_TRACE_2026-06-09.md`
+
+Confirmed in this pass:
+
+- `Approve & Run` starts in the Agent Thread renderer action handler and invokes `rina:executePlanStream`.
+- Main-process approval handling reaches the registered execution backend via `handleExecutePlanStream(...)` -> `executeRemotePlanForIpc(...)`.
+- Approval metadata now flows through IPC into execution and structured-run recording:
+  - plan id
+  - approval timestamp
+  - approval actor
+  - runtime id
+  - proof id
+- Rejection invokes `rina:plan:reject`, never calls execution, and records cancelled Proof evidence.
+- Proof identity is now persisted in structured-session command records rather than depending on renderer-only state.
+
+Tests added/extended:
+
+- `apps/terminal-pro/tests/unit/planner-approval.test.ts`
+
+Remaining runtime-contract gap:
+
+- Planner Approval currently reaches the real agentd plan execution backend, but it does not directly call the canonical package runtime method `RinaRuntime.executeTransaction(...)`.
+- If the locked product direction requires a literal `AgentRuntime.execute(...)` entry point for all approved plans, the next slice should introduce or wire that first-class runtime adapter and route Planner Approval through it.
+
+## 2026-06-09 Approved Plan Adapter Implementation
+
+Adapter created at `apps/terminal-pro/src/main/runtime/approvedPlanAdapter.ts`:
+
+- `createApprovedPlanAdapter(...)` returns `executeApprovedPlan(input, eventSender)`
+- Input: `plan_id`, `approved_plan`, `approval_timestamp`, `approval_actor`, optional `session_id`/`thread_id`
+- Output: `{ ok: true, runtime_id, proof_id, structured_run_id, execution_status }` or rejection variant
+- Wraps existing `executeRemotePlan` and `pipeAgentdSseToRenderer` without breaking `/v1/execute-plan` backend
+- Proof metadata (`planId`, `approvedAt`, `actor`) passes through adapter boundary via `PlanApprovalMetadata`
+
+Tests added to `apps/terminal-pro/tests/unit/planner-approval.test.ts`:
+
+- Rejects when `approved_plan` is empty/invalid
+- Executes valid plan with approval metadata to `executeRemotePlan` and `pipeAgentdSseToRenderer`
+- Passes `session_id` to `resolveProjectRootSafe`
+- Uses `thread_id` as `planRunId` when provided
