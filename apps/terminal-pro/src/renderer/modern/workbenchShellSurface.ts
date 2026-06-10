@@ -90,7 +90,7 @@ export function renderWorkbenchShellFrame(model: WorkbenchShellFrameModel): stri
       <aside class="rw-activitybar" aria-label="Agent Shell activity">
         <div class="rw-sidebar-account">
           <div class="rw-activitybar-logo" aria-hidden="true">
-            <span class="rw-activitybar-logo-mark">✦</span>
+            <img src="/assets/rinawarp-logo.png" alt="RinaWarp" class="rw-logo" />
           </div>
           <div class="rw-sidebar-account-copy">
             <div class="rw-sidebar-account-title">Mermaid Auth</div>

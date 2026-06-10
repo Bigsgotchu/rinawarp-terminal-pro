@@ -6,6 +6,23 @@
  * workbench-specific overrides.
  */
 
+.rw-activitybar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+}
+
+.rw-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
 html[data-skin="vscode"] .rw-workbench-topbar {
   block-size: 32px;
   padding: 5px 8px;
