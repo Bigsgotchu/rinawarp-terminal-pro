@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeEach } from "vitest";
 
 import { createMemoryWorkspaceFactStore, resetMemoryWorkspaceFactStore } from "../../src/main/memory/workspaceFactStore.js";
 import { createWorkspaceFact, type WorkspaceFact } from "../../src/main/memory/memoryTypes.js";
@@ -19,6 +19,10 @@ function makeFact(overrides: Partial<WorkspaceFact> = {}): WorkspaceFact {
 }
 
 describe("buildWorkspaceContext", () => {
+  beforeEach(() => {
+    resetMemoryWorkspaceFactStore();
+  });
+
   describe("basic structure", () => {
     it("returns context with all required fields from empty inputs", () => {
       const emptySnapshot: WorkspaceKnowledgeSnapshot = {
@@ -364,6 +368,7 @@ describe("buildWorkspaceContext", () => {
 
   describe("confidence summary", () => {
     it("counts confidence levels of merged facts", async () => {
+      resetMemoryWorkspaceFactStore();
       const store = createMemoryWorkspaceFactStore();
       // Add facts with keys that won't overlap with other categories
       await store.upsertFact(makeFact({ id: "h1", key: "shell.primary", value: "bash", category: "architecture", confidence: "high" }));

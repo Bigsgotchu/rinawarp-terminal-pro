@@ -604,6 +604,7 @@ No UI changes. No persistence changes. No editing capability.
 - Workspace Knowledge Inspection
 - Workspace Knowledge Acquisition Guards
 - Project Inspector Module (read-only workspace inspection on project open)
+- Workspace Context Builder
 
 ## 2026-06-09 Workspace Observation Audit
 
@@ -744,3 +745,23 @@ Output:
 Tests: `apps/terminal-pro/tests/unit/project-inspector.test.ts` (17 tests passing)
 
 All unit tests pass (excluding SQLite store tests due to native module binding issue in current environment). `typecheck` and `build:electron` pass.
+
+## 2026-06-09 Workspace Context Builder
+
+Added read-only workspace context builder that merges hydrated knowledge with observed project facts.
+
+Implementation:
+- `buildWorkspaceContext(snapshot, inspection)` in `apps/terminal-pro/src/main/memory/workspaceContextBuilder.ts`
+- Merges `WorkspaceKnowledgeSnapshot` (persisted facts) with `ProjectInspectionResult` (observed facts)
+- Categories merged: architecture, dependencies, runtime facts, deployment facts, conventions, preferences
+- High-confidence persisted facts are preferred over observed fact values
+- Conflicting observations are marked in `conflictSummary` rather than silently overwritten
+
+Conflict detection:
+- When observed fact key matches a persisted fact but values differ, a conflict entry is recorded
+- Conflict entries include: key, persisted value, observed value, category
+- Total conflicts count maintained for planner visibility
+
+No persistence changes. No planner behavior modified. This is a read-only merge layer ready for planner wiring.
+
+Tests: `apps/terminal-pro/tests/unit/workspace-context.test.ts` (15 tests passing)
