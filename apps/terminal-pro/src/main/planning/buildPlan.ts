@@ -3,6 +3,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { hasSharedWorkspaceFile, readSharedWorkspaceTextFile } from '../runtime/runtimeAccess.js'
 import type { BuildPlanHelperDeps } from '../startup/runtimeTypes.js'
+import type { WorkspaceContext } from '../memory/workspaceContextBuilder.js'
 
 export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
     const { playbooks, topCpuCmdSafeShort } = deps;
@@ -69,6 +70,30 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
             return 'go';
         return 'unknown';
     }
+    function workspaceFactValue(workspaceContext: WorkspaceContext | undefined, key: string): string | null {
+        if (!workspaceContext) return null;
+        const facts = [
+            ...workspaceContext.architecture,
+            ...workspaceContext.dependencies,
+            ...workspaceContext.runtimeFacts,
+            ...workspaceContext.deploymentFacts,
+        ];
+        const match = facts.find((fact) => fact.key === key);
+        return match?.value || null;
+    }
+    function detectBuildKindFromWorkspaceContext(workspaceContext?: WorkspaceContext): 'node' | 'python' | 'rust' | 'go' | null {
+        if (!workspaceContext) return null;
+        const packageManager = workspaceFactValue(workspaceContext, 'package.manager');
+        const runtime = workspaceFactValue(workspaceContext, 'runtime.primary');
+        const framework = workspaceFactValue(workspaceContext, 'framework.primary');
+        const ui = workspaceFactValue(workspaceContext, 'ui.primary');
+        const joined = [packageManager, runtime, framework, ui].filter(Boolean).join(' ').toLowerCase();
+        if (/\b(pnpm|npm|yarn|bun|node|react|vite|next|vue|svelte|angular|express|fastify|nest)\b/.test(joined)) return 'node';
+        if (/\bpython|flask|django\b/.test(joined)) return 'python';
+        if (/\brust|cargo\b/.test(joined)) return 'rust';
+        if (/\bgo|gin|echo\b/.test(joined)) return 'go';
+        return null;
+    }
     async function readNodeScripts(projectRoot) {
         if (!projectRoot)
             return new Set();
@@ -90,14 +115,18 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
         }
         return null;
     }
-    async function detectNodePackageManager(projectRoot) {
+    async function detectNodePackageManager(projectRoot, workspaceContext) {
+        const observedPackageManager = workspaceFactValue(workspaceContext, 'package.manager');
+        if (observedPackageManager && ['pnpm', 'npm', 'yarn', 'bun'].includes(observedPackageManager)) {
+            return observedPackageManager;
+        }
         if (await hasProjectFile(projectRoot, 'pnpm-lock.yaml'))
             return 'pnpm';
         return 'npm';
     }
-    async function failedBuildSteps(projectRoot) {
+    async function failedBuildSteps(projectRoot, workspaceContext) {
         projectRootCache = projectRoot || '';
-        const packageManager = await detectNodePackageManager(projectRoot);
+        const packageManager = await detectNodePackageManager(projectRoot, workspaceContext);
         const buildCommand = packageManager === 'pnpm' ? 'pnpm build' : 'npm run build';
         return [
             toPlanStep({
@@ -131,7 +160,7 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
             }),
         ];
     }
-    async function buildStepsForKind(kind, projectRoot, workflow = 'build') {
+    async function buildStepsForKind(kind, projectRoot, workflow = 'build', workspaceContext) {
         projectRootCache = projectRoot || '';
         switch (kind) {
             case 'node': {
@@ -142,7 +171,8 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                 const typecheckScript = firstAvailableScript(scripts, ['typecheck', 'type-check', 'check:types', 'tsc']);
                 const deployScript = firstAvailableScript(scripts, ['deploy', 'publish']);
                 const hasElectronBuilder = await hasProjectFile(projectRoot, 'electron-builder.yml');
-                const installCommand = await hasProjectFile(projectRoot, 'pnpm-lock.yaml') ? 'pnpm install --frozen-lockfile' : 'npm ci';
+                const packageManager = await detectNodePackageManager(projectRoot, workspaceContext);
+                const installCommand = packageManager === 'pnpm' ? 'pnpm install --frozen-lockfile' : 'npm ci';
                 const inspectPackageStep = toPlanStep({
                     stepId: 'inspect_package_json',
                     command: 'cat package.json',
@@ -165,7 +195,7 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                     description: 'Install dependencies through the workspace package manager',
                     timeoutMs: 120_000,
                 });
-                const runner = installCommand.startsWith('pnpm') ? 'pnpm' : 'npm';
+                const runner = packageManager === 'pnpm' ? 'pnpm' : 'npm';
                 if (workflow === 'test') {
                     return [
                         inspectStatusStep,
@@ -295,10 +325,10 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                 ];
         }
     }
-    async function makePlan(intentRaw, projectRoot) {
+    async function makePlan(intentRaw, projectRoot, workspaceContext) {
         const intent = (intentRaw || '').trim().toLowerCase();
         const id = `plan_${Date.now()}`;
-        const buildKind = projectRoot ? await detectBuildKind(projectRoot) : 'unknown';
+        const buildKind = detectBuildKindFromWorkspaceContext(workspaceContext) || (projectRoot ? await detectBuildKind(projectRoot) : 'unknown');
         for (const playbook of playbooks) {
             if (playbook.signals.some((s) => intent.includes(s))) {
                 const steps = playbook.gatherCommands.map((cmd, i) => ({
@@ -345,7 +375,7 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
             };
         }
         if (intent.includes('deploy')) {
-            const steps = await buildStepsForKind(buildKind, projectRoot, 'deploy');
+            const steps = await buildStepsForKind(buildKind, projectRoot, 'deploy', workspaceContext);
             if (steps.length > 0) {
                 return {
                     id,
@@ -356,7 +386,7 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
             }
         }
         if (/\b(install|add package|add dependency|npm install|pnpm install|yarn install|bun install|npm i|pnpm add|npm update|pnpm update)\b/.test(intent)) {
-            const packageManager = buildKind === 'node' ? await detectNodePackageManager(projectRoot) : 'npm';
+            const packageManager = buildKind === 'node' ? await detectNodePackageManager(projectRoot, workspaceContext) : 'npm';
             const command = packageManager === 'pnpm' ? 'pnpm install --frozen-lockfile' : 'npm ci';
             return {
                 id,
@@ -379,8 +409,17 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                 ],
             };
         }
+        if (/\b(plan a safe change|safe change|make a safe change)\b/.test(intent)) {
+            const steps = await buildStepsForKind(buildKind, projectRoot, 'build', workspaceContext);
+            return {
+                id,
+                intent: intentRaw,
+                reasoning: `Detected ${buildKind} project. I'll verify the current project through the safest observed command before any mutation.`,
+                steps,
+            };
+        }
         if (/\b(?:my\s+)?build\s+(?:is\s+)?(?:failing|failed|broken|erroring)\b/.test(intent) || /\b(?:diagnose|debug)\s+(?:the\s+)?(?:failed\s+)?build\b/.test(intent)) {
-            const steps = buildKind === 'node' ? await failedBuildSteps(projectRoot) : await buildStepsForKind(buildKind, projectRoot, 'build');
+            const steps = buildKind === 'node' ? await failedBuildSteps(projectRoot, workspaceContext) : await buildStepsForKind(buildKind, projectRoot, 'build', workspaceContext);
             return {
                 id,
                 intent: intentRaw,
@@ -398,7 +437,7 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                 : intent.includes('test') && !intent.includes('build')
                 ? 'test'
                 : 'build';
-            const steps = await buildStepsForKind(buildKind, projectRoot, workflow);
+            const steps = await buildStepsForKind(buildKind, projectRoot, workflow, workspaceContext);
             if (steps.length > 0) {
                 return {
                     id,

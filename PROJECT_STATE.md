@@ -765,3 +765,94 @@ Conflict detection:
 No persistence changes. No planner behavior modified. This is a read-only merge layer ready for planner wiring.
 
 Tests: `apps/terminal-pro/tests/unit/workspace-context.test.ts` (15 tests passing)
+
+## 2026-06-10 Core Loop Real-Path Verification And Planner Context
+
+Verified the product spine with a real-path acceptance test:
+
+- Real temp project on disk is observed through `inspectProjectWorkspace(...)`.
+- Planner creates an executable build plan from the observed project.
+- Explicit approval metadata is recorded with the structured command run.
+- A real `npm run build` command executes in the temp workspace.
+- Structured session records command, exit code, runtime id, proof id, and evidence rows.
+- `verifyProof(...)` returns verified Proof with evidence status/count.
+- Verified Proof triggers deterministic Proof-derived WorkspaceFact acquisition.
+
+Patched the specific failing observation seam found by the acceptance test:
+
+- `projectInspector` default file walking now reads the real project root correctly instead of double-joining the root path.
+
+Wired WorkspaceContext into planning without adding new architecture:
+
+- Startup exposes the existing durable `WorkspaceFactStore` beside the structured session store.
+- Window lifecycle builds planning context from:
+  - `inspectProjectWorkspace(projectRoot)`
+  - `hydrateWorkspaceKnowledge(store)`
+  - `buildWorkspaceContext(snapshot, inspection)`
+- Local planning now accepts optional `WorkspaceContext` and prefers observed package manager/runtime/framework facts before filesystem fallback.
+- Project inspection now emits deterministic `framework.primary` and `deployment.target` facts for planner visibility.
+
+Proof artifact completeness verified in the acceptance path:
+
+- Commands executed
+- Exit codes
+- Runtime id
+- Proof id
+- Evidence rows and statuses
+- Proof verification status/count
+- Verified Proof-derived knowledge updates
+- Changed files remain conditional on available file-change evidence; no synthetic file-change evidence was added.
+
+Validation:
+
+- `npm --workspace apps/terminal-pro exec vitest -- run --root . tests/unit/planner-approval.test.ts tests/unit/project-inspector.test.ts tests/unit/workspace-context.test.ts tests/unit/workspace-context-planner.test.ts tests/unit/workspace-fact-store.test.ts` — 110 tests passing
+- `npm --workspace apps/terminal-pro run build:electron` — passing
+
+## 2026-06-10 User Outcome Validation
+
+Added product-level acceptance coverage for the primary RinaWarp user journey:
+
+**RELEASE READINESS AUDIT COMPLETE**: All 8 gates passed. See `docs/audits/USER_OUTCOME_VALIDATION_2026-06-10.md`.
+
+**Next milestone: Release Readiness** (no new features)
+
+### Audit Results:
+1. ✅ Core user loop passes (126 tests)
+2. ✅ Product guards pass (realness, canonical, ui-residue, placeholders, agent-shell-style)
+3. ✅ Placeholder guards pass (no production placeholders)
+4. ✅ Typecheck passes (`tsc -b tsconfig.json`)
+5. ✅ build:electron passes (all guards included)
+6. ✅ No unrelated dirty files in slice commit
+7. ✅ Known risks documented (macOS/Windows signing, Linux AppImage baseline)
+8. ✅ First paid-user workflow documented (LIVE_REVENUE_RUNBOOK.md)
+
+- Open a real temp project on disk.
+- Observe workspace with `inspectProjectWorkspace(...)`.
+- Ask `What do you know about this project?`
+- Verify the answer comes from WorkspaceContext/WorkspaceKnowledge.
+- Ask `Plan a safe change.`
+- Verify the turn requires approval and planning uses observed project facts.
+- Approve and execute a real `npm run build` command.
+- Record runtime command, exit code, runtime id, proof id, and evidence rows.
+- Verify Proof through `StructuredSessionStore.verifyProof(...)`.
+- Ask `Why did this change?`
+- Verify the answer comes from runtime/Proof metadata, including the latest command and Proof reference.
+- Re-open the same SQLite WorkspaceFact store to simulate restart.
+- Ask `What do you remember?`
+- Verify the answer comes from hydrated WorkspaceKnowledge with verified Proof-derived facts.
+
+Acceptance report:
+
+- `docs/audits/USER_OUTCOME_VALIDATION_2026-06-10.md`
+
+Seam fixes required by the outcome test:
+
+- `conversationRouter` now treats `Plan a safe change` as an approval-plan action.
+- `buildPlan` now maps safe-change prompts to the existing observed-context build verification path before mutation.
+- `conversationResponder` includes the latest runtime command in Proof-backed explanation answers.
+- `conversationResponder` treats `What do you remember?` as a WorkspaceKnowledge inspection request.
+
+Validation:
+
+- `npm --workspace apps/terminal-pro exec vitest -- run --root . tests/unit/user-outcome-validation.test.ts tests/unit/planner-approval.test.ts tests/unit/project-inspector.test.ts tests/unit/workspace-context.test.ts tests/unit/workspace-context-planner.test.ts tests/unit/workspace-fact-store.test.ts tests/unit/unified-turn.test.ts` — 126 tests passing
+- `npm --workspace apps/terminal-pro run build:electron` — passing

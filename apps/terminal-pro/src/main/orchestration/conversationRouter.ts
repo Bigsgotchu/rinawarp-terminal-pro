@@ -45,6 +45,7 @@ const MIXED_ACTION_WORDS = /\b(and explain|explain what happened|tell me what ha
 const TEST_BOUNDARY_WORDS = /\b(don't touch tests|do not touch tests|don't edit tests|do not edit tests|without touching tests|without editing tests)\b/i
 const PACKAGE_MANAGER_WORDS = /\b(use pnpm|prefer pnpm|use npm|prefer npm|use yarn|prefer yarn|use bun|prefer bun)\b/i
 const VERBOSITY_WORDS = /\b(keep responses short|keep it short|be concise|prefer concise|short answers)\b/i
+const SAFE_CHANGE_WORDS = /\b(plan a safe change|safe change|make a safe change)\b/i
 const ASSISTANT_ALIAS_WORDS = '(?:rina|eina|reena|rinna)'
 const ASSISTANT_PREFIX_RE = new RegExp(`^${ASSISTANT_ALIAS_WORDS}[\\s,:!-]*`, 'i')
 
@@ -72,6 +73,7 @@ function isGreetingTurn(rawText: string): boolean {
 
 function classifyExecutionGoal(rawText: string): RoutedTurn['executionCandidate'] | null {
   const normalized = rawText.toLowerCase()
+  if (SAFE_CHANGE_WORDS.test(normalized)) return { goal: 'fix', risk: 'medium' }
   if (/\bfix|repair\b/.test(normalized)) return { goal: 'fix', risk: 'medium' }
   if (/\bbuild\b/.test(normalized)) return { goal: 'build_project', risk: 'low' }
   if (/\btests?\b/.test(normalized)) return { goal: 'run_tests', risk: 'low' }
@@ -99,6 +101,7 @@ function classifyTurnType(rawText: string, lower: string, latestRun?: RouteConve
   if (SELF_CHECK_TRIGGERS.test(rawText)) return 'diagnose'
   if (!rawText) return 'clarify_needed'
   if (isGreetingTurn(rawText)) return 'greeting'
+  if (SAFE_CHANGE_WORDS.test(lower)) return 'action'
   if (GENERAL_KNOWLEDGE_WORDS.test(lower) && !WORKSPACE_FACT_WORDS.test(lower)) return 'help'
   if (HELP_WORDS.test(lower)) return 'help'
   if (RECOVERY_WORDS.test(lower) || FOLLOW_UP_WORDS.test(lower)) return 'follow_up'
@@ -598,7 +601,7 @@ export function routeConversationTurn(args: RouteConversationTurnArgs): RoutedTu
     }
   }
 
-  if (EXECUTION_KEYWORDS.test(lower)) {
+  if (EXECUTION_KEYWORDS.test(lower) || SAFE_CHANGE_WORDS.test(lower)) {
     if (executionCandidate?.goal === 'deploy_project' && !detectDeployCapability(args.workspaceId || null)) {
       return {
         rawText,

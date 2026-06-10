@@ -176,8 +176,9 @@ function buildGeneralQuestionReply(rawText: string, latestRun?: ConversationRunR
 
 function isWorkspaceKnowledgeQuestion(rawText: string): boolean {
   return (
-    /\b(what knowledge do you have|what do you know|what do you know about this project|what do you know about the project)\b/.test(rawText) &&
-    /\b(project|workspace|repo|repository|codebase)\b/.test(rawText)
+    (/\b(what knowledge do you have|what do you know|what do you know about this project|what do you know about the project)\b/.test(rawText) &&
+      /\b(project|workspace|repo|repository|codebase)\b/.test(rawText)) ||
+    /\bwhat do you remember\b/.test(rawText)
   )
 }
 
@@ -219,6 +220,9 @@ Confidence
 
   if (latestRun?.runId) {
     known.push(`Last run ID is ${latestRun.runId}`)
+    if (latestRun.latestCommand) {
+      known.push(`Latest command was ${latestRun.latestCommand}`)
+    }
     if (latestRun.interrupted) {
       known.push('The last run was interrupted')
     } else if (typeof latestRun.latestExitCode === 'number') {
