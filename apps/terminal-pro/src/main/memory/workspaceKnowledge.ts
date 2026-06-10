@@ -42,7 +42,7 @@ export async function hydrateWorkspaceKnowledge(
   );
   const runtime_facts = sortFactsByConfidence(filterFactsByCategory(allFacts, "runtime_fact"));
 
-return {
+  return {
     architecture,
     dependencies,
     conventions,
@@ -51,7 +51,7 @@ return {
     runtime_facts,
     fact_count: allFacts.length,
     last_hydrated_at: new Date().toISOString(),
-  }
+  };
 }
 
 export interface KnowledgeSummary {
