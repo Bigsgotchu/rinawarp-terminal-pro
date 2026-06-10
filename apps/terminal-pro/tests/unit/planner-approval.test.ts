@@ -10,6 +10,11 @@ import { buildReplyActionDataset } from '../../src/renderer/replies/replyActionD
 import { handleExecutePlanStream, handlePlanReject } from '../../src/main/ipc/agentExecutionFlow.js'
 import { StructuredSessionStore } from '../../src/structured-session.js'
 import { createApprovedPlanAdapter } from '../../src/main/runtime/approvedPlanAdapter.js'
+import {
+  createMemoryWorkspaceFactStore,
+  resetMemoryWorkspaceFactStore,
+} from '../../src/main/memory/workspaceFactStore.js'
+import { acquireWorkspaceFactsFromVerifiedProof } from '../../src/main/memory/workspaceKnowledgeAcquisition.js'
 import type { VerificationStatus } from '../../src/structured-session-types.js'
 
 type FixPlanStep = {
@@ -925,6 +930,66 @@ expect(executeRemotePlan).toHaveBeenCalledWith(
          expect(result.evidence_count).toBe(2)
        } finally {
          fs.rmSync(root, { recursive: true, force: true })
+       }
+     })
+
+     it('persists proof-derived WorkspaceFacts when Proof verification completes as verified', async () => {
+       resetMemoryWorkspaceFactStore()
+       const factStore = createMemoryWorkspaceFactStore()
+       const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-verify-acquire-'))
+       try {
+         const store = new StructuredSessionStore(root, true, {
+           onProofVerified: (verification) => {
+             void acquireWorkspaceFactsFromVerifiedProof({ verification, store: factStore })
+           },
+         })
+         store.init()
+
+         store.recordEvidence({ sessionId: 's1', type: 'command_execution', status: 'present', payload: 'exec', proofId: 'proof:learn' })
+         store.recordEvidence({ sessionId: 's1', type: 'exit_code', status: 'present', payload: '0', proofId: 'proof:learn' })
+
+         const result = store.verifyProof('proof:learn')
+         await Promise.resolve()
+         await Promise.resolve()
+
+         const facts = await factStore.listFacts({ source: 'proof' })
+         expect(result.verification_status).toBe('verified')
+         expect(facts.map((fact) => fact.key)).toEqual([
+           'proof.proof:learn.verification_status',
+           'proof.proof:learn.evidence_count',
+         ])
+         expect(facts.find((fact) => fact.key.endsWith('verification_status'))?.value).toBe('verified')
+         expect(facts.find((fact) => fact.key.endsWith('evidence_count'))?.value).toBe('2')
+       } finally {
+         fs.rmSync(root, { recursive: true, force: true })
+         resetMemoryWorkspaceFactStore()
+       }
+     })
+
+     it('does not persist proof-derived WorkspaceFacts when Proof verification is partial', async () => {
+       resetMemoryWorkspaceFactStore()
+       const factStore = createMemoryWorkspaceFactStore()
+       const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-verify-no-acquire-'))
+       try {
+         const store = new StructuredSessionStore(root, true, {
+           onProofVerified: (verification) => {
+             void acquireWorkspaceFactsFromVerifiedProof({ verification, store: factStore })
+           },
+         })
+         store.init()
+
+         store.recordEvidence({ sessionId: 's1', type: 'command_execution', status: 'present', payload: 'exec', proofId: 'proof:partial-learn' })
+         store.recordEvidence({ sessionId: 's1', type: 'exit_code', status: 'missing', payload: 'n/a', proofId: 'proof:partial-learn' })
+
+         const result = store.verifyProof('proof:partial-learn')
+         await Promise.resolve()
+         await Promise.resolve()
+
+         expect(result.verification_status).toBe('partially_verified')
+         expect(await factStore.listFacts({ source: 'proof' })).toEqual([])
+       } finally {
+         fs.rmSync(root, { recursive: true, force: true })
+         resetMemoryWorkspaceFactStore()
        }
      })
    })

@@ -30,6 +30,17 @@ Started proof-derived workspace learning:
 - Stable proof fact ids make repeated acquisition for the same Proof update existing WorkspaceFactStore records instead of duplicating them.
 - No AI-inferred fact acquisition is included in this milestone.
 
+## 2026-06-09 Workspace Knowledge Acquisition Wiring
+
+Wired proof-derived acquisition into the real Proof completion path:
+
+- `StructuredSessionStore.verifyProof(...)` now exposes an optional verified-Proof hook.
+- The hook fires only when verification status is `verified`.
+- Startup initializes a durable SQLite WorkspaceFactStore at `userData/workspace-knowledge/workspace-facts.sqlite`.
+- Verified Proof completion automatically calls `acquireWorkspaceFactsFromVerifiedProof(...)`.
+- Partially verified and unverified Proof records do not trigger durable workspace fact acquisition.
+- No AI text or unverified run output is used as a fact source.
+
 ## 2026-06-09 Product Narrative Alignment
 
 RinaWarp Terminal Pro product copy now aligns with `docs/PRODUCT_LOCK.md` and `docs/PRODUCT_UI_LOCK.md`.

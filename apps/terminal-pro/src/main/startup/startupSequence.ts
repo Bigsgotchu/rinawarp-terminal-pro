@@ -5,6 +5,8 @@ import type {
   DaemonAutoStarterDeps,
   EntitlementRestoreDeps,
 } from './runtimeTypes.js'
+import { SqliteWorkspaceFactStore } from '../memory/SqliteWorkspaceFactStore.js'
+import { acquireWorkspaceFactsFromVerifiedProof } from '../memory/workspaceKnowledgeAcquisition.js'
 
 export function createAuthBootstrap(deps: AuthBootstrapDeps) {
     const {
@@ -103,7 +105,18 @@ export function createAnalyticsSessionInitializer(
             logger.log('[boot] structuredSession init start');
         }
         const rootDir = path.join(app.getPath('userData'), 'structured-session-v1');
-        const store = new StructuredSessionStore(rootDir, true);
+        const workspaceFactStore = new SqliteWorkspaceFactStore(path.join(app.getPath('userData'), 'workspace-knowledge', 'workspace-facts.sqlite'));
+        void workspaceFactStore.init();
+        const store = new StructuredSessionStore(rootDir, true, {
+            onProofVerified: (verification) => {
+                void acquireWorkspaceFactsFromVerifiedProof({
+                    verification,
+                    store: workspaceFactStore,
+                }).catch((error) => {
+                    logger.warn('[workspace-knowledge] proof fact acquisition failed:', error instanceof Error ? error.message : String(error));
+                });
+            },
+        });
         ctx.structuredSessionStore = store;
         withStructuredSessionWrite(() => store?.init());
         if (isE2E) {

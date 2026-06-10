@@ -38,16 +38,22 @@ import type {
   VerificationStatus,
 } from './structured-session-types.js'
 
+export type StructuredSessionStoreHooks = {
+  onProofVerified?: (verification: ProofVerification) => void
+}
+
 export class StructuredSessionStore {
   private readonly rootDir: string
   private readonly enabled: boolean
   private readonly idx: IndexState
   private searchIndexCache: InvertedIndex | null = null
+  private readonly hooks: StructuredSessionStoreHooks
 
-  constructor(rootDir: string, enabled: boolean) {
+  constructor(rootDir: string, enabled: boolean, hooks: StructuredSessionStoreHooks = {}) {
     this.rootDir = rootDir
     this.enabled = enabled
     this.idx = { streams: new Map(), streamBuffers: new Map(), sessions: new Map() }
+    this.hooks = hooks
   }
 
   init(): void {
@@ -274,13 +280,17 @@ export class StructuredSessionStore {
       verificationStatus = 'partially_verified'
     }
 
-    return {
+    const verification: ProofVerification = {
       proof_id: proofId,
       verification_status: verificationStatus,
       evidence_count: totalCount,
       verification_ts: nowIso(),
       evidence_summary: `verified: ${presentCount}/${totalCount} evidence sources`,
     }
+    if (verification.verification_status === 'verified') {
+      this.hooks.onProofVerified?.(verification)
+    }
+    return verification
   }
 
   exportRunbookMarkdown(sessionId?: string): string {
