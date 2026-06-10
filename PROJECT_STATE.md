@@ -742,3 +742,5 @@ Output:
 - Facts use existing `extractWorkspaceFacts` for classification and normalization
 
 Tests: `apps/terminal-pro/tests/unit/project-inspector.test.ts` (17 tests passing)
+
+All unit tests pass (excluding SQLite store tests due to native module binding issue in current environment). `typecheck` and `build:electron` pass.
