@@ -602,7 +602,143 @@ No UI changes. No persistence changes. No editing capability.
 - Placeholder Cleanup
 - Workspace Knowledge Hydration
 - Workspace Knowledge Inspection
+- Workspace Knowledge Acquisition Guards
+- Project Inspector Module (read-only workspace inspection on project open)
 
-without the user repeatedly telling it.
+## 2026-06-09 Workspace Observation Audit
 
-This is where the Remember phase starts becoming real rather than a collection of memory entries.
+Audit of Rina's ability to discover project properties without user explanation.
+
+### Detection Capabilities (Available Now)
+
+**Package Manager**
+- Available: Yes. `detectPackageManager(projectRoot)` in `inline-rina.ts:190`
+- Detects: pnpm (lockfile), npm (lockfile), yarn (lockfile), bun (lockfile)
+- Uses: `fs.existsSync` checks on lockfile names
+
+**Framework**
+- Available: Partial. `inline-rina.ts:1006-1009` detects framework signals through file inspection
+- Detects: Node/JavaScript, TypeScript (tsconfig), Vite, Playwright, Python (pyproject.toml), Rust (Cargo.toml), Go (go.mod)
+- Uses: `importantFiles` list and shallow file listing
+
+**Runtime**
+- Available: Partial. Recognized as a category in `memoryTypes.ts:149` but not auto-detected
+- Framework runtime (Node) implied through package manager detection
+
+**Database**
+- Not directly detected. `memoryTypes.ts:145` includes database as classification keyword
+- No runtime inspection code for database detection
+
+**Auth Provider**
+- Available: Yes. `inline-rina.ts:960-974` detects auth-related packages
+- Detects: auth, oauth, passport, clerk, next-auth, supabase, firebase, stripe, jwt packages
+- Uses: package.json dependencies scan
+
+**Deployment Target**
+- Available: Yes. `conversationResponder.ts:19-42` detects deploy capability
+- Detects: deploy/publish scripts, electron-builder configs, vercel.json, netlify.toml, Dockerfile
+
+### File Inspection Capabilities (Available Now)
+
+**package.json**
+- Available: Yes. Multiple locations:
+- `inline-rina.ts:236, 364, 391-413`: read and parse for scripts, deps, devDeps
+- `rina-agent-model.ts:90-95`: read to find verification scripts
+- `rina-agent.ts:580-588`: parse for dependency state
+
+**Lockfiles**
+- Available: Yes. `inline-rina.ts:192-196, 245-248`
+- Detects all major lockfiles (pnpm-lock.yaml, package-lock.json, yarn.lock, bun.lock*)
+
+**tsconfig**
+- Available: Yes. `inline-rina.ts:243, 251, 582-588, 716, 856-865, 1259-1265, 1312-1320`
+- Reads, parses, and repairs tsconfig
+- Detects: tsconfig.json, tsconfig.*.json patterns
+
+**Electron Config**
+- Available: Yes. `conversationResponder.ts:30-33`
+- Detects: electron-builder.yml, electron-builder.json files
+
+**SQLite Config**
+- Not directly inspected. Better-sqlite3 usage in memory store but no project-level detection
+
+**.env Templates**
+- Available: Partial. `inline-rina.ts:310` includes `.env.example` in shallow file listing
+
+### Classification Summary
+
+| Capability | Available Now | Missing | Requires Runtime Access | Requires Proof |
+|------------|---------------|---------|-------------------------|----------------|
+| Package Manager | ✓ (pnpm, npm, yarn, bun) | None | No | No |
+| Framework | ✓ (ts, vite, playwright, python, rust, go) | None | No | No |
+| Runtime | Partial (implied) | Explicit detection | No | No |
+| Database | ✗ | Detection logic | No | No |
+| Auth Provider | ✓ (package scan) | Config file inspection | No | No |
+| Deployment Target | ✓ (scripts, docker, vercel, netlify, electron) | None | No | No |
+| package.json inspection | ✓ | None | No | No |
+| Lockfile inspection | ✓ | None | No | No |
+| tsconfig inspection | ✓ | None | No | No |
+| Electron config | ✓ (files only) | Deep config parsing | No | No |
+| SQLite config | ✗ | Detection logic | No | No |
+| .env templates | ✓ (.env.example only) | .env.template variants | No | No |
+
+### Key Observation Interfaces
+
+- `WorkspaceService` contract: `packages/runtime-contracts/src/contracts/workspace.ts`
+  - `listFiles(projectRoot, options)` - file enumeration
+  - `readFile(projectRoot, relativePath)` - file content read
+  - `readFilePreview(projectRoot, relativePath, options)` - truncated read
+
+- Project snapshot builder: `inline-rina.ts:356-386`
+  - `buildProjectSnapshot(projectRoot)` returns packageManager, packageInfo, importantFiles, shallowFiles, readmeSummary
+
+### Next Milestone: Workspace Observation
+
+Current gap: Observation is reactive (triggered by inline prompts) and not proactive.
+
+Target flow:
+```
+Open Project
+   ↓
+Observe
+   ↓
+Workspace Facts
+   ↓
+Plan
+```
+
+Instead of:
+```
+User explains project
+   ↓
+Plan
+```
+
+Required implementation:
+- Project inspector module to auto-detect and extract workspace facts
+- Integration with proof-backed acquisition (not AI-inferred)
+- Deterministic fact extraction executed on workspace open
+
+## 2026-06-09 Project Inspector Module
+
+Added read-only project inspection for auto-detecting workspace facts on project open.
+
+Implementation:
+- `inspectProjectWorkspace(projectRoot)` in `apps/terminal-pro/src/main/memory/projectInspector.ts`
+- Reads only safe config files: package.json, lockfiles, electron-builder configs
+- Does not read real .env files (security guard maintained)
+- Returns candidate WorkspaceFacts without writing to memory
+
+Detection capabilities:
+- Package manager: pnpm, npm, yarn, bun (lockfile detection)
+- Frameworks: React, Vite, Vue, Svelte, Angular, Next.js, Express, Fastify, Nest, Python, Rust, Go
+- Electron: detected via electron dependency or electron-builder configs
+- Deployment targets: detected via deploy scripts, vercel.json, netlify.toml, Dockerfile, electron-builder
+- Auth packages: auth, oauth, passport, clerk, next-auth, supabase, firebase, stripe, jwt, session
+- Database packages: prisma, mongoose, sequelize, typeorm, sqlite, postgres, mysql, redis, mongodb
+
+Output:
+- `ProjectInspectionResult` with packageManager, framework, frameworks, isElectron, canDeploy, authPackages, databasePackages, facts
+- Facts use existing `extractWorkspaceFacts` for classification and normalization
+
+Tests: `apps/terminal-pro/tests/unit/project-inspector.test.ts` (17 tests passing)
