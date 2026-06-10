@@ -20,6 +20,16 @@ Next milestone:
 
 - Workspace Knowledge Acquisition: verified Proof outcomes become WorkspaceFacts for future sessions.
 
+## 2026-06-09 Workspace Knowledge Acquisition
+
+Started proof-derived workspace learning:
+
+- `acquireWorkspaceFactsFromVerifiedProof(...)` converts only fully verified `ProofVerification` records into WorkspaceFacts.
+- Partially verified and unverified Proof records are ignored.
+- Persisted facts are `source: "proof"` with high confidence.
+- Stable proof fact ids make repeated acquisition for the same Proof update existing WorkspaceFactStore records instead of duplicating them.
+- No AI-inferred fact acquisition is included in this milestone.
+
 ## 2026-06-09 Product Narrative Alignment
 
 RinaWarp Terminal Pro product copy now aligns with `docs/PRODUCT_LOCK.md` and `docs/PRODUCT_UI_LOCK.md`.

@@ -11,6 +11,8 @@ import {
   type WorkspaceFactCategory,
   type WorkspaceFactSource,
 } from '../../src/main/memory/memoryTypes.js'
+import { acquireWorkspaceFactsFromVerifiedProof } from '../../src/main/memory/workspaceKnowledgeAcquisition.js'
+import type { ProofVerification } from '../../src/structured-session-types.js'
 
 function makeFact(overrides: Partial<WorkspaceFact> = {}): WorkspaceFact {
   return createWorkspaceFact({
@@ -22,6 +24,17 @@ function makeFact(overrides: Partial<WorkspaceFact> = {}): WorkspaceFact {
     confidence: 'high',
     ...overrides,
   })
+}
+
+function makeProofVerification(overrides: Partial<ProofVerification> = {}): ProofVerification {
+  return {
+    proof_id: 'proof:test',
+    verification_status: 'verified',
+    evidence_count: 3,
+    verification_ts: '2026-06-09T00:00:00.000Z',
+    evidence_summary: 'verified: 3/3 evidence sources',
+    ...overrides,
+  }
 }
 
 describe('WorkspaceFactStore interface', () => {
@@ -310,6 +323,85 @@ describe('WorkspaceFactStore interface', () => {
 
       const result = await store.findFactByKey('versioned.key')
       expect(result?.value).toBe('v2')
+    })
+  })
+
+  describe('proof-derived acquisition', () => {
+    it('persists proof-derived facts from verified Proof only', async () => {
+      const result = await acquireWorkspaceFactsFromVerifiedProof({
+        store,
+        verification: makeProofVerification({
+          proof_id: 'proof:verified',
+          verification_status: 'verified',
+          evidence_count: 4,
+        }),
+        successfulCommands: 2,
+        failedCommands: 0,
+      })
+
+      expect(result.acquired).toBe(true)
+      expect(result.facts.length).toBe(4)
+      expect(result.facts.every((fact) => fact.source === 'proof')).toBe(true)
+      expect(result.facts.every((fact) => fact.confidence === 'high')).toBe(true)
+
+      const stored = await store.listFacts({ source: 'proof' })
+      expect(stored.map((fact) => fact.key)).toEqual([
+        'proof.proof:verified.verification_status',
+        'proof.proof:verified.evidence_count',
+        'proof.proof:verified.successful_commands',
+        'proof.proof:verified.failed_commands',
+      ])
+      expect(stored.find((fact) => fact.key.endsWith('verification_status'))?.value).toBe('verified')
+      expect(stored.find((fact) => fact.key.endsWith('evidence_count'))?.value).toBe('4')
+    })
+
+    it('does not persist facts for partially verified or unverified Proof', async () => {
+      const partial = await acquireWorkspaceFactsFromVerifiedProof({
+        store,
+        verification: makeProofVerification({
+          proof_id: 'proof:partial',
+          verification_status: 'partially_verified',
+          evidence_count: 2,
+        }),
+      })
+      const unverified = await acquireWorkspaceFactsFromVerifiedProof({
+        store,
+        verification: makeProofVerification({
+          proof_id: 'proof:unverified',
+          verification_status: 'unverified',
+          evidence_count: 0,
+        }),
+      })
+
+      expect(partial).toEqual({ acquired: false, reason: 'proof_not_verified', facts: [] })
+      expect(unverified).toEqual({ acquired: false, reason: 'proof_not_verified', facts: [] })
+      expect(await store.listFacts({ source: 'proof' })).toEqual([])
+    })
+
+    it('uses stable ids so reacquiring the same Proof updates existing facts', async () => {
+      await acquireWorkspaceFactsFromVerifiedProof({
+        store,
+        verification: makeProofVerification({
+          proof_id: 'proof:stable',
+          evidence_count: 1,
+          verification_ts: '2026-06-09T00:00:00.000Z',
+        }),
+      })
+      await acquireWorkspaceFactsFromVerifiedProof({
+        store,
+        verification: makeProofVerification({
+          proof_id: 'proof:stable',
+          evidence_count: 2,
+          verification_ts: '2026-06-09T00:01:00.000Z',
+        }),
+      })
+
+      const stored = await store.listFacts({ source: 'proof' })
+      expect(stored).toHaveLength(2)
+      expect(stored.find((fact) => fact.key.endsWith('evidence_count'))?.value).toBe('2')
+      expect(stored.find((fact) => fact.key.endsWith('evidence_count'))?.last_verified_at).toBe(
+        '2026-06-09T00:01:00.000Z'
+      )
     })
   })
 })
