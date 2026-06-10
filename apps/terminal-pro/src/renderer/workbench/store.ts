@@ -210,6 +210,9 @@ function reduce(state: WorkbenchState, action: WorkbenchAction): WorkbenchState 
     case 'workspace/set':
       return { ...state, workspaceKey: action.workspaceKey }
 
+    case 'workspaceContext/set':
+      return { ...state, workspaceContext: action.context }
+
     case 'license/set':
       return { ...state, license: { tier: action.tier, lastCheckedAt: action.lastCheckedAt ?? null } }
 

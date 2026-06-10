@@ -8,6 +8,7 @@ export type ProjectInspectionResult = {
   frameworks: string[];
   isElectron: boolean;
   canDeploy: boolean;
+  deploymentTargets: string[];
   authPackages: string[];
   databasePackages: string[];
   facts: WorkspaceFact[];
@@ -94,19 +95,21 @@ function detectElectron(listFiles: string[], packageJson: unknown): boolean {
   return hasElectronDep || hasElectronConfig;
 }
 
-function detectDeployTargets(listFiles: string[], packageJson: unknown): boolean {
+function detectDeploymentTargets(listFiles: string[], packageJson: unknown): string[] {
   const json = typeof packageJson === "object" && packageJson ? (packageJson as Record<string, unknown>) : {};
   const scripts = typeof json.scripts === "object" ? (json.scripts as Record<string, string>) : {};
+  const targets = new Set<string>();
 
-  const hasDeployScript = !!scripts.deploy || !!scripts.publish;
-  const hasElectronConfig = listFiles.some((f) =>
+  if (scripts.deploy) targets.add("deploy-script");
+  if (scripts.publish) targets.add("publish-script");
+  if (listFiles.some((f) =>
     f === "electron-builder.yml" || f === "electron-builder.json"
-  );
-  const hasVercelConfig = listFiles.includes("vercel.json");
-  const hasNetlifyConfig = listFiles.includes("netlify.toml");
-  const hasDockerfile = listFiles.includes("Dockerfile");
+  )) targets.add("electron-builder");
+  if (listFiles.includes("vercel.json")) targets.add("vercel");
+  if (listFiles.includes("netlify.toml")) targets.add("netlify");
+  if (listFiles.includes("Dockerfile")) targets.add("docker");
 
-  return hasDeployScript || hasElectronConfig || hasVercelConfig || hasNetlifyConfig || hasDockerfile;
+  return Array.from(targets);
 }
 
 export async function inspectProjectWorkspace(
@@ -132,7 +135,8 @@ export async function inspectProjectWorkspace(
 
     const walk = (dir: string): void => {
       try {
-        const entries = readdirSync(path.join(projectRoot, dir || dir === "." ? projectRoot : path.join(projectRoot, dir)));
+        const currentDir = dir && dir !== "." ? path.join(projectRoot, dir) : projectRoot;
+        const entries = readdirSync(currentDir);
         for (const entry of entries) {
           if (ignored.has(entry) || entry.startsWith(".")) continue;
           const fullPath = dir ? path.join(dir, entry) : entry;
@@ -159,7 +163,8 @@ export async function inspectProjectWorkspace(
   const packageManager = detectPackageManagerFromListFiles(listFiles);
   const frameworks = detectFrameworks(listFiles, packageJson);
   const isElectron = detectElectron(listFiles, packageJson);
-  const canDeploy = detectDeployTargets(listFiles, packageJson);
+  const deploymentTargets = detectDeploymentTargets(listFiles, packageJson);
+  const canDeploy = deploymentTargets.length > 0;
   const authPackages = detectAuthPackages(listFiles, packageJson);
   const databasePackages = detectDatabasePackages(listFiles, packageJson);
 
@@ -167,6 +172,7 @@ export async function inspectProjectWorkspace(
     projectRoot,
     packageManager: packageManager ?? undefined,
     framework: frameworks.length > 0 ? frameworks.join(", ") : undefined,
+    deploymentTarget: deploymentTargets.length > 0 ? deploymentTargets.join(", ") : undefined,
     runtime: packageManager ? "Node.js" : undefined,
     ui: frameworks.find((f) => ["react", "vue", "svelte", "angular"].includes(f)) || undefined,
     database: databasePackages.length > 0 ? databasePackages.join(", ") : undefined,
@@ -181,6 +187,7 @@ export async function inspectProjectWorkspace(
     frameworks,
     isElectron,
     canDeploy,
+    deploymentTargets,
     authPackages,
     databasePackages,
     facts,

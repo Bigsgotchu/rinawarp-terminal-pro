@@ -16,6 +16,10 @@ export function getAgentWorkspaceRootFromStore(store: WorkbenchStore): string | 
   return key === '__none__' ? null : key
 }
 
+export function getWorkspaceContextFromStore(store: WorkbenchStore) {
+  return store.getState().workspaceContext
+}
+
 export function setTransientStatusSummary(store: WorkbenchStore, message: string, durationMs = 1800): void {
   store.dispatch({ type: 'ui/setStatusSummary', text: message })
   if (statusSummaryResetTimer !== null) window.clearTimeout(statusSummaryResetTimer)

@@ -42,14 +42,7 @@ import {
   composePlanModeLead,
   composeRinaReplyLead,
 } from './services/responseComposer.js'
-import {
-  buildInterruptedRunRecoveryPrompt,
-  buildTrustSnapshot,
-  getAgentWorkspaceRootFromStore,
-  getWorkspaceKeyFromStore,
-  normalizeWorkspaceKey,
-  setTransientStatusSummary,
-} from './services/rendererCoreHelpers.js'
+import { buildTrustSnapshot, getAgentWorkspaceRootFromStore, getWorkspaceContextFromStore, getWorkspaceKeyFromStore, normalizeWorkspaceKey, setTransientStatusSummary } from './services/rendererCoreHelpers.js'
 import { createRefreshActions } from './services/refreshData.js'
 import { initRetentionLoop } from './services/retentionLoop.js'
 import { initUpdateNotice } from './services/updateNotice.js'
@@ -79,6 +72,30 @@ declare const window: RinaRendererWindow
 // Main Initialization
 // ============================================================
 
+async function populateWorkspaceContext(store: WorkbenchStore, projectRoot: string | null): Promise<void> {
+  if (!projectRoot) {
+    store.dispatch({ type: 'workspaceContext/set', context: {
+      architecture: [],
+      dependencies: [],
+      runtimeFacts: [],
+      deploymentFacts: [],
+      conventions: [],
+      preferences: [],
+      confidenceSummary: { high: 0, medium: 0, low: 0 },
+      conflictSummary: { totalConflicts: 0, conflicts: [] },
+    }})
+    return
+  }
+  try {
+    const context = await window.rina.invoke('rina:workspace:context', { projectRoot })
+    if (context) {
+      store.dispatch({ type: 'workspaceContext/set', context })
+    }
+  } catch (error) {
+    console.warn('[workspace-context] failed to populate context:', error instanceof Error ? error.message : String(error))
+  }
+}
+
 // Initialize when DOM is ready
 export async function initProductionRenderer(): Promise<void> {
   const bootStartedAt = performance.now()
@@ -97,6 +114,7 @@ export async function initProductionRenderer(): Promise<void> {
     }
   }
   store.dispatch({ type: 'workspace/set', workspaceKey: initialWorkspaceKey })
+  await populateWorkspaceContext(store, getAgentWorkspaceRootFromStore(store))
   const { hydrateCanonicalThread } = await import('../workbench/store/hydrateThread.ts')
   const hydrated = hydrateCanonicalThread(store.getState(), initialWorkspaceKey)
   if (hydrated.length > 0 && store.getState().thread.length === 0) {

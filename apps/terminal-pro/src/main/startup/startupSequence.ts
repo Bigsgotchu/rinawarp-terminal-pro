@@ -107,6 +107,7 @@ export function createAnalyticsSessionInitializer(
         const rootDir = path.join(app.getPath('userData'), 'structured-session-v1');
         const workspaceFactStore = new SqliteWorkspaceFactStore(path.join(app.getPath('userData'), 'workspace-knowledge', 'workspace-facts.sqlite'));
         void workspaceFactStore.init();
+        ctx.workspaceFactStore = workspaceFactStore;
         const store = new StructuredSessionStore(rootDir, true, {
             onProofVerified: (verification) => {
                 void acquireWorkspaceFactsFromVerifiedProof({

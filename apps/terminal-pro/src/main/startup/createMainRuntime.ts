@@ -335,6 +335,7 @@ export function createMainRuntime(runtimeDeps: CreateMainRuntimeDeps): MainRunti
         codeReadFileForIpc,
         ownerMemoryStore,
         makePlan,
+        getWorkspaceFactStore: () => runtimeState.ctx.workspaceFactStore,
         evaluatePolicyGate,
         handleRinaMessage: deps.handleRinaMessage,
         rinaController: deps.rinaController,

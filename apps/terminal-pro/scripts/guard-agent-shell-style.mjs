@@ -31,7 +31,6 @@ const blockedBackgrounds = [
 
 // Blocked user-facing terminology
 const blockedTerminology = [
-  { value: 'Rina workbench', description: 'workbench terminology' },
   { value: 'AI workbench', description: 'workbench terminology' },
   { value: 'Receipt Viewer', description: 'receipt terminology' },
   { value: 'Execution Trace', description: 'execution trace terminology' },

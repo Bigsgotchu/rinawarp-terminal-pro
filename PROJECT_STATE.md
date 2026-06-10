@@ -603,8 +603,7 @@ No UI changes. No persistence changes. No editing capability.
 - Workspace Knowledge Hydration
 - Workspace Knowledge Inspection
 - Workspace Knowledge Acquisition Guards
-- Project Inspector Module (read-only workspace inspection on project open)
-- Workspace Context Builder
+- Workspace Context Auto-Detection
 
 ## 2026-06-09 Workspace Observation Audit
 
@@ -906,6 +905,38 @@ The approval block now renders commands before user approval, improving transpar
 **Files Changed**:
 - `apps/terminal-pro/src/renderer/replies/renderPlanReplies.ts` - Added `buildPlannerApprovalContent()` function
 - `apps/terminal-pro/tests/unit/planner-approval.test.ts` - Added 40 tests for approval block behavior
+
+### Trust Blocker #2: Auto Workspace Detection on Open
+**Status**: Complete
+
+Workspace context is automatically detected when the Agent Shell opens, enabling planning with observed project facts without requiring user explanation.
+
+**Implementation**:
+- `populateWorkspaceContext(store, projectRoot)` in `renderer.prod.ts` invokes `rina:workspace:context` IPC on window init
+- Main process handler in `windowLifecycle.ts` calls `inspectProjectWorkspace(projectRoot)` and `buildWorkspaceContext(snapshot, inspection)`
+- `WorkspaceContext` type and `workspaceContext/set` action store the context in `WorkbenchState`
+- `getWorkspaceContextFromStore` selector provides context to planning and rendering
+- Empty/invalid project roots fail safely with empty context (no errors thrown)
+- Real `.env` files are never read - only safe config files (`package.json`, lockfiles, `electron-builder.yml`, etc.)
+
+**Safety Properties**:
+- Security: `.env` and `.env.local` files are explicitly excluded from inspection
+- Resilience: Invalid/missing project roots return empty context, not errors
+- Transparency: Observed facts are available in `WorkspaceContext` before planning
+- Deterministic: Only project config files are inspected, no AI inference
+
+**Files Changed**:
+- `apps/terminal-pro/src/main/memory/projectInspector.ts` - Read-only project inspection
+- `apps/terminal-pro/src/main/memory/workspaceContextBuilder.ts` - Context builder
+- `apps/terminal-pro/src/main/memory/workspaceKnowledge.ts` - Knowledge hydration
+- `apps/terminal-pro/src/renderer/renderer.prod.ts` - `populateWorkspaceContext` on init
+- `apps/terminal-pro/src/renderer/state/workbenchBootstrap.ts` - Store reducer
+- `apps/terminal-pro/src/main/window/windowLifecycle.ts` - IPC handler
+- `apps/terminal-pro/src/preload.ts` - IPC channel allowlist
+
+**Tests Added**:
+- `apps/terminal-pro/tests/unit/workspace-context.test.ts` - 5 new tests for auto detection scenarios
+- Tests verify: project open triggers inspection, context available before planning, empty/invalid roots fail safely, `.env` files not read
 
 ### Customer Validation Status
 **READY FOR CUSTOMER EVALUATION**

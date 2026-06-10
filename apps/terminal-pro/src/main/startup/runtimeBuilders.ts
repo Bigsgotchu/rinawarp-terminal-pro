@@ -33,6 +33,7 @@ export function createRuntimeState(): RuntimeState {
     structuredSessionStore: null,
     ctx: {
       structuredSessionStore: null,
+      workspaceFactStore: null,
       lastLoadedThemePath: null,
       lastLoadedPolicyPath: null,
     },

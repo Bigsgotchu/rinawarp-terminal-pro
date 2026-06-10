@@ -1,4 +1,5 @@
 import type { IpcMain, IpcMainInvokeEvent } from 'electron'
+import type { WorkspaceContext } from '../memory/workspaceContextBuilder.js'
 
 type PlanStep = {
   stepId: string
@@ -23,12 +24,13 @@ type PlanResult = {
 type RegisterRinaPlanIpcDeps = {
   ipcMain: IpcMain
   resolveProjectRootSafe: (input: unknown) => string
-  fetchRemotePlanForIpc: (args: { intentText: string; projectRoot: string }) => Promise<unknown>
+  fetchRemotePlanForIpc: (args: { intentText: string; projectRoot: string; workspaceContext?: WorkspaceContext }) => Promise<unknown>
 }
 
 type PlanRequest = {
   projectRoot?: unknown
   intentText?: unknown
+  workspaceContext?: WorkspaceContext
 }
 
 type IpcHandler = Parameters<IpcMain['handle']>[1]
@@ -94,6 +96,7 @@ export function registerRinaPlanIpc(deps: RegisterRinaPlanIpcDeps): void {
       return await fetchRemotePlanForIpc({
         intentText,
         projectRoot,
+        workspaceContext: args?.workspaceContext,
       })
     } catch (error) {
       return buildPlanError(error)

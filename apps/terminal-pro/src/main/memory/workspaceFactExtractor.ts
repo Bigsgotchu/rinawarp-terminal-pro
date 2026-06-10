@@ -15,6 +15,7 @@ export type ProjectConfigInput = {
   projectRoot: string;
   packageManager?: string;
   framework?: string;
+  deploymentTarget?: string;
   runtime?: string;
   shell?: string;
   agent?: string;
@@ -95,6 +96,24 @@ function extractFromProjectConfig(config: ProjectConfigInput): WorkspaceFact[] {
       createWorkspaceFact({
         key: "runtime.primary",
         value: config.runtime,
+        category: classification.category,
+        source: "config",
+        confidence: classification.confidence,
+        last_verified_at: new Date().toISOString(),
+      }),
+    );
+  }
+
+  if (config.framework) {
+    const classification = classifyWorkspaceFact({
+      key: "framework.primary",
+      value: config.framework,
+      source: "config",
+    });
+    facts.push(
+      createWorkspaceFact({
+        key: "framework.primary",
+        value: config.framework,
         category: classification.category,
         source: "config",
         confidence: classification.confidence,
@@ -224,6 +243,19 @@ function extractFromProjectConfig(config: ProjectConfigInput): WorkspaceFact[] {
         category: classification.category,
         source: "config",
         confidence: classification.confidence,
+        last_verified_at: new Date().toISOString(),
+      }),
+    );
+  }
+
+  if (config.deploymentTarget) {
+    facts.push(
+      createWorkspaceFact({
+        key: "deployment.target",
+        value: config.deploymentTarget,
+        category: "runtime_fact",
+        source: "config",
+        confidence: "high",
         last_verified_at: new Date().toISOString(),
       }),
     );

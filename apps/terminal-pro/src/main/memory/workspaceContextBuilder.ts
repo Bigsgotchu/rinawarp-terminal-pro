@@ -64,7 +64,7 @@ function selectArchitectureFacts(
   persisted: Map<string, WorkspaceFact>,
   observed: Map<string, WorkspaceFact>
 ): WorkspaceFact[] {
-  const keyPatterns = [/runtime\./, /shell\./, /agent\./, /ui\./];
+  const keyPatterns = [/runtime\./, /framework\./, /shell\./, /agent\./, /ui\./];
   const result: WorkspaceFact[] = [];
   const seenKeys = new Set<string>();
 

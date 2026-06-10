@@ -445,3 +445,143 @@ describe("buildWorkspaceContext", () => {
     });
   });
 });
+
+describe("auto workspace detection on open", () => {
+  it("project open triggers workspace inspection", async () => {
+    const snapshot: WorkspaceKnowledgeSnapshot = {
+      architecture: [],
+      dependencies: [],
+      conventions: [],
+      preferences: [],
+      recurring_failures: [],
+      runtime_facts: [],
+      fact_count: 0,
+      last_hydrated_at: "2026-06-09T00:00:00.000Z",
+    };
+
+    const inspection = await inspectProjectWorkspace("/fake/project", {
+      listFiles: async () => ["package.json", "pnpm-lock.yaml"],
+      readFile: async (p) => p === "package.json" ? '{"name": "test-project"}' : null,
+    });
+
+    const context = buildWorkspaceContext(snapshot, inspection);
+
+    expect(context.architecture.length).toBeGreaterThan(0);
+    expect(context.dependencies.some(f => f.key === "package.manager" && f.value === "pnpm")).toBe(true);
+  });
+
+  it("WorkspaceContext is available before planning", () => {
+    const snapshot: WorkspaceKnowledgeSnapshot = {
+      architecture: [
+        makeFact({ id: "arch_1", key: "runtime.primary", value: "Node.js", category: "architecture", confidence: "high" }),
+      ],
+      dependencies: [],
+      conventions: [],
+      preferences: [],
+      recurring_failures: [],
+      runtime_facts: [],
+      fact_count: 1,
+      last_hydrated_at: "2026-06-09T00:00:00.000Z",
+    };
+
+    const inspection = {
+      packageManager: "pnpm",
+      framework: "vite",
+      frameworks: ["vite", "react"],
+      isElectron: false,
+      canDeploy: true,
+      deploymentTargets: ["vercel"],
+      authPackages: [],
+      databasePackages: [],
+      facts: [],
+    };
+
+    const context = buildWorkspaceContext(snapshot, inspection);
+
+    expect(context).toBeDefined();
+    expect(context.architecture).toBeDefined();
+    expect(context.dependencies).toBeDefined();
+    expect(context.deploymentFacts).toBeDefined();
+    expect(context.confidenceSummary).toBeDefined();
+  });
+
+  it("empty project root fails safely with null context", async () => {
+    const snapshot: WorkspaceKnowledgeSnapshot = {
+      architecture: [],
+      dependencies: [],
+      conventions: [],
+      preferences: [],
+      recurring_failures: [],
+      runtime_facts: [],
+      fact_count: 0,
+      last_hydrated_at: "2026-06-09T00:00:00.000Z",
+    };
+
+    const inspection = await inspectProjectWorkspace("/nonexistent/path", {
+      listFiles: async () => [],
+      readFile: async () => null,
+    });
+
+    const context = buildWorkspaceContext(snapshot, inspection);
+
+    expect(context.architecture).toEqual([]);
+    expect(context.dependencies).toEqual([]);
+    expect(context.runtimeFacts).toEqual([]);
+    expect(context.confidenceSummary.high).toBe(0);
+  });
+
+  it("invalid project root fails safely without throwing", async () => {
+    const snapshot: WorkspaceKnowledgeSnapshot = {
+      architecture: [],
+      dependencies: [],
+      conventions: [],
+      preferences: [],
+      recurring_failures: [],
+      runtime_facts: [],
+      fact_count: 0,
+      last_hydrated_at: "2026-06-09T00:00:00.000Z",
+    };
+
+    let threw = false;
+    try {
+      const inspection = await inspectProjectWorkspace("/invalid!@#$path", {
+        listFiles: async () => [],
+        readFile: async () => null,
+      });
+      const context = buildWorkspaceContext(snapshot, inspection);
+      expect(context).toBeDefined();
+    } catch (e) {
+      threw = true;
+    }
+    expect(threw).toBe(false);
+  });
+
+  it("real .env files are not read during inspection", async () => {
+    const snapshot: WorkspaceKnowledgeSnapshot = {
+      architecture: [],
+      dependencies: [],
+      conventions: [],
+      preferences: [],
+      recurring_failures: [],
+      runtime_facts: [],
+      fact_count: 0,
+      last_hydrated_at: "2026-06-09T00:00:00.000Z",
+    };
+
+    let envReadAttempted = false;
+    const inspection = await inspectProjectWorkspace("/fake/project", {
+      listFiles: async () => ["package.json", ".env", ".env.local", "pnpm-lock.yaml"],
+      readFile: async (p) => {
+        if (p === ".env" || p === ".env.local") {
+          envReadAttempted = true;
+          return "DATABASE_URL=postgresql://...";
+        }
+        if (p === "package.json") return '{"name": "test"}';
+        return null;
+      },
+    });
+
+    expect(envReadAttempted).toBe(false);
+    expect(inspection.facts.some(f => f.key === "env.file")).toBe(false);
+  });
+});

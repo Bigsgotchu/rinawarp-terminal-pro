@@ -14,6 +14,8 @@ import type {
   PlanRunState,
   RegisterAgentExecutionArgs,
 } from "../ipc/agentExecutionFlow.js";
+import type { WorkspaceFactStore } from "../memory/workspaceFactStore.js";
+import type { WorkspaceContext } from "../memory/workspaceContextBuilder.js";
 
 export type AnyFn = (...args: any[]) => any;
 export type AsyncUnknownFn<Args = unknown, Result = unknown> = (
@@ -88,6 +90,7 @@ export type BrowserWindowCtor = new (options: unknown) => BrowserWindowInstance;
 
 export type RuntimeContext = {
   structuredSessionStore: unknown;
+  workspaceFactStore: WorkspaceFactStore | null;
   lastLoadedThemePath: string | null;
   lastLoadedPolicyPath: string | null;
 };
@@ -826,7 +829,11 @@ export type BuildPlanHelperDeps = {
 };
 
 export type BuildPlanHelpers = {
-  makePlan: (intentRaw: string, projectRoot?: string) => Promise<BuildPlan>;
+  makePlan: (
+    intentRaw: string,
+    projectRoot?: string,
+    workspaceContext?: WorkspaceContext,
+  ) => Promise<BuildPlan>;
   detectBuildKind: (projectRoot: string) => Promise<BuildPlanKind>;
   buildStepsForKind: (
     kind: BuildPlanKind,
@@ -1132,6 +1139,7 @@ export type WindowLifecycleDeps = {
   codeReadFileForIpc: WorkspaceRuntimeHelpers["codeReadFileForIpc"];
   ownerMemoryStore: OwnerMemoryStore;
   makePlan: BuildPlanHelpers["makePlan"];
+  getWorkspaceFactStore?: () => WorkspaceFactStore | null;
   evaluatePolicyGate: PolicyGateHelpers["evaluatePolicyGate"];
   handleRinaMessage: AnyFn;
   rinaController: AnyFn;

@@ -33,8 +33,8 @@
     "**/dist": true,
     "**/build": true
   },
-  "kilo-code.new.model.providerID": "kilo",
-  "kilo-code.new.model.modelID": "kilo-auto/free",
+  "kilo-code.new.model.providerID": "openrouter",
+  "kilo-code.new.model.modelID": "openrouter/free",
   "kilo-code.new.autocomplete.provider": "kilo",
   "kilo-code.new.autocomplete.model": "mistralai/codestral-2508",
   "kilo-code.new.autocomplete.enableAutoTrigger": false,

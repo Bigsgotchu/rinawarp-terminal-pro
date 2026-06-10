@@ -43,11 +43,11 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'rina:runs:tail',
   'rina:runs:artifacts',
   'rina:revealRunReceipt',
-  'rina:code:listFiles',
+'rina:code:listFiles',
   'rina:code:readFile',
   'rina:workspace:pick',
-  'rina:workspace:demo',
   'rina:workspace:default',
+  'rina:workspace:context',
   // PTY (if available)
   'rina:pty:start',
   'rina:pty:write',
@@ -352,7 +352,7 @@ contextBridge.exposeInMainWorld('rina', {
   telemetryPrivacySet: (input: { enabled: boolean }) => ipcRenderer.invoke('telemetry:privacy:set', input),
   recordOperationalTelemetry: (event: string) => ipcRenderer.invoke('telemetry:operational:record', event),
 
-  agentPlan: (args: { intentText: string; projectRoot: string }) => ipcRenderer.invoke('rina:agent:plan', args),
+  agentPlan: (args: { intentText: string; projectRoot: string; workspaceContext?: any }) => ipcRenderer.invoke('rina:agent:plan', args),
   submitIntent: (args: unknown) => ipcRenderer.invoke('rina:ingress', args),
   agentRun: (args: { prompt: string; projectRoot: string }) => ipcRenderer.invoke('rina:agent:run', args),
   agentApprovePatch: (args: { request: any; payload: any }) => ipcRenderer.invoke('rina:agent:approvePatch', args),

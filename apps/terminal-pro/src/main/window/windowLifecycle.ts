@@ -1,4 +1,7 @@
 import { handleUnifiedConversationTurn } from '../orchestration/unifiedTurn.js'
+import { inspectProjectWorkspace } from '../memory/projectInspector.js'
+import { hydrateWorkspaceKnowledge, type WorkspaceKnowledgeSnapshot } from '../memory/workspaceKnowledge.js'
+import { buildWorkspaceContext } from '../memory/workspaceContextBuilder.js'
 import type {
   DevtoolsToggleTarget,
   DevtoolsToggleResult,
@@ -86,12 +89,40 @@ export function createWindowLifecycle(
     codeReadFileForIpc,
     ownerMemoryStore,
     makePlan,
+    getWorkspaceFactStore,
     handleRinaMessage,
     rinaController,
     resolveProjectRootSafe,
     normalizeRinaResponse,
   } = deps
   const controller = rinaController as unknown as RinaControllerLike
+
+  const emptyWorkspaceKnowledgeSnapshot = (): WorkspaceKnowledgeSnapshot => ({
+    architecture: [],
+    dependencies: [],
+    conventions: [],
+    preferences: [],
+    recurring_failures: [],
+    runtime_facts: [],
+    fact_count: 0,
+    last_hydrated_at: new Date().toISOString(),
+  })
+
+  async function buildPlanningWorkspaceContext(projectRoot: string) {
+    try {
+      const inspection = await inspectProjectWorkspace(projectRoot)
+      const factStore = getWorkspaceFactStore?.() || null
+      const snapshot = factStore ? await hydrateWorkspaceKnowledge(factStore) : emptyWorkspaceKnowledgeSnapshot()
+      return buildWorkspaceContext(snapshot, inspection)
+    } catch (error) {
+      console.warn('[workspace-context] planning context unavailable:', error instanceof Error ? error.message : String(error))
+      return undefined
+    }
+  }
+
+  async function makeContextAwarePlan(intentText: string, projectRoot: string) {
+    return makePlan(intentText, projectRoot, await buildPlanningWorkspaceContext(projectRoot))
+  }
 
   function createWindow() {
     let win
@@ -153,7 +184,7 @@ export function createWindowLifecycle(
           rawText: rawPrompt,
           workspaceId,
           latestRun: resolvedLatestRun,
-          buildPlan: async (intentText: string, projectRoot: string) => await makePlan(intentText, projectRoot),
+          buildPlan: makeContextAwarePlan,
           memoryStore: ownerMemoryStore,
         })
         for (const event of unified.timelineEvents) {
@@ -255,7 +286,7 @@ export function createWindowLifecycle(
           rawText: String(prompt || ''),
           workspaceId,
           latestRun: resolvedLatestRun,
-          buildPlan: async (intentText: string, projectRoot: string) => await makePlan(intentText, projectRoot),
+          buildPlan: makeContextAwarePlan,
           memoryStore: ownerMemoryStore,
         })
         for (const event of unified.timelineEvents) {
@@ -281,7 +312,7 @@ export function createWindowLifecycle(
           rawText: String(prompt || ''),
           workspaceId,
           latestRun: resolvedLatestRun,
-          buildPlan: async (intentText: string, projectRoot: string) => await makePlan(intentText, projectRoot),
+          buildPlan: makeContextAwarePlan,
           memoryStore: ownerMemoryStore,
         })
         for (const event of unified.timelineEvents) {
@@ -337,6 +368,29 @@ export function createWindowLifecycle(
 
     registerIpcHandlers(win)
     registerSecureAgentIpc(ipcMain, { getLicenseTier })
+
+    ;(ipcMain as any).handle('rina:workspace:context', async (_event: any, args: { projectRoot?: string }) => {
+      const projectRoot = args?.projectRoot ? resolveProjectRootSafe(args.projectRoot) : null
+      if (!projectRoot) return null
+      try {
+        const inspection = await inspectProjectWorkspace(projectRoot)
+        const factStore = getWorkspaceFactStore?.() || null
+        const snapshot = factStore ? await hydrateWorkspaceKnowledge(factStore) : {
+          architecture: [],
+          dependencies: [],
+          conventions: [],
+          preferences: [],
+          recurring_failures: [],
+          runtime_facts: [],
+          fact_count: 0,
+          last_hydrated_at: new Date().toISOString(),
+        }
+        return buildWorkspaceContext(snapshot, inspection)
+      } catch (error) {
+        console.warn('[main] workspace context failed:', error instanceof Error ? error.message : String(error))
+        return null
+      }
+    })
 
     const webContentsId = win.webContents.id ?? -1
     win.loadFile(path.join(__dirname, 'renderer', 'renderer.html'))

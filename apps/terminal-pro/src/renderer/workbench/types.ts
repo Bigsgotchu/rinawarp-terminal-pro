@@ -1,5 +1,6 @@
 import type { RunBlock } from '../../workbench/runBlocks/types.js'
 import type { ExecutionReceipt } from '@rinawarp/rina-contracts'
+import type { WorkspaceContext } from '../../main/memory/workspaceContextBuilder.js'
 
 export type CenterView = 'execution-trace' | 'runs' | 'marketplace' | 'code' | 'brain' | 'receipt'
 export type RightView = 'agent' | 'diagnostics'
@@ -314,6 +315,7 @@ export type WorkbenchState = {
   runOutputTailByRunId: Record<string, string>
   runArtifactSummaryByRunId: Record<string, RunArtifactSummary>
   workspaceKey: string
+  workspaceContext?: WorkspaceContext
   license: {
     tier: LicenseTier
     lastCheckedAt?: number | null
@@ -417,6 +419,7 @@ export type WorkbenchAction =
   | { type: 'ui/closeDrawer' }
   | { type: 'ui/setStatusSummary'; text: string | null }
   | { type: 'workspace/set'; workspaceKey: string }
+  | { type: 'workspaceContext/set'; context: WorkspaceContext }
   | { type: 'license/set'; tier: LicenseTier; lastCheckedAt?: number | null }
   | { type: 'thread/append'; items: WorkbenchState['thread'] }
   | { type: 'thread/replace'; items: WorkbenchState['thread'] }
