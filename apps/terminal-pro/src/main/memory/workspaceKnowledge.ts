@@ -42,7 +42,7 @@ export async function hydrateWorkspaceKnowledge(
   );
   const runtime_facts = sortFactsByConfidence(filterFactsByCategory(allFacts, "runtime_fact"));
 
-  return {
+return {
     architecture,
     dependencies,
     conventions,
@@ -51,5 +51,89 @@ export async function hydrateWorkspaceKnowledge(
     runtime_facts,
     fact_count: allFacts.length,
     last_hydrated_at: new Date().toISOString(),
-  };
+  }
+}
+
+export interface KnowledgeSummary {
+  architecture: string
+  dependencies: string
+  conventions: string
+  preferences: string
+  recurring_failures: string
+  runtime_facts: string
+  confidence: {
+    high: number
+    medium: number
+    low: number
+  }
+}
+
+function countByConfidence(facts: WorkspaceFact[]): { high: number; medium: number; low: number } {
+  const counts = { high: 0, medium: 0, low: 0 }
+  for (const fact of facts) {
+    counts[fact.confidence]++
+  }
+  return counts
+}
+
+function formatFactList(facts: WorkspaceFact[]): string {
+  if (facts.length === 0) return "None"
+  return facts.map((f) => `- ${f.value}`).join("\n")
+}
+
+export function buildKnowledgeSummary(snapshot: WorkspaceKnowledgeSnapshot): KnowledgeSummary {
+  const allFactCategories = [
+    ...snapshot.architecture,
+    ...snapshot.dependencies,
+    ...snapshot.conventions,
+    ...snapshot.preferences,
+    ...snapshot.recurring_failures,
+    ...snapshot.runtime_facts,
+  ]
+  const confidenceCount = countByConfidence(allFactCategories)
+
+  return {
+    architecture: formatFactList(snapshot.architecture),
+    dependencies: formatFactList(snapshot.dependencies),
+    conventions: formatFactList(snapshot.conventions),
+    preferences: formatFactList(snapshot.preferences),
+    recurring_failures: formatFactList(snapshot.recurring_failures),
+    runtime_facts: formatFactList(snapshot.runtime_facts),
+    confidence: confidenceCount,
+  }
+}
+
+export function formatKnowledgeForDisplay(summary: KnowledgeSummary): string {
+  const lines: string[] = ["Workspace Knowledge", ""]
+
+  lines.push("Architecture")
+  lines.push(summary.architecture)
+  lines.push("")
+
+  lines.push("Dependencies")
+  lines.push(summary.dependencies)
+  lines.push("")
+
+  lines.push("Conventions")
+  lines.push(summary.conventions)
+  lines.push("")
+
+  lines.push("Preferences")
+  lines.push(summary.preferences)
+  lines.push("")
+
+  lines.push("Recurring Failures")
+  lines.push(summary.recurring_failures)
+  lines.push("")
+
+  lines.push("Runtime Facts")
+  lines.push(summary.runtime_facts)
+  lines.push("")
+
+  lines.push("Confidence")
+  lines.push(`- ${summary.confidence.high} high`)
+  lines.push(`- ${summary.confidence.medium} medium`)
+  lines.push(`- ${summary.confidence.low} low`)
+
+  return lines.join("\n")
 }

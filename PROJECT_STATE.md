@@ -512,10 +512,34 @@ Implemented read-only workspace knowledge hydration for agent startup:
 - `buildAgentContext` merges architecture/dependencies/facts into state
 
 Tests:
-- `apps/terminal-pro/tests/unit/workspace-knowledge.test.ts` (6 tests)
+- `apps/terminal-pro/tests/unit/workspace-knowledge.test.ts` (6 hydration tests + 8 summary tests = 14 total)
 - `apps/terminal-pro/src/renderer/rina-agent-context.test.ts` (2 tests)
 
 All 96 unit tests pass. `typecheck` and `build:electron` pass.
+
+## 2026-06-09 Workspace Knowledge Inspection
+
+Added knowledge visibility layer to expose hydrated workspace knowledge:
+
+- `KnowledgeSummary` type with formatted strings for each category
+- `buildKnowledgeSummary(snapshot)` builds human-readable summary from `WorkspaceKnowledgeSnapshot`
+- `formatKnowledgeForDisplay(summary)` formats summary as "Workspace Knowledge" report
+- Confidence counts tracked (high/medium/low)
+- Categories formatted with `- value` bullet style or "None" when empty
+
+Formatted output includes:
+- Architecture
+- Dependencies
+- Conventions
+- Preferences
+- Recurring Failures
+- Runtime Facts
+- Confidence counts
+
+Tests:
+- `apps/terminal-pro/tests/unit/workspace-knowledge.test.ts` (8 tests total: 6 hydration + 2 summary)
+
+No UI changes. No persistence changes. No editing capability.
 
 ## Completed Milestones
 
@@ -526,6 +550,7 @@ All 96 unit tests pass. `typecheck` and `build:electron` pass.
 - WorkspaceFact Persistence
 - Placeholder Cleanup
 - Workspace Knowledge Hydration
+- Workspace Knowledge Inspection
 
 without the user repeatedly telling it.
 
