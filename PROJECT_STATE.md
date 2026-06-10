@@ -604,6 +604,7 @@ No UI changes. No persistence changes. No editing capability.
 - Workspace Knowledge Inspection
 - Workspace Knowledge Acquisition Guards
 - Workspace Context Auto-Detection
+- File-change Evidence in Proof
 
 ## 2026-06-09 Workspace Observation Audit
 
@@ -937,6 +938,40 @@ Workspace context is automatically detected when the Agent Shell opens, enabling
 **Tests Added**:
 - `apps/terminal-pro/tests/unit/workspace-context.test.ts` - 5 new tests for auto detection scenarios
 - Tests verify: project open triggers inspection, context available before planning, empty/invalid roots fail safely, `.env` files not read
+
+### Trust Blocker #3: File-change Evidence in Proof
+**Status**: Complete
+
+Proof now captures what files changed during execution, providing verifiable evidence of actual modifications rather than relying on command output alone.
+
+**Implementation**:
+- `FileChange` type added to `@rinawarp/core/enforcement/types.ts`
+- `detectFileChanges(cwd)` uses `git diff --name-status` to detect actual file modifications
+- Terminal tool captures file changes in `meta.fileChanges` after successful command execution
+- `ExecutionReport.fileChanges` carries changes through the execution pipeline
+- `StructuredSessionStore.recordEvidence(...)` records each file change as `file_change` evidence type
+- Proof verification counts file-change evidence alongside command execution and exit code
+
+**Safety Properties**:
+- Evidence-based: Only actual git-tracked file changes are recorded, not inferred from chat
+- Safe: Returns empty array if not in a git repo or git command fails
+- Verified: File changes contribute to Proof verification status (verified when all evidence present)
+- Structured: Each change includes `path` and `changeType` ('created' | 'modified' | 'deleted')
+
+**Files Changed**:
+- `packages/rinawarp-core/src/enforcement/types.ts` - Added `FileChange` type and `fileChanges` to `ExecutionReport`
+- `packages/rinawarp-core/src/tools/terminal-tool.ts` - Added `detectFileChanges` function and file change capture
+- `apps/terminal-pro/src/main/stream/planExecutionRuntime.ts` - Record file-change evidence after command execution
+- `apps/terminal-pro/src/main/stream/planExecutionSse.ts` - Updated `SseReport` type with file changes
+
+**Tests Added**:
+- `apps/terminal-pro/tests/unit/file-change-evidence.test.ts` - 6 tests covering:
+  - Records file changes as evidence
+  - Records multiple file changes for single command
+  - Handles missing file-change data safely
+  - Does not read real .env files
+  - Returns empty context for invalid project root
+  - Stores file change evidence with correct payload structure
 
 ### Customer Validation Status
 **READY FOR CUSTOMER EVALUATION**

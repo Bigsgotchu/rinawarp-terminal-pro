@@ -106,5 +106,6 @@ export function buildE2EPlanExecutionResult(e2ePlanPayloads, payload) {
   return {
     ok: true,
     planRunId,
+    fileChanges: payload.fileChanges ?? [],
   }
 }

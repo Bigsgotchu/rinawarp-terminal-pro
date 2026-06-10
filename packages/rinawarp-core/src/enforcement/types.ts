@@ -9,8 +9,8 @@ export type ToolCategory = 'read' | 'safe-write' | 'high-impact' | 'planning'
 export type LicenseTier = 'starter' | 'creator' | 'pro' | 'pioneer' | 'founder' | 'evergreen' | 'enterprise'
 
 export type ToolResult =
-  | { success: true; output: string; meta?: Record<string, unknown> }
-  | { success: false; error: string; output?: string; meta?: Record<string, unknown> }
+  | { success: true; output: string; meta?: Record<string, unknown> & { fileChanges?: FileChange[] } }
+  | { success: false; error: string; output?: string; meta?: Record<string, unknown> & { fileChanges?: FileChange[] } }
 
 export type FailureClass = 'permission_denied' | 'tool_unavailable' | 'command_error' | 'timeout' | 'partial_execution'
 
@@ -47,6 +47,12 @@ export interface PlanStep {
   verify?: Array<{ tool: string; input: unknown }>
 }
 
+export type FileChange = {
+  path: string
+  changeType: 'created' | 'modified' | 'deleted'
+  diff?: string
+}
+
 export interface ExecutionReport {
   ok: boolean
   haltedBecause?:
@@ -71,6 +77,7 @@ export interface ExecutionReport {
     }
     verification?: Array<{ tool: string; result: ToolResult }>
   }>
+  fileChanges?: FileChange[]
 }
 
 /**

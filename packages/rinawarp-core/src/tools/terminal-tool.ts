@@ -6,11 +6,14 @@
  */
 
 import { spawn } from 'node:child_process'
+import { execSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import { isEngineCap, type EngineCap } from '../enforcement/engine-cap.js'
-import type { Tool, ExecutionContext, ToolResult } from '../enforcement/types.js'
+import type { Tool, ExecutionContext, ToolResult, FileChange } from '../enforcement/types.js'
 
 import { run, type TerminalResult } from '@rinawarp/tools/terminal'
 import { splitCommand, safeEnv } from '@rinawarp/tools/terminal-internals'
+import { join } from 'node:path'
 
 /**
  * Terminal input type
@@ -30,6 +33,39 @@ function combine(stdout: string, stderr: string): string {
   const out = stdout?.trim() ? stdout : ''
   const err = stderr?.trim() ? stderr : ''
   return [out, err].filter(Boolean).join('\n')
+}
+
+/**
+ * Detect file changes after command execution using git diff
+ * Returns empty array if not in a git repo or if git is not available
+ */
+function detectFileChanges(cwd: string): FileChange[] {
+  try {
+    const gitDir = join(cwd, '.git')
+    if (!existsSync(gitDir)) return []
+
+    const diffOutput = execSync('git diff --name-status', {
+      cwd,
+      encoding: 'utf8',
+      timeout: 5000,
+    }).trim()
+
+    if (!diffOutput) return []
+
+    const changes: FileChange[] = []
+    for (const line of diffOutput.split('\n')) {
+      const [status, filePath] = line.split('\t')
+      if (!filePath || !status) continue
+      let changeType: 'created' | 'modified' | 'deleted'
+      if (status === 'A') changeType = 'created'
+      else if (status === 'D') changeType = 'deleted'
+      else changeType = 'modified'
+      changes.push({ path: filePath, changeType })
+    }
+    return changes
+  } catch {
+    return []
+  }
 }
 
 /**
@@ -108,10 +144,11 @@ async function runStreaming(cap: EngineCap, input: TerminalInput, ctx: Execution
         })
         return
       }
+      const fileChanges = detectFileChanges(input.cwd ?? ctx.projectRoot)
       resolve({
         success: true,
         output,
-        meta: { exitCode: code, command: input.command, stderr },
+        meta: { exitCode: code, command: input.command, stderr, fileChanges },
       })
     })
 
@@ -169,19 +206,20 @@ export class TerminalWriteTool implements Tool<TerminalInput> {
     }
 
     const output = combine(result.stdout, result.stderr) || '(no output)'
+    const fileChanges = detectFileChanges(input.cwd ?? ctx.projectRoot)
     if (result.exitCode !== 0) {
       return {
         success: false,
         error: `Exit code ${result.exitCode ?? 'unknown'}`,
         output,
-        meta: { exitCode: result.exitCode, command: input.command, stderr: result.stderr },
+        meta: { exitCode: result.exitCode, command: input.command, stderr: result.stderr, fileChanges },
       }
     }
 
     return {
       success: true,
       output,
-      meta: { exitCode: result.exitCode, command: input.command, stderr: result.stderr },
+      meta: { exitCode: result.exitCode, command: input.command, stderr: result.stderr, fileChanges },
     }
   }
 }

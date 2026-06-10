@@ -52,12 +52,15 @@ type SseReport = {
   haltedBecause?: string
   steps?: Array<{
     result?: {
+      success?: boolean
       error?: string
       meta?: {
         exitCode?: number | null
+        fileChanges?: Array<{ path: string; changeType: 'created' | 'modified' | 'deleted' }>
       }
     }
   }>
+  fileChanges?: Array<{ path: string; changeType: 'created' | 'modified' | 'deleted' }>
 }
 
 type SsePayload = {

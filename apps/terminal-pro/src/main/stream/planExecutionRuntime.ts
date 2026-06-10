@@ -29,6 +29,12 @@ type EngineChunkEvent = {
   data: unknown
 }
 
+type FileChange = {
+  path: string
+  changeType: 'created' | 'modified' | 'deleted'
+  diff?: string
+}
+
 type EngineExecuteReport = {
   ok: boolean
   haltedBecause?: string
@@ -38,9 +44,11 @@ type EngineExecuteReport = {
       error?: string
       meta?: {
         exitCode?: number | null
+        fileChanges?: FileChange[]
       }
     }
   }>
+  fileChanges?: FileChange[]
 }
 
 type StartStreamingArgs = {
@@ -136,6 +144,14 @@ type StructuredSessionStoreLike = {
   beginCommand(args: Record<string, unknown>): void
   appendChunk(streamId: string, stream: string, data: string): void
   endCommand(args: Record<string, unknown>): void
+  recordEvidence(args: {
+    sessionId: string
+    commandId?: string
+    proofId?: string
+    type: 'command_execution' | 'exit_code' | 'file_change' | 'runtime_event' | 'agentd_record'
+    status: 'present' | 'missing' | 'failed'
+    payload: string
+  }): string
 }
 
 type SsePayload = {
@@ -366,13 +382,28 @@ export function createPlanExecutionRuntime(deps: PlanExecutionRuntimeDeps) {
       report,
     })
     withStructuredSessionWrite(() => {
-      getStructuredSessionStore()?.endCommand({
+      const store = getStructuredSessionStore()
+      store?.endCommand({
         streamId,
         ok: cancelled ? false : report.ok,
         code: typeof exitCode === 'number' ? exitCode : null,
         cancelled,
         error,
       })
+      const fileChanges = report.fileChanges ?? lastResult?.meta?.fileChanges
+      if (fileChanges && fileChanges.length > 0) {
+        const proofId = args.proofId ?? streamId
+        for (const change of fileChanges) {
+          store?.recordEvidence({
+            sessionId: sessionId ?? '',
+            commandId: streamId,
+            proofId,
+            type: 'file_change',
+            status: 'present',
+            payload: JSON.stringify({ path: change.path, changeType: change.changeType }),
+          })
+        }
+      }
     })
     return {
       ok: cancelled ? false : report.ok,
