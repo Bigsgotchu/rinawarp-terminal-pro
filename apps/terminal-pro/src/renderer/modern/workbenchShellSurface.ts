@@ -87,7 +87,7 @@ export function renderWorkbenchShellFrame(model: WorkbenchShellFrameModel): stri
   const primarySections = [...new Set(primaryActivityItems.map((item) => item.section || 'project'))]
   return `
     <div id="rw-app">
-      <aside class="rw-activitybar" aria-label="Workbench activity">
+      <aside class="rw-activitybar" aria-label="Agent Shell activity">
         <div class="rw-sidebar-account">
           <div class="rw-activitybar-logo" aria-hidden="true">
             <span class="rw-activitybar-logo-mark">✦</span>

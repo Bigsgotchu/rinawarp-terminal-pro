@@ -977,3 +977,56 @@ Proof now captures what files changed during execution, providing verifiable evi
 **READY FOR CUSTOMER EVALUATION**
 
 All workflows use real paths (no mocks/stubs). Gaps are polish/trust issues, not functional gaps. Product can ship to early customers for feedback.
+
+## Brand Lock: RinaWarp Terminal Pro
+
+### Visual Identity
+
+**App Name**: RinaWarp Terminal Pro
+
+**Product Language**:
+- RinaWarp Terminal Pro
+- Rina (AI assistant)
+- Agent Thread
+- Agent Shell
+- AgentRuntime
+- Proof
+- Workspace Knowledge
+
+**Brand Colors**:
+- `--rina-hot-pink`: #ff2fb3
+- `--rina-coral`: #ff6a5c
+- `--rina-teal`: #26f7d4
+- `--rina-blue`: #7dd3ff
+- `--rina-bg`: #07080b (deep black / dark navy)
+- `--rina-surface`: #0b0d12
+- `--rina-text`: color-mix(in oklab, white 86%, transparent)
+- `--rina-muted`: color-mix(in oklab, white 62%, transparent)
+
+**Logo Asset**: `src/assets/rinawarp-logo.png`
+
+### Forbidden Branding
+
+The following are NOT allowed in user-facing contexts:
+
+- "Workbench" (product name or UI framing)
+- "Dashboard" (product name or UI framing)
+- "Control center" (product name or UI framing)
+- Neon green (#00ff00, #00FF00, rgb(0, 255, 0)) as primary accent color
+
+### Guard Checks
+
+Brand guards are enforced via:
+
+- `npm run guard:agent-shell-style` - CSS/style guard checking border radius, backgrounds, terminology, and primary colors
+- `test/brand-tokens.test.ts` - Unit tests verifying brand token existence and usage
+
+### Verification
+
+Run the following to verify brand compliance:
+
+```bash
+npm --workspace apps/terminal-pro run typecheck
+npm --workspace apps/terminal-pro run build:electron
+npm --workspace apps/terminal-pro run guard:agent-shell-style
+```

@@ -32,8 +32,22 @@ const blockedBackgrounds = [
 // Blocked user-facing terminology
 const blockedTerminology = [
   { value: 'AI workbench', description: 'workbench terminology' },
+  { value: 'AI Workbench', description: 'workbench terminology' },
+  { value: 'Workbench', description: 'workbench terminology' },
+  { value: 'Dashboard', description: 'dashboard terminology' },
+  { value: 'dashboard', description: 'dashboard terminology' },
+  { value: 'Control center', description: 'control center terminology' },
+  { value: 'control center', description: 'control center terminology' },
   { value: 'Receipt Viewer', description: 'receipt terminology' },
   { value: 'Execution Trace', description: 'execution trace terminology' },
+]
+
+// Blocked primary color patterns (neon green should not be primary)
+const blockedPrimaryColors = [
+  { value: '#00ff00', description: 'neon green color' },
+  { value: '#00FF00', description: 'neon green color' },
+  { value: 'rgb(0, 255, 0)', description: 'neon green color' },
+  { value: 'rgba(0, 255, 0', description: 'neon green color' },
 ]
 
 let failed = false
@@ -105,12 +119,25 @@ function checkBackgrounds(filePath) {
 }
 
 function checkTerminology() {
-  const rendererFiles = walk(path.join(__dirname, '..', 'src', 'renderer'))
+  const rendererFiles = walk(path.join(__dirname, '..', 'src', 'renderer'), ['.ts', '.tsx', '.js', '.jsx'])
   for (const filePath of rendererFiles) {
     const content = fs.readFileSync(filePath, 'utf8')
     for (const blocked of blockedTerminology) {
-      if (content.includes(blocked.value)) {
+      const regex = new RegExp(`["']${blocked.value}["']`, 'g')
+      if (regex.test(content)) {
         fail(`${path.relative(path.join(__dirname, '..', 'src', 'renderer'), filePath)} contains ${blocked.description}`)
+      }
+    }
+  }
+}
+
+function checkPrimaryColors() {
+  const cssFiles = walk(rendererRoot, ['.css'])
+  for (const filePath of cssFiles) {
+    const content = fs.readFileSync(filePath, 'utf8')
+    for (const blocked of blockedPrimaryColors) {
+      if (content.includes(blocked.value)) {
+        fail(`${path.relative(rendererRoot, filePath)} contains ${blocked.description}`)
       }
     }
   }
@@ -124,6 +151,7 @@ for (const filePath of cssFiles) {
 }
 
 checkTerminology()
+checkPrimaryColors()
 
 if (failed) {
   console.error('Agent Shell style guard failed.')
