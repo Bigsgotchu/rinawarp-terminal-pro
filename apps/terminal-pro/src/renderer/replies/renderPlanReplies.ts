@@ -71,6 +71,17 @@ export function buildExecutionPlanContent(
 
   const allReady = (requirements.length === 0) || requirements.every((r) => r.state === 'ready')
   const isReviewOnly = options?.reviewOnly === true
+  const riskLevel = steps.some((s) => s.risk === 'high-impact' || s.risk === 'dangerous') ? 'high' : steps.some((s) => s.risk === 'safe-write') ? 'medium' : 'low'
+
+  // In review-only mode, use the explicit planner-approval block type
+  if (isReviewOnly && steps.length > 0 && options?.workspaceRoot) {
+    return buildPlannerApprovalContent(prompt, plan, {
+      workspaceRoot: options.workspaceRoot,
+      approvalReason: intro,
+      riskLevel,
+      planRunId: plan.id,
+    })
+  }
 
   const blocks: MessageBlock[] = [
     bubbleBlock(intro),

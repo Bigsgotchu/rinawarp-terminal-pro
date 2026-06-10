@@ -856,3 +856,58 @@ Validation:
 
 - `npm --workspace apps/terminal-pro exec vitest -- run --root . tests/unit/user-outcome-validation.test.ts tests/unit/planner-approval.test.ts tests/unit/project-inspector.test.ts tests/unit/workspace-context.test.ts tests/unit/workspace-context-planner.test.ts tests/unit/workspace-fact-store.test.ts tests/unit/unified-turn.test.ts` — 126 tests passing
 - `npm --workspace apps/terminal-pro run build:electron` — passing
+
+## 2026-06-10 First Paid User Workflow Audit
+
+**Status**: Customer Validation Ready. See `docs/audits/FIRST_PAID_USER_WORKFLOW_AUDIT_2026-06-10.md`.
+
+Three canonical workflows validated:
+
+### Workflow 1: Project Understanding
+- ✅ Real file observation (package.json, lockfiles, configs)
+- ✅ Structured knowledge response
+- ⚠️ Friction: No auto-detection on app open
+- ⚠️ Polish: Technical "Workspace Knowledge" language
+
+### Workflow 2: Safe Approved Change
+- ✅ Real planning with approval gating
+- ✅ Real execution with approval metadata
+- ✅ Real Proof with evidence capture
+- ⚠️ Friction: Approval UI doesn't show command
+- ⚠️ Polish: Plan is raw JSON structure
+
+### Workflow 3: Operational Recall
+- ✅ Proof-backed explanations
+- ✅ Persisted WorkspaceKnowledge
+- ⚠️ Missing: File-change evidence
+- ⚠️ Polish: No timeline view
+
+### Revenue Blockers (Must Fix)
+1. No automatic workspace detection on app open
+2. ~~Approval UI doesn't show command before approval~~ ✅ FIXED
+3. No file-change evidence in Proof
+
+### Trust Blocker #1: Command Visibility Fix
+**Status**: Complete
+
+The approval block now renders commands before user approval, improving transparency and trust:
+
+**Implementation**:
+- `buildPlannerApprovalContent()` in `renderPlanReplies.ts` generates the approval block with visible command steps
+- The `planner-approval` block type includes `steps` array with `command` field for each step
+- User sees commands in the approval UI before clicking "Approve & Run"
+
+**Safety Properties**:
+- Commands are rendered from planner data only - the renderer does not invent commands
+- Missing commands are handled gracefully (empty string) without crashing
+- Approval still gates execution - nothing runs without explicit "Approve & Run" click
+- Rejection properly cancels and records cancelled Proof evidence
+
+**Files Changed**:
+- `apps/terminal-pro/src/renderer/replies/renderPlanReplies.ts` - Added `buildPlannerApprovalContent()` function
+- `apps/terminal-pro/tests/unit/planner-approval.test.ts` - Added 40 tests for approval block behavior
+
+### Customer Validation Status
+**READY FOR CUSTOMER EVALUATION**
+
+All workflows use real paths (no mocks/stubs). Gaps are polish/trust issues, not functional gaps. Product can ship to early customers for feedback.

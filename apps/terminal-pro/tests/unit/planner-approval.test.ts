@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fs from 'node:fs'
+import { spawnSync } from 'node:child_process'
 import os from 'node:os'
 import path from 'node:path'
 
-import { buildPlannerApprovalContent } from '../../src/renderer/replies/renderPlanReplies.js'
+import { buildExecutionPlanContent, buildPlannerApprovalContent } from '../../src/renderer/replies/renderPlanReplies.js'
 import { plannerApprovalBlock } from '../../src/renderer/replies/renderFragments.js'
 import { buildMessageBlockNode } from '../../src/renderer/workbench/renderers/messageBlocks.js'
 import { buildReplyActionDataset } from '../../src/renderer/replies/replyActionDatasets.js'
@@ -15,6 +16,10 @@ import {
   resetMemoryWorkspaceFactStore,
 } from '../../src/main/memory/workspaceFactStore.js'
 import { acquireWorkspaceFactsFromVerifiedProof } from '../../src/main/memory/workspaceKnowledgeAcquisition.js'
+import { inspectProjectWorkspace } from '../../src/main/memory/projectInspector.js'
+import { hydrateWorkspaceKnowledge } from '../../src/main/memory/workspaceKnowledge.js'
+import { buildWorkspaceContext } from '../../src/main/memory/workspaceContextBuilder.js'
+import { createBuildPlanHelpers } from '../../src/main/planning/buildPlan.js'
 import type { VerificationStatus } from '../../src/structured-session-types.js'
 
 type FixPlanStep = {
@@ -137,6 +142,14 @@ function createEventSender() {
     send: vi.fn(),
     isDestroyed: () => false,
   } as any
+}
+
+function readNdjson(filePath: string): any[] {
+  return fs
+    .readFileSync(filePath, 'utf8')
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line))
 }
 
 describe('planner-approval block content builder', () => {
@@ -350,6 +363,181 @@ describe('planner approval execution gating', () => {
     expect(approvalBlock.actions).toHaveLength(2)
     expect(approvalBlock.actions?.[0].planApprove).toBeTruthy()
     expect(approvalBlock.actions?.[1].planReject).toBe('plan_run_789')
+  })
+
+  it('acceptance: observes, plans, approves, executes, verifies Proof, and remembers verified knowledge on real paths', async () => {
+    resetMemoryWorkspaceFactStore()
+    const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-core-loop-project-'))
+    const sessionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-core-loop-session-'))
+    try {
+      fs.mkdirSync(path.join(projectRoot, 'scripts'), { recursive: true })
+      fs.writeFileSync(
+        path.join(projectRoot, 'package.json'),
+        JSON.stringify(
+          {
+            name: 'rina-core-loop-real-path',
+            private: true,
+            scripts: {
+              build: 'node scripts/verify.cjs',
+            },
+            dependencies: {
+              '@clerk/clerk-react': '^5.0.0',
+              'better-sqlite3': '^12.0.0',
+              react: '^18.0.0',
+            },
+            devDependencies: {
+              vite: '^5.0.0',
+            },
+          },
+          null,
+          2
+        )
+      )
+      fs.writeFileSync(path.join(projectRoot, 'package-lock.json'), '{"lockfileVersion":3}\n')
+      fs.writeFileSync(path.join(projectRoot, 'vercel.json'), '{"version":2}\n')
+      fs.writeFileSync(path.join(projectRoot, 'scripts', 'verify.cjs'), "console.log('core loop verification passed')\n")
+
+      const inspection = await inspectProjectWorkspace(projectRoot)
+      expect(inspection.packageManager).toBe('npm')
+      expect(inspection.frameworks).toEqual(expect.arrayContaining(['react', 'vite']))
+      expect(inspection.authPackages).toContain('@clerk/clerk-react')
+      expect(inspection.databasePackages).toContain('better-sqlite3')
+      expect(inspection.canDeploy).toBe(true)
+
+      const factStore = createMemoryWorkspaceFactStore()
+      const workspaceContext = buildWorkspaceContext(await hydrateWorkspaceKnowledge(factStore), inspection)
+      expect(workspaceContext.dependencies.some((fact) => fact.key === 'package.manager')).toBe(true)
+      expect(workspaceContext.dependencies.some((fact) => fact.key === 'auth.provider')).toBe(true)
+      expect(workspaceContext.dependencies.some((fact) => fact.key === 'database.primary')).toBe(true)
+
+      const helpers = createBuildPlanHelpers({
+        fs: {},
+        path: {},
+        playbooks: [],
+        topCpuCmdSafeShort: 'ps aux',
+      } as any)
+      const plan = await helpers.makePlan('build the project', projectRoot)
+      const executableStep = plan.steps.find((step: any) => step.input?.command === 'npm run build')
+      expect(executableStep).toBeTruthy()
+
+      const approval = {
+        planId: plan.id,
+        approvedAt: '2026-06-09T00:00:00.000Z',
+        actor: 'user',
+      }
+      const proofId = `proof:${plan.id}:core-loop`
+      const runtimeId = 'runtime:core-loop'
+      const store = new StructuredSessionStore(sessionRoot, true, {
+        onProofVerified: (verification) => {
+          void acquireWorkspaceFactsFromVerifiedProof({
+            verification,
+            store: factStore,
+            successfulCommands: 1,
+            failedCommands: 0,
+          })
+        },
+      })
+      store.init()
+      const sessionId = store.startSession({ source: 'core_loop_acceptance', projectRoot, preferredId: plan.id })
+      const streamId = 'stream_core_loop_real_execution'
+
+      store.beginCommand({
+        sessionId,
+        streamId,
+        command: executableStep!.input.command,
+        cwd: projectRoot,
+        risk: executableStep!.risk,
+        source: 'planner_approval',
+        planId: approval.planId,
+        approvalTimestamp: approval.approvedAt,
+        approvalActor: approval.actor,
+        runtimeId,
+        proofId,
+      })
+
+      const executed = spawnSync('npm', ['run', 'build'], {
+        cwd: projectRoot,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      })
+      if (executed.stdout) store.appendChunk(streamId, 'stdout', executed.stdout)
+      if (executed.stderr) store.appendChunk(streamId, 'stderr', executed.stderr)
+      expect(executed.status).toBe(0)
+      store.recordEvidence({
+        sessionId,
+        proofId,
+        type: 'command_execution',
+        status: 'present',
+        payload: executableStep!.input.command,
+      })
+      store.recordEvidence({
+        sessionId,
+        proofId,
+        type: 'exit_code',
+        status: 'present',
+        payload: '0',
+      })
+      store.recordEvidence({
+        sessionId,
+        proofId,
+        type: 'runtime_event',
+        status: 'present',
+        payload: runtimeId,
+      })
+      store.endCommand({
+        streamId,
+        ok: true,
+        code: executed.status,
+        cancelled: false,
+      })
+
+      const verification = store.verifyProof(proofId)
+      await Promise.resolve()
+      await Promise.resolve()
+      await new Promise((resolve) => setTimeout(resolve, 0))
+
+      expect(verification).toMatchObject({
+        proof_id: proofId,
+        verification_status: 'verified',
+        evidence_count: 3,
+      })
+
+      const commandRows = readNdjson(path.join(sessionRoot, 'sessions', sessionId, 'commands.ndjson'))
+      const startRow = commandRows.find((row) => row.stream_id === streamId && !row.ended_at)
+      const endRow = commandRows.find((row) => row.stream_id === streamId && row.ended_at)
+      expect(startRow).toMatchObject({
+        input: 'npm run build',
+        cwd: expect.any(String),
+        plan_id: approval.planId,
+        approval_timestamp: approval.approvedAt,
+        approval_actor: approval.actor,
+        runtime_id: runtimeId,
+        proof_id: proofId,
+      })
+      expect(endRow).toMatchObject({
+        input: 'npm run build',
+        ok: true,
+        exit_code: 0,
+        proof_id: proofId,
+      })
+
+      const evidenceRows = readNdjson(path.join(sessionRoot, 'evidence.ndjson'))
+      expect(evidenceRows.map((row) => row.type)).toEqual(['command_execution', 'exit_code', 'runtime_event'])
+      expect(evidenceRows.every((row) => row.status === 'present' && row.proof_id === proofId)).toBe(true)
+
+      const proofFacts = await factStore.listFacts({ source: 'proof' })
+      expect(proofFacts.map((fact) => fact.key)).toEqual([
+        `proof.${proofId}.verification_status`,
+        `proof.${proofId}.evidence_count`,
+        `proof.${proofId}.successful_commands`,
+        `proof.${proofId}.failed_commands`,
+      ])
+      expect(proofFacts.every((fact) => fact.confidence === 'high')).toBe(true)
+    } finally {
+      fs.rmSync(projectRoot, { recursive: true, force: true })
+      fs.rmSync(sessionRoot, { recursive: true, force: true })
+      resetMemoryWorkspaceFactStore()
+    }
   })
 
   it('does not start execution for a write plan before approval', async () => {
@@ -967,29 +1155,144 @@ expect(executeRemotePlan).toHaveBeenCalledWith(
      })
 
      it('does not persist proof-derived WorkspaceFacts when Proof verification is partial', async () => {
-       resetMemoryWorkspaceFactStore()
-       const factStore = createMemoryWorkspaceFactStore()
-       const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-verify-no-acquire-'))
-       try {
-         const store = new StructuredSessionStore(root, true, {
-           onProofVerified: (verification) => {
-             void acquireWorkspaceFactsFromVerifiedProof({ verification, store: factStore })
-           },
-         })
-         store.init()
+        resetMemoryWorkspaceFactStore()
+        const factStore = createMemoryWorkspaceFactStore()
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rina-verify-no-acquire-'))
+        try {
+          const store = new StructuredSessionStore(root, true, {
+            onProofVerified: (verification) => {
+              void acquireWorkspaceFactsFromVerifiedProof({ verification, store: factStore })
+            },
+          })
+          store.init()
 
-         store.recordEvidence({ sessionId: 's1', type: 'command_execution', status: 'present', payload: 'exec', proofId: 'proof:partial-learn' })
-         store.recordEvidence({ sessionId: 's1', type: 'exit_code', status: 'missing', payload: 'n/a', proofId: 'proof:partial-learn' })
+          store.recordEvidence({ sessionId: 's1', type: 'command_execution', status: 'present', payload: 'exec', proofId: 'proof:partial-learn' })
+          store.recordEvidence({ sessionId: 's1', type: 'exit_code', status: 'missing', payload: 'n/a', proofId: 'proof:partial-learn' })
 
-         const result = store.verifyProof('proof:partial-learn')
-         await Promise.resolve()
-         await Promise.resolve()
+          const result = store.verifyProof('proof:partial-learn')
+          await Promise.resolve()
+          await Promise.resolve()
 
-         expect(result.verification_status).toBe('partially_verified')
-         expect(await factStore.listFacts({ source: 'proof' })).toEqual([])
-       } finally {
-         fs.rmSync(root, { recursive: true, force: true })
-         resetMemoryWorkspaceFactStore()
-       }
-     })
-   })
+          expect(result.verification_status).toBe('partially_verified')
+          expect(await factStore.listFacts({ source: 'proof' })).toEqual([])
+        } finally {
+          fs.rmSync(root, { recursive: true, force: true })
+          resetMemoryWorkspaceFactStore()
+        }
+      })
+    })
+
+describe('buildExecutionPlanContent trust blocker fix', () => {
+  it('shows approval block with commands when reviewOnly is true', () => {
+    const plan: FixPlanResponse = {
+      id: 'plan_123',
+      reasoning: 'Build the project safely',
+      steps: [
+        { stepId: 's1', tool: 'terminal', input: { command: 'npm install', cwd: '/tmp/test' }, risk: 'safe-write' },
+        { stepId: 's2', tool: 'terminal', input: { command: 'npm run build', cwd: '/tmp/test' }, risk: 'inspect' },
+      ],
+    }
+
+    const blocks = buildExecutionPlanContent('build the project', plan, [], {
+      introText: 'Plan ready for approval',
+      reviewOnly: true,
+      workspaceRoot: '/tmp/test',
+    })
+
+    // Should return planner-approval block type for review-only
+    expect(blocks.length).toBeGreaterThan(0)
+    expect(blocks[1].type).toBe('planner-approval')
+
+    const approvalBlock = blocks[1] as {
+      type: 'planner-approval'
+      steps?: Array<{ stepId: string; command: string; risk?: string }>
+      actions?: Array<{ label: string }>
+    }
+
+    // Commands must be visible
+    expect(approvalBlock.steps).toHaveLength(2)
+    expect(approvalBlock.steps?.[0].command).toBe('npm install')
+    expect(approvalBlock.steps?.[1].command).toBe('npm run build')
+
+    // Approval actions must be present
+    expect(approvalBlock.actions).toBeDefined()
+    expect(approvalBlock.actions?.[0].label).toBe('Approve & Run')
+    expect(approvalBlock.actions?.[1].label).toBe('Reject')
+  })
+
+  it('does not invent commands - renderer uses planner data only', () => {
+    const plan: FixPlanResponse = {
+      id: 'plan_456',
+      reasoning: 'Test plan',
+      steps: [
+        { stepId: 's1', tool: 'terminal', input: { command: 'echo hello', cwd: '/tmp' }, risk: 'inspect' },
+      ],
+    }
+
+    const blocks = buildExecutionPlanContent('test', plan, [], {
+      reviewOnly: true,
+      workspaceRoot: '/tmp/test',
+    })
+
+    const approvalBlock = blocks[1] as { steps?: Array<{ command: string }> }
+    expect(approvalBlock.steps?.[0].command).toBe('echo hello')
+    // Should NOT have invented any commands
+    expect(approvalBlock.steps?.[0].command).not.toContain('injected')
+  })
+
+  it('handles missing commands gracefully without crashing', () => {
+    const plan: FixPlanResponse = {
+      id: 'plan_789',
+      reasoning: 'Plan with missing commands',
+      steps: [
+        { stepId: 's1', tool: 'terminal', input: {}, risk: 'inspect' },
+      ],
+    }
+
+    // Should not throw
+    const blocks = buildExecutionPlanContent('test', plan, [], {
+      reviewOnly: true,
+      workspaceRoot: '/tmp/test',
+    })
+
+    expect(blocks.length).toBeGreaterThan(0)
+    const approvalBlock = blocks[1] as { steps?: Array<{ command: string }> }
+    expect(approvalBlock.steps?.[0].command).toBe('')
+  })
+
+  it('shows risk level in approval block', () => {
+    const plan: FixPlanResponse = {
+      id: 'plan_risk',
+      reasoning: 'High risk plan',
+      steps: [
+        { stepId: 's1', tool: 'terminal', input: { command: 'rm -rf /', cwd: '/tmp' }, risk: 'dangerous' },
+      ],
+    }
+
+    const blocks = buildExecutionPlanContent('dangerous command', plan, [], {
+      reviewOnly: true,
+      workspaceRoot: '/tmp/test',
+    })
+
+    const approvalBlock = blocks[1] as { riskLevel?: string }
+    expect(approvalBlock.riskLevel).toBe('high')
+  })
+
+  it('does not show approval actions for non-review-only mode', () => {
+    const plan: FixPlanResponse = {
+      id: 'plan_exec',
+      reasoning: 'Direct execution',
+      steps: [
+        { stepId: 's1', tool: 'terminal', input: { command: 'npm run build', cwd: '/tmp' }, risk: 'inspect' },
+      ],
+    }
+
+    const blocks = buildExecutionPlanContent('build', plan, [], {
+      reviewOnly: false,
+      workspaceRoot: '/tmp/test',
+    })
+
+    // Should NOT be planner-approval type
+    expect(blocks[1].type).toBe('reply-card')
+  })
+})
