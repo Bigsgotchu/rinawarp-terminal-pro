@@ -11,6 +11,7 @@ import type {
   ConversationTurnResult,
   HandleUserTurnResult,
   IntentResult,
+  WorkspaceKnowledgeInspectionSnapshot,
 } from './conversationTypes.js'
 
 type MemoryStoreLike = {
@@ -114,6 +115,7 @@ type UnifiedTurnDeps = {
   latestRun?: ConversationRunReference | null
   buildPlan: (intentText: string, projectRoot: string) => Promise<ConversationPlanPreview>
   memoryStore: MemoryStoreLike
+  workspaceKnowledge?: WorkspaceKnowledgeInspectionSnapshot | null
 }
 
 const memoryExtractor = createRuleBasedMemoryExtractor()
@@ -259,6 +261,7 @@ export async function handleUnifiedConversationTurn(deps: UnifiedTurnDeps): Prom
     },
     workspaceLabel: deps.workspaceId || 'this workspace',
     latestRun: deps.latestRun || null,
+    workspaceKnowledge: deps.workspaceKnowledge || null,
   })
 
   timelineEvents.push(buildEvent({
@@ -280,6 +283,9 @@ export async function handleUnifiedConversationTurn(deps: UnifiedTurnDeps): Prom
     hasActiveTask: Boolean(routedTurn.requiresAction),
     tonePreference,
   }).trim()
+  if (conversationReply.message.startsWith('Workspace Knowledge')) {
+    assistantReply = conversationReply.message
+  }
   let planPreview: ConversationPlanPreview | undefined
   let permissionRequest: { required: boolean; reason: string; actions: string[] } | undefined
   let task: Awaited<ReturnType<typeof taskController.start>> | undefined

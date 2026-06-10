@@ -1,9 +1,11 @@
 import { hasSharedWorkspaceFile, readSharedWorkspaceTextFile } from '../runtime/runtimeAccess.js'
 import { resolveDiagnosticContext, shouldAskClarifyingQuestion } from '../utils/diagnosticContext.js'
+import { buildWorkspaceKnowledgeInspection } from '../memory/workspaceKnowledge.js'
 import type {
   BuildConversationReplyArgs,
   ConversationRunReference,
   RouteConversationTurnArgs,
+  WorkspaceKnowledgeInspectionSnapshot,
 } from './conversationTypes.js'
 
 async function hasWorkspaceFile(workspaceRoot: string, candidate: string): Promise<boolean> {
@@ -54,7 +56,7 @@ export function resolveSelfCheckContext(args: RouteConversationTurnArgs): {
 export async function buildConversationReply(
   args: BuildConversationReplyArgs
 ): Promise<{ intent: string; message: string }> {
-  const { routedTurn, workspaceLabel, latestRun } = args
+  const { routedTurn, workspaceLabel, latestRun, workspaceKnowledge } = args
   const rawText = normalizeWhitespace(routedTurn.rawText || '').toLowerCase()
 
   switch (routedTurn.mode) {
@@ -80,7 +82,7 @@ export async function buildConversationReply(
         intent: 'question',
         message: isGeneralQuestion(rawText)
           ? buildGeneralQuestionReply(rawText, latestRun)
-          : buildWorkspaceResponse(rawText, latestRun),
+          : buildWorkspaceResponse(rawText, latestRun, workspaceKnowledge),
       }
     case 'help':
       return {
@@ -100,7 +102,7 @@ export async function buildConversationReply(
     case 'follow_up':
       return {
         intent: 'follow_up',
-        message: buildWorkspaceResponse(rawText, latestRun),
+        message: buildWorkspaceResponse(rawText, latestRun, workspaceKnowledge),
       }
     case 'recovery':
       return {
@@ -145,7 +147,7 @@ function isGeneralQuestion(rawText: string): boolean {
   if (!rawText) return false
   if (/\b(how are you|how's it going|hows it going|what's up|whats up)\b/.test(rawText)) return true
   if (/\b(what knowledge do you have|what do you know|who are you|what are you|tell me about yourself)\b/.test(rawText)) {
-    return !/\b(workspace|run|receipt|files?|logs?|task|history|last run|changed|modified|what happened|what failed|what broke)\b/.test(rawText)
+    return !/\b(project|workspace|repo|repository|codebase|run|receipt|files?|logs?|task|history|last run|changed|modified|what happened|what failed|what broke)\b/.test(rawText)
   }
   return false
 }
@@ -172,7 +174,46 @@ function buildGeneralQuestionReply(rawText: string, latestRun?: ConversationRunR
   return buildChatReply(rawText, latestRun)
 }
 
-function buildWorkspaceResponse(rawText: string, latestRun?: ConversationRunReference | null): string {
+function isWorkspaceKnowledgeQuestion(rawText: string): boolean {
+  return (
+    /\b(what knowledge do you have|what do you know|what do you know about this project|what do you know about the project)\b/.test(rawText) &&
+    /\b(project|workspace|repo|repository|codebase)\b/.test(rawText)
+  )
+}
+
+function buildWorkspaceResponse(
+  rawText: string,
+  latestRun?: ConversationRunReference | null,
+  workspaceKnowledge?: WorkspaceKnowledgeInspectionSnapshot | null
+): string {
+  if (isWorkspaceKnowledgeQuestion(rawText)) {
+    if (workspaceKnowledge) return buildWorkspaceKnowledgeInspection(workspaceKnowledge)
+    return `Workspace Knowledge
+
+Architecture
+- None
+
+Dependencies
+- None
+
+Conventions
+- None
+
+Preferences
+- None
+
+Recurring Failures
+- None
+
+Runtime Facts
+- None
+
+Confidence
+- 0 high
+- 0 medium
+- 0 low`
+  }
+
   const known: string[] = []
   const unknown: string[] = []
 

@@ -12,6 +12,7 @@ import {
   hydrateWorkspaceKnowledge,
   buildKnowledgeSummary,
   formatKnowledgeForDisplay,
+  buildWorkspaceKnowledgeInspection,
   type WorkspaceKnowledgeSnapshot,
   type KnowledgeSummary,
 } from "../../src/main/memory/workspaceKnowledge.js";
@@ -166,12 +167,12 @@ describe("buildKnowledgeSummary", () => {
 
     const summary = buildKnowledgeSummary(snapshot);
 
-    expect(summary.architecture).toBe("- AgentRuntime");
-    expect(summary.dependencies).toBe("- SQLite");
-    expect(summary.conventions).toBe("- camelCase naming");
-    expect(summary.preferences).toBe("- dark mode");
-    expect(summary.recurring_failures).toBe("- TypeScript compile error");
-    expect(summary.runtime_facts).toBe("- Proof enabled");
+    expect(summary.architecture).toEqual(["AgentRuntime"]);
+    expect(summary.dependencies).toEqual(["SQLite"]);
+    expect(summary.conventions).toEqual(["camelCase naming"]);
+    expect(summary.preferences).toEqual(["dark mode"]);
+    expect(summary.recurring_failures).toEqual(["TypeScript compile error"]);
+    expect(summary.runtime_facts).toEqual(["Proof enabled"]);
     expect(summary.confidence.high).toBe(0);
     expect(summary.confidence.medium).toBe(6);
     expect(summary.confidence.low).toBe(0);
@@ -213,24 +214,24 @@ describe("buildKnowledgeSummary", () => {
 
     const summary = buildKnowledgeSummary(snapshot);
 
-    expect(summary.architecture).toBe("None");
-    expect(summary.dependencies).toBe("None");
-    expect(summary.conventions).toBe("None");
-    expect(summary.preferences).toBe("None");
-    expect(summary.recurring_failures).toBe("None");
-    expect(summary.runtime_facts).toBe("None");
+    expect(summary.architecture).toEqual([]);
+    expect(summary.dependencies).toEqual([]);
+    expect(summary.conventions).toEqual([]);
+    expect(summary.preferences).toEqual([]);
+    expect(summary.recurring_failures).toEqual([]);
+    expect(summary.runtime_facts).toEqual([]);
   });
 });
 
 describe("formatKnowledgeForDisplay", () => {
   it("formats summary into human-readable output", () => {
     const summary: KnowledgeSummary = {
-      architecture: "- AgentRuntime\n- Agent Shell",
-      dependencies: "- SQLite\n- npm",
-      conventions: "- camelCase",
-      preferences: "- dark mode",
-      recurring_failures: "- TypeScript error",
-      runtime_facts: "- Proof enabled",
+      architecture: ["AgentRuntime", "Agent Shell"],
+      dependencies: ["SQLite", "npm"],
+      conventions: ["camelCase"],
+      preferences: ["dark mode"],
+      recurring_failures: ["TypeScript error"],
+      runtime_facts: ["Proof enabled"],
       confidence: { high: 3, medium: 2, low: 1 },
     };
 
@@ -259,22 +260,49 @@ describe("formatKnowledgeForDisplay", () => {
 
   it("formats output with None for empty categories", () => {
     const summary: KnowledgeSummary = {
-      architecture: "None",
-      dependencies: "None",
-      conventions: "None",
-      preferences: "None",
-      recurring_failures: "None",
-      runtime_facts: "None",
+      architecture: [],
+      dependencies: [],
+      conventions: [],
+      preferences: [],
+      recurring_failures: [],
+      runtime_facts: [],
       confidence: { high: 0, medium: 0, low: 0 },
     };
 
     const output = formatKnowledgeForDisplay(summary);
 
-    expect(output).toContain("Architecture\nNone");
-    expect(output).toContain("Dependencies\nNone");
-    expect(output).toContain("Conventions\nNone");
-    expect(output).toContain("Preferences\nNone");
-    expect(output).toContain("Recurring Failures\nNone");
-    expect(output).toContain("Runtime Facts\nNone");
+    expect(output).toContain("Architecture\n- None");
+    expect(output).toContain("Dependencies\n- None");
+    expect(output).toContain("Conventions\n- None");
+    expect(output).toContain("Preferences\n- None");
+    expect(output).toContain("Recurring Failures\n- None");
+    expect(output).toContain("Runtime Facts\n- None");
+  });
+
+  it("builds a complete inspection directly from a snapshot", () => {
+    const snapshot: WorkspaceKnowledgeSnapshot = {
+      architecture: [
+        makeFact({ id: "arch_1", value: "AgentRuntime", confidence: "high" }),
+        makeFact({ id: "arch_2", value: "Agent Shell", confidence: "high" }),
+      ],
+      dependencies: [makeFact({ id: "dep_1", value: "SQLite", confidence: "medium" })],
+      conventions: [makeFact({ id: "conv_1", value: "Proof-first language", confidence: "medium" })],
+      preferences: [makeFact({ id: "pref_1", value: "Concise replies", confidence: "low" })],
+      recurring_failures: [makeFact({ id: "rf_1", value: "Missing dist package outputs", confidence: "low" })],
+      runtime_facts: [makeFact({ id: "rt_1", value: "Planner Approval enabled", confidence: "high" })],
+      fact_count: 6,
+      last_hydrated_at: "2026-06-09T00:00:00.000Z",
+    };
+
+    const output = buildWorkspaceKnowledgeInspection(snapshot);
+
+    expect(output).toContain("Workspace Knowledge");
+    expect(output).toContain("Architecture\n- AgentRuntime\n- Agent Shell");
+    expect(output).toContain("Dependencies\n- SQLite");
+    expect(output).toContain("Conventions\n- Proof-first language");
+    expect(output).toContain("Preferences\n- Concise replies");
+    expect(output).toContain("Recurring Failures\n- Missing dist package outputs");
+    expect(output).toContain("Runtime Facts\n- Planner Approval enabled");
+    expect(output).toContain("Confidence\n- 3 high\n- 2 medium\n- 2 low");
   });
 });

@@ -10,6 +10,7 @@ import {
 import { routeConversationTurn } from '../../src/main/orchestration/conversationRouter.js'
 import { handleUnifiedConversationTurn } from '../../src/main/orchestration/unifiedTurn.js'
 import { createBuildPlanHelpers } from '../../src/main/planning/buildPlan.js'
+import { createWorkspaceFact } from '../../src/main/memory/memoryTypes.js'
 
 function createMemoryStoreStub() {
   const profile: { tonePreference?: 'concise' | 'balanced' | 'detailed' } = {}
@@ -145,6 +146,62 @@ describe('unified conversation turn', () => {
     const state = memoryStore.getState()
     expect(state.memory.profile.tonePreference).toBe('concise')
     expect(state.memory.operationalMemories.some((entry) => /pnpm/i.test(entry.content))).toBe(true)
+  })
+
+  it('answers project knowledge questions from the hydrated workspace snapshot', async () => {
+    const memoryStore = createMemoryStoreStub()
+    const result = await handleUnifiedConversationTurn({
+      rawText: 'Rina, what do you know about this project?',
+      workspaceId: '/tmp/rinawarp-terminal-pro',
+      latestRun: null,
+      buildPlan: async () => ({ id: 'plan_0', reasoning: '', steps: [] }),
+      memoryStore,
+      workspaceKnowledge: {
+        architecture: [
+          createWorkspaceFact({
+            id: 'arch_runtime',
+            key: 'architecture.runtime',
+            value: 'AgentRuntime',
+            category: 'architecture',
+            source: 'config',
+            confidence: 'high',
+          }),
+        ],
+        dependencies: [
+          createWorkspaceFact({
+            id: 'dep_sqlite',
+            key: 'dependency.sqlite',
+            value: 'SQLite',
+            category: 'dependency',
+            source: 'config',
+            confidence: 'medium',
+          }),
+        ],
+        conventions: [],
+        preferences: [],
+        recurring_failures: [],
+        runtime_facts: [
+          createWorkspaceFact({
+            id: 'runtime_proof',
+            key: 'runtime.proof',
+            value: 'Proof enabled',
+            category: 'runtime_fact',
+            source: 'runtime',
+            confidence: 'high',
+          }),
+        ],
+        fact_count: 3,
+        last_hydrated_at: '2026-06-09T00:00:00.000Z',
+      },
+    })
+
+    expect(result.turn.mode).toBe('question')
+    expect(result.turn.assistantReply).toContain('Workspace Knowledge')
+    expect(result.turn.assistantReply).toContain('Architecture\n- AgentRuntime')
+    expect(result.turn.assistantReply).toContain('Dependencies\n- SQLite')
+    expect(result.turn.assistantReply).toContain('Runtime Facts\n- Proof enabled')
+    expect(result.turn.assistantReply).toContain('Confidence\n- 2 high\n- 1 medium\n- 0 low')
+    expect(result.turn.requiresAction).toBe(false)
   })
 
   it('answers task requests with teammate-first language while preserving constraints', async () => {

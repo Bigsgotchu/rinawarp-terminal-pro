@@ -31,7 +31,7 @@ const SOCIAL_WORDS = /\b(lol|haha|fair|thanks|thank you|funny|nice|cool|okay|ok)
 const GENERAL_KNOWLEDGE_WORDS =
   /\b(what knowledge do you have|what do you know|who are you|what are you|tell me about yourself)\b/i
 const WORKSPACE_FACT_WORDS =
-  /\b(workspace|run|receipt|resume|rerun|file|files|diagnostics?|settings|logs?|task|task history|last run|changed|modif(?:y|ied|ications)|what happened|what broke|what failed)\b/i
+  /\b(project|workspace|repo|repository|codebase|run|receipt|resume|rerun|file|files|diagnostics?|settings|logs?|task|task history|last run|changed|modif(?:y|ied|ications)|what happened|what broke|what failed)\b/i
 const PROJECT_UNDERSTANDING_WORDS =
   /\b(what is (?:this|the) project|what does (?:this|the) project do|how do i run (?:it|this|the project)|how to run (?:it|this|the project)|inspect package\.json|available scripts|what scripts)\b/i
 const VAGUE_WORK_WORDS = /\b(make this work|make it work|fix whatever is broken|this is broken|what failed|what's wrong|what is wrong|look into this|inspect this|check this)\b/i

@@ -1,5 +1,25 @@
 # Project State
 
+## 2026-06-09 Workspace Knowledge Inspection
+
+Added read-only workspace knowledge inspection:
+
+- `buildKnowledgeSummary(...)` now generates structured category summaries from `WorkspaceKnowledgeSnapshot`.
+- `buildWorkspaceKnowledgeInspection(...)` formats a human-readable response with:
+  - architecture
+  - dependencies
+  - conventions
+  - preferences
+  - recurring failures
+  - runtime facts
+  - confidence counts
+- “Rina, what do you know about this project?” routes to a reply-only workspace knowledge answer when a hydrated snapshot is provided.
+- No editing UI, dashboard, sidebar, control panel, or persistence changes were added.
+
+Next milestone:
+
+- Workspace Knowledge Acquisition: verified Proof outcomes become WorkspaceFacts for future sessions.
+
 ## 2026-06-09 Product Narrative Alignment
 
 RinaWarp Terminal Pro product copy now aligns with `docs/PRODUCT_LOCK.md` and `docs/PRODUCT_UI_LOCK.md`.

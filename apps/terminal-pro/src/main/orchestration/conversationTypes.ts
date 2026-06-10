@@ -1,3 +1,5 @@
+import type { WorkspaceKnowledgeSnapshot } from '../memory/workspaceKnowledge.js'
+
 export type ConversationMode =
   | 'chat'
   | 'help'
@@ -187,6 +189,8 @@ export type ConversationRunReference = {
   source?: string
 }
 
+export type WorkspaceKnowledgeInspectionSnapshot = WorkspaceKnowledgeSnapshot
+
 export type RouteConversationTurnArgs = {
   rawText: string
   workspaceId?: string
@@ -197,4 +201,5 @@ export type BuildConversationReplyArgs = {
   routedTurn: RoutedTurn
   workspaceLabel?: string
   latestRun?: ConversationRunReference | null
+  workspaceKnowledge?: WorkspaceKnowledgeInspectionSnapshot | null
 }

@@ -1,5 +1,5 @@
-import type { WorkspaceFact, WorkspaceFactCategory } from "./memoryTypes.js";
-import type { WorkspaceFactStore } from "./workspaceFactStore.js";
+import type { WorkspaceFact, WorkspaceFactCategory } from './memoryTypes.js'
+import type { WorkspaceFactStore } from './workspaceFactStore.js'
 
 export interface WorkspaceKnowledgeSnapshot {
   architecture: WorkspaceFact[];
@@ -55,12 +55,12 @@ export async function hydrateWorkspaceKnowledge(
 }
 
 export interface KnowledgeSummary {
-  architecture: string
-  dependencies: string
-  conventions: string
-  preferences: string
-  recurring_failures: string
-  runtime_facts: string
+  architecture: string[]
+  dependencies: string[]
+  conventions: string[]
+  preferences: string[]
+  recurring_failures: string[]
+  runtime_facts: string[]
   confidence: {
     high: number
     medium: number
@@ -76,9 +76,8 @@ function countByConfidence(facts: WorkspaceFact[]): { high: number; medium: numb
   return counts
 }
 
-function formatFactList(facts: WorkspaceFact[]): string {
-  if (facts.length === 0) return "None"
-  return facts.map((f) => `- ${f.value}`).join("\n")
+function summarizeFacts(facts: WorkspaceFact[]): string[] {
+  return facts.map((fact) => fact.value)
 }
 
 export function buildKnowledgeSummary(snapshot: WorkspaceKnowledgeSnapshot): KnowledgeSummary {
@@ -93,47 +92,44 @@ export function buildKnowledgeSummary(snapshot: WorkspaceKnowledgeSnapshot): Kno
   const confidenceCount = countByConfidence(allFactCategories)
 
   return {
-    architecture: formatFactList(snapshot.architecture),
-    dependencies: formatFactList(snapshot.dependencies),
-    conventions: formatFactList(snapshot.conventions),
-    preferences: formatFactList(snapshot.preferences),
-    recurring_failures: formatFactList(snapshot.recurring_failures),
-    runtime_facts: formatFactList(snapshot.runtime_facts),
+    architecture: summarizeFacts(snapshot.architecture),
+    dependencies: summarizeFacts(snapshot.dependencies),
+    conventions: summarizeFacts(snapshot.conventions),
+    preferences: summarizeFacts(snapshot.preferences),
+    recurring_failures: summarizeFacts(snapshot.recurring_failures),
+    runtime_facts: summarizeFacts(snapshot.runtime_facts),
     confidence: confidenceCount,
   }
 }
 
+function appendSection(lines: string[], title: string, items: string[]): void {
+  lines.push(title)
+  if (items.length === 0) {
+    lines.push('- None')
+  } else {
+    lines.push(...items.map((item) => `- ${item}`))
+  }
+  lines.push('')
+}
+
 export function formatKnowledgeForDisplay(summary: KnowledgeSummary): string {
-  const lines: string[] = ["Workspace Knowledge", ""]
+  const lines: string[] = ['Workspace Knowledge', '']
 
-  lines.push("Architecture")
-  lines.push(summary.architecture)
-  lines.push("")
+  appendSection(lines, 'Architecture', summary.architecture)
+  appendSection(lines, 'Dependencies', summary.dependencies)
+  appendSection(lines, 'Conventions', summary.conventions)
+  appendSection(lines, 'Preferences', summary.preferences)
+  appendSection(lines, 'Recurring Failures', summary.recurring_failures)
+  appendSection(lines, 'Runtime Facts', summary.runtime_facts)
 
-  lines.push("Dependencies")
-  lines.push(summary.dependencies)
-  lines.push("")
-
-  lines.push("Conventions")
-  lines.push(summary.conventions)
-  lines.push("")
-
-  lines.push("Preferences")
-  lines.push(summary.preferences)
-  lines.push("")
-
-  lines.push("Recurring Failures")
-  lines.push(summary.recurring_failures)
-  lines.push("")
-
-  lines.push("Runtime Facts")
-  lines.push(summary.runtime_facts)
-  lines.push("")
-
-  lines.push("Confidence")
+  lines.push('Confidence')
   lines.push(`- ${summary.confidence.high} high`)
   lines.push(`- ${summary.confidence.medium} medium`)
   lines.push(`- ${summary.confidence.low} low`)
 
-  return lines.join("\n")
+  return lines.join('\n')
+}
+
+export function buildWorkspaceKnowledgeInspection(snapshot: WorkspaceKnowledgeSnapshot): string {
+  return formatKnowledgeForDisplay(buildKnowledgeSummary(snapshot))
 }
