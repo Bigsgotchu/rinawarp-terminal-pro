@@ -4,29 +4,29 @@
 @import "./styles/renderer-inspectors.css";
 
 :root {
-  --rw-bg: #0a0d12;
+  --rw-bg: var(--rina-bg);
   --rw-bg-elevated: #111620;
   --rw-panel: rgba(21, 26, 36, 0.96);
   --rw-panel-alt: rgba(16, 20, 30, 0.96);
   --rw-border: rgba(255, 255, 255, 0.1);
-  --rw-border-strong: rgba(29, 233, 182, 0.24);
-  --rw-fg: #e8eaed;
-  --rw-muted: #9aa4b2;
+  --rw-border-strong: rgba(255, 47, 179, 0.24);
+  --rw-fg: var(--rina-text);
+  --rw-muted: var(--rina-muted);
   --rw-subtle: #6b7280;
-  --rw-accent: #1de9b6;
-  --rw-accent-2: #7cc7ff;
-  --rw-danger: #ff2e88;
-  --rw-warning: #ff6f61;
+  --rw-accent: var(--rina-teal);
+  --rw-accent-2: var(--rina-blue);
+  --rw-danger: var(--rina-coral);
+  --rw-warning: var(--rina-coral);
   --rw-shadow: 0 16px 44px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255,255,255,0.02) inset;
   --font-ui: "Avenir Next", "Segoe UI Variable", "SF Pro Display", "Helvetica Neue", sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
 
   --text-primary: var(--rw-fg);
   --text-muted: var(--rw-muted);
-  --teal: #1de9b6;
-  --coral: #ff6f61;
-  --hot-pink: #ff2e88;
-  --baby-blue: #7cc7ff;
+  --teal: var(--rina-teal);
+  --coral: var(--rina-coral);
+  --hot-pink: var(--rina-hot-pink);
+  --baby-blue: var(--rina-blue);
   --purple: #c084fc;
   --font: var(--font-mono);
 }
