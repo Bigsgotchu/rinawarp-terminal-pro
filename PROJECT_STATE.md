@@ -41,6 +41,16 @@ Wired proof-derived acquisition into the real Proof completion path:
 - Partially verified and unverified Proof records do not trigger durable workspace fact acquisition.
 - No AI text or unverified run output is used as a fact source.
 
+## 2026-06-09 Workspace Knowledge Acquisition Guards
+
+Added safety guards for the Remember layer:
+
+- AI text alone cannot write WorkspaceFacts through acquisition.
+- Unverified Proof and partially verified Proof produce no durable facts.
+- Verified Proof writes only deterministic Proof-derived facts.
+- Secret-like Proof metadata blocks acquisition rather than persisting sensitive values.
+- Duplicate Proof-derived facts update stable records instead of multiplying.
+
 ## 2026-06-09 Product Narrative Alignment
 
 RinaWarp Terminal Pro product copy now aligns with `docs/PRODUCT_LOCK.md` and `docs/PRODUCT_UI_LOCK.md`.

@@ -327,6 +327,16 @@ describe('WorkspaceFactStore interface', () => {
   })
 
   describe('proof-derived acquisition', () => {
+    it('does not persist facts from AI text alone', async () => {
+      const result = await acquireWorkspaceFactsFromVerifiedProof({
+        store,
+        aiText: 'Auth provider detected = Clerk',
+      } as unknown as Parameters<typeof acquireWorkspaceFactsFromVerifiedProof>[0])
+
+      expect(result).toEqual({ acquired: false, reason: 'missing_verified_proof', facts: [] })
+      expect(await store.listFacts()).toEqual([])
+    })
+
     it('persists proof-derived facts from verified Proof only', async () => {
       const result = await acquireWorkspaceFactsFromVerifiedProof({
         store,
@@ -355,15 +365,7 @@ describe('WorkspaceFactStore interface', () => {
       expect(stored.find((fact) => fact.key.endsWith('evidence_count'))?.value).toBe('4')
     })
 
-    it('does not persist facts for partially verified or unverified Proof', async () => {
-      const partial = await acquireWorkspaceFactsFromVerifiedProof({
-        store,
-        verification: makeProofVerification({
-          proof_id: 'proof:partial',
-          verification_status: 'partially_verified',
-          evidence_count: 2,
-        }),
-      })
+    it('does not persist facts for unverified Proof', async () => {
       const unverified = await acquireWorkspaceFactsFromVerifiedProof({
         store,
         verification: makeProofVerification({
@@ -373,9 +375,55 @@ describe('WorkspaceFactStore interface', () => {
         }),
       })
 
-      expect(partial).toEqual({ acquired: false, reason: 'proof_not_verified', facts: [] })
       expect(unverified).toEqual({ acquired: false, reason: 'proof_not_verified', facts: [] })
       expect(await store.listFacts({ source: 'proof' })).toEqual([])
+    })
+
+    it('does not persist facts for partially verified Proof', async () => {
+      const partial = await acquireWorkspaceFactsFromVerifiedProof({
+        store,
+        verification: makeProofVerification({
+          proof_id: 'proof:partial',
+          verification_status: 'partially_verified',
+          evidence_count: 2,
+        }),
+      })
+
+      expect(partial).toEqual({ acquired: false, reason: 'proof_not_verified', facts: [] })
+      expect(await store.listFacts({ source: 'proof' })).toEqual([])
+    })
+
+    it('writes only deterministic facts for verified Proof', async () => {
+      await acquireWorkspaceFactsFromVerifiedProof({
+        store,
+        verification: makeProofVerification({
+          proof_id: 'proof:deterministic',
+          verification_status: 'verified',
+          evidence_count: 3,
+          evidence_summary: 'Auth provider detected = Clerk',
+        }),
+      })
+
+      const stored = await store.listFacts({ source: 'proof' })
+      expect(stored.map((fact) => [fact.key, fact.value])).toEqual([
+        ['proof.proof:deterministic.verification_status', 'verified'],
+        ['proof.proof:deterministic.evidence_count', '3'],
+      ])
+      expect(stored.some((fact) => /clerk|auth provider/i.test(`${fact.key} ${fact.value}`))).toBe(false)
+    })
+
+    it('does not persist facts when Proof metadata contains secrets', async () => {
+      const result = await acquireWorkspaceFactsFromVerifiedProof({
+        store,
+        verification: makeProofVerification({
+          proof_id: 'proof:api_key=sk-test-1234567890abcdef',
+          verification_status: 'verified',
+          evidence_count: 2,
+        }),
+      })
+
+      expect(result).toEqual({ acquired: false, reason: 'secret_detected', facts: [] })
+      expect(await store.listFacts()).toEqual([])
     })
 
     it('uses stable ids so reacquiring the same Proof updates existing facts', async () => {
