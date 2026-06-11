@@ -20,7 +20,7 @@ export function buildDiagnosticsWorkbenchViewModel(state: WorkbenchState) {
       row('First proof at', formatAnalyticsDate(state.analytics.firstProofBackedRunAt)),
       row('Deploy target', state.deployment.target || 'none'),
       row('Detected target', state.deployment.detectedTarget || 'none'),
-      row('Detected signals', state.deployment.detectedSignals.join(', ') || 'none'),
+      row('Detected signals', Array.isArray(state.deployment.detectedSignals) ? state.deployment.detectedSignals.join(', ') : 'none'),
       row('Recommended pack', state.deployment.recommendedPackKey || 'none'),
       row('Target identity', state.deployment.targetIdentity || 'none'),
       row('Identity source', state.deployment.targetIdentitySource),

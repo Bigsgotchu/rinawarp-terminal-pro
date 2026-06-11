@@ -5,14 +5,14 @@ export function buildBrainPanelViewModel(state: WorkbenchState) {
   return {
     stats: stats
       ? [
-          { className: 'text-teal', value: String(stats.total), label: 'Total' },
-          { className: 'text-hot-pink', value: String(stats.intent), label: 'Intent' },
-          { className: 'text-coral', value: String(stats.planning), label: 'Planning' },
-          { className: 'text-babyblue', value: String(stats.tool), label: 'Tools' },
-          { className: 'text-purple', value: String(stats.memory), label: 'Memory' },
-          { className: 'text-green', value: String(stats.result), label: 'Results' },
+          { className: 'text-teal', value: String(stats.total ?? 0), label: 'Total' },
+          { className: 'text-hot-pink', value: String(stats.intent ?? 0), label: 'Intent' },
+          { className: 'text-coral', value: String(stats.planning ?? 0), label: 'Planning' },
+          { className: 'text-babyblue', value: String(stats.tool ?? 0), label: 'Tools' },
+          { className: 'text-purple', value: String(stats.memory ?? 0), label: 'Memory' },
+          { className: 'text-green', value: String(stats.result ?? 0), label: 'Results' },
         ]
       : [],
-    events: state.brain.events,
+    events: state.brain.events || [],
   }
 }

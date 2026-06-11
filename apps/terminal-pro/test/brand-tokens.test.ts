@@ -30,7 +30,7 @@ describe('Brand Tokens', () => {
     assert.ok(content.includes('--rw-teal: var(--rina-teal)'), 'rw-teal should reference --rina-teal')
   })
 
-  it('does not use neon green as primary color', () => {
+it('does not use neon green as primary color', () => {
     const stylesDir = path.join(__dirname, '..', 'src', 'renderer', 'styles')
     const cssFiles = walkDir(stylesDir, ['.css'])
 
@@ -38,19 +38,19 @@ describe('Brand Tokens', () => {
       const content = fs.readFileSync(file, 'utf8')
       assert.ok(!content.includes('#00ff00'), `${path.relative(stylesDir, file)} contains neon green #00ff00`)
       assert.ok(!content.includes('#00FF00'), `${path.relative(stylesDir, file)} contains neon green #00FF00`)
-    })
+    }
   })
 })
 
-function walkDir(dir, extensions) {
+function walkDir(dir: string, extensions: string[]): string[] {
   if (!fs.existsSync(dir)) return []
-  const results = []
+  const results: string[] = []
   const entries = fs.readdirSync(dir, { withFileTypes: true })
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name)
     if (entry.isDirectory()) {
       results.push(...walkDir(fullPath, extensions))
-    } else if (extensions.some(ext => entry.name.endsWith(ext))) {
+    } else if (extensions.some((ext) => entry.name.endsWith(ext))) {
       results.push(fullPath)
     }
   }

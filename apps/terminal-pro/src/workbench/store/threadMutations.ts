@@ -8,6 +8,7 @@ import type {
   AssistantPlanItem,
   CognitionStreamItem,
   MemoryNoteItem,
+  PlannerApprovalItem,
   ReceiptItem,
   RunBlockItem,
   ThreadCognitionLine,
@@ -21,7 +22,18 @@ export type ThreadWorkbenchSlice = {
   chat: Array<{
     id: string
     role: 'user' | 'rina' | 'system'
-    content?: Array<{ type: string; text?: string }>
+    content?: Array<{
+      type: string
+      text?: string
+      label?: string
+      summary?: string
+      steps?: Array<{ stepId?: string; tool?: string; command?: string; risk?: string }>
+      workspaceRoot?: string
+      approvalReason?: string
+      riskLevel?: 'low' | 'medium' | 'high'
+      planRunId?: string
+      actions?: PlannerApprovalItem['actions']
+    }>
     ts: number
     workspaceKey: string
     runIds?: string[]
@@ -64,6 +76,31 @@ export function chatMessageToThreadItems(message: ThreadWorkbenchSlice['chat'][n
       workspaceKey: message.workspaceKey,
       proofBacked: Boolean(message.runIds?.length),
     })
+  }
+
+  const approvalBlocks = Array.isArray(message.content)
+    ? message.content.filter((block) => block.type === 'planner-approval')
+    : []
+  for (const [index, block] of approvalBlocks.entries()) {
+    const approval: PlannerApprovalItem = {
+      id: `${message.id}:planner-approval:${index}`,
+      type: 'planner-approval',
+      summary: block.summary || 'Approval required before execution.',
+      steps: (block.steps || []).map((step, stepIndex) => ({
+        stepId: step.stepId || `Step ${stepIndex + 1}`,
+        tool: step.tool || 'shell',
+        command: step.command || '',
+        risk: step.risk,
+      })),
+      workspaceRoot: block.workspaceRoot,
+      approvalReason: block.approvalReason,
+      riskLevel: block.riskLevel,
+      planRunId: block.planRunId,
+      actions: block.actions,
+      createdAt: message.ts + index + 1,
+      workspaceKey: message.workspaceKey,
+    }
+    items.push(approval)
   }
 
   return items

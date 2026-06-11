@@ -188,6 +188,7 @@ export function createRefreshActions(deps: RefreshDeps) {
   const refreshRuntimeStatus = async (store: WorkbenchStore): Promise<void> => {
     try {
       const mode = await rina.getMode()
+      const currentRuntime = store.getState().runtime
       store.dispatch({
         type: 'runtime/set',
         runtime: {
@@ -196,6 +197,7 @@ export function createRefreshActions(deps: RefreshDeps) {
           autonomyLevel: String(rina.autonomy?.level || 'off'),
           ipcCanonicalReady: true,
           rendererCanonicalReady: true,
+          e2eMode: currentRuntime.e2eMode,
         },
       })
     } catch (error) {

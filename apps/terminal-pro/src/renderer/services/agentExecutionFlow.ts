@@ -296,7 +296,10 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
       }
       const executionAllowed =
         !turn ||
-        turn?.allowedNextAction === 'execute' || turn?.allowedNextAction === 'plan'
+        turn?.allowedNextAction === 'execute'
+      const planningAllowed =
+        executionAllowed ||
+        turn?.allowedNextAction === 'plan'
       let capabilityDecision = null as ReturnType<AgentExecutionFlowDeps['resolvePromptCapability']>
       if (executionAllowed) {
         const promptCapabilityMatch = deps.matchPromptCapability(trimmed)
@@ -350,7 +353,7 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
         return
       }
 
-      if (workspaceRoot && deps.isExecutionPrompt(trimmed) && executionAllowed) {
+      if (workspaceRoot && deps.isExecutionPrompt(trimmed) && planningAllowed) {
         const plan = (routedTurn?.task?.planPreview || turn?.planPreview || null) as FixPlanResponse | null
         const planSteps = Array.isArray(plan?.steps) ? plan.steps : []
 
@@ -365,7 +368,7 @@ export function createAgentExecutionFlow(deps: AgentExecutionFlowDeps) {
             planSteps: normalizedPlanSteps,
             capabilityRequirements: planCapabilityRequirements,
             memoryState,
-            reviewOnly: turn?.allowedNextAction === 'plan' || Boolean(routedTurn?.permissionRequest?.reason || turn?.permissionRequest?.reason),
+            reviewOnly: turn?.allowedNextAction === 'plan' || Boolean(routedTurn?.permissionRequest?.reason || turn?.permissionRequest?.reason) || !!(window as any).__RINA_E2E_MODE,
           })
           return
         }

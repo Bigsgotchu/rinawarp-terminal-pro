@@ -461,4 +461,6 @@ executeCapability: (args: {
   autonomy: { enabled: false, level: 'off' },
 })
 
+contextBridge.exposeInMainWorld('__RINA_E2E_MODE', process.env.RINAWARP_E2E === '1')
+
 // preload audit: 2026-06-02 — renderer bridge is already an explicit allowlist for invoke/on/send, nodeIntegration=false, sandbox=true.

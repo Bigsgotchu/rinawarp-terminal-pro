@@ -8,7 +8,7 @@ directories:
   buildResources: build
 
 files:
-  - dist-electron/**/*
+  - "dist-electron/**/*"
   - "!dist-electron/installer{,/**/*}"
   - package.json
   - "!test-results{,/**/*}"
@@ -50,7 +50,7 @@ mac:
 
 win:
   target:
-    - nsis
+    - ns
   icon: src/assets/icon.ico
   # Conditional code signing - only sign if CSC_LINK points to a valid file
   # For unsigned builds, leave CSC_LINK unset or set to empty string

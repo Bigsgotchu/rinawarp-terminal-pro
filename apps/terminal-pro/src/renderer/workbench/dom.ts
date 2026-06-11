@@ -11,6 +11,7 @@ export type Props = {
   class?: string
   id?: string
   title?: string
+  type?: string
   role?: string
   tabindex?: number
   disabled?: boolean
@@ -34,6 +35,7 @@ export function el<K extends keyof HTMLElementTagNameMap>(
     if (props.class) node.className = props.class
     if (props.id) node.id = props.id
     if (props.title) node.title = props.title
+    if (props.type) node.setAttribute('type', props.type)
     if (props.role) node.setAttribute('role', props.role)
     if (props.tabindex !== undefined) node.tabIndex = props.tabindex
     if (props.disabled !== undefined) (node as HTMLButtonElement).disabled = !!props.disabled

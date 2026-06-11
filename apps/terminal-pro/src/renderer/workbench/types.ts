@@ -383,6 +383,7 @@ export type WorkbenchState = {
     autonomyLevel: string
     ipcCanonicalReady: boolean
     rendererCanonicalReady: boolean
+    e2eMode: boolean
   }
   marketplace: {
     loading: boolean

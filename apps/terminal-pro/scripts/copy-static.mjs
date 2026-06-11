@@ -51,6 +51,25 @@ copyDir(path.join(projectRoot, 'src', 'assets'), path.join(outDir, 'assets'))
 copyDir(path.join(projectRoot, 'themes'), path.join(outDir, 'themes'))
 copyDir(path.join(repoRoot, 'policy'), path.join(outDir, 'policy'))
 
+// Copy runtime packages required by the main process
+const packagesToCopy = [
+  'runtime-contracts',
+  'runtime-core',
+  'runtime-feature-agentd',
+  'runtime-feature-diagnostics',
+  'runtime-feature-licensing',
+  'runtime-feature-team',
+  'runtime-feature-workspace',
+  'runtime-platform-electron',
+]
+for (const pkg of packagesToCopy) {
+  const srcPkg = path.join(repoRoot, 'packages', pkg, 'dist')
+  const destPkg = path.join(outDir, 'packages', pkg, 'dist')
+  if (fs.existsSync(srcPkg)) {
+    copyDir(srcPkg, destPkg)
+  }
+}
+
 // Copy only the compatibility style assets we still reference at runtime.
 copyOptional(path.join(projectRoot, 'src', 'renderer', 'renderer.css'), path.join(outRendererDir, 'renderer.css'))
 copyOptional(path.join(projectRoot, 'src', 'renderer', 'styles.css'), path.join(outRendererDir, 'styles.css'))

@@ -37,5 +37,6 @@ export function shouldRoutePromptThroughIngress(prompt: string): boolean {
     /\brefactor\b/i,
     /\badd tests?\b/i,
     /\brun.*test|\bbuild.*project\b/i,
+    /\bbuild\b.*\bproject\b/i,
   ].some((pattern) => pattern.test(value))
 }

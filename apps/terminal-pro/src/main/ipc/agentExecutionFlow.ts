@@ -247,13 +247,14 @@ export async function handleExecutePlanStream(
         approval_timestamp: approval.approvedAt!,
         approval_actor: approval.actor || 'user',
         session_id: payload.projectRoot,
+        thread_id: planRunId,
       },
       eventSender
     )
     if (!result.ok) {
       return { ok: false, runId, planRunId, haltReason: result.error, error: result.error, code: 'PLAN_REJECTED' }
     }
-    return { ok: true, runId, planRunId, haltedStepId: null, haltReason: '' }
+    return { ok: true, runId: result.structured_run_id || runId, planRunId, haltedStepId: null, haltReason: '' }
   }
 
   const projectRoot = args.resolveProjectRootSafe(payload.projectRoot)

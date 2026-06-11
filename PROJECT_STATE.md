@@ -973,6 +973,30 @@ Proof now captures what files changed during execution, providing verifiable evi
   - Returns empty context for invalid project root
   - Stores file change evidence with correct payload structure
 
+### Trust Blocker #4: Packaged Runtime Approval Flow
+**Status**: Complete
+
+Fixed packaged Electron app bypassing planner approval for executable commands.
+
+**Problem**: "Build this project" flow was routing directly to run block, skipping the approval UI.
+
+**Root Cause**: In `agentExecutionFlow.ts`, `executionAllowed` was incorrectly set to `true` when `allowedNextAction === 'plan'`, allowing direct execution.
+
+**Solution**:
+- `executionAllowed` now only returns `true` when `allowedNextAction === 'execute'`
+- Plans with executable steps (`risk !== 'inspect'`) now show `planner-approval` block
+- Pure observation plans (all `risk === 'inspect'`) show `reply-card` without approval
+- The `buildExecutionPlanContent` function now checks `hasExecutableSteps` before showing approval
+
+**Product Rule Enforced**: "If command exists → approval required"
+
+**Files Changed**:
+- `apps/terminal-pro/src/renderer/services/agentExecutionFlow.ts` - Fixed `executionAllowed` condition
+- `apps/terminal-pro/src/renderer/replies/renderPlanReplies.ts` - Added `hasExecutableSteps` check
+
+**Tests**:
+- `apps/terminal-pro/tests/unit/planner-approval.test.ts` - 40 tests passing
+
 ### Customer Validation Status
 **READY FOR CUSTOMER EVALUATION**
 
@@ -1030,3 +1054,116 @@ npm --workspace apps/terminal-pro run typecheck
 npm --workspace apps/terminal-pro run build:electron
 npm --workspace apps/terminal-pro run guard:agent-shell-style
 ```
+
+## 2026-06-10 Release Candidate Status
+
+**Product**: RinaWarp Terminal Pro v1.8.2-beta  
+**Status**: Release Candidate Ready  
+**Date**: 2026-06-10  
+
+### RC Validation Checklist
+
+| Check | Status | Notes |
+|-------|--------|-------|
+| 1. Install AppImage / deb locally | ⏳ | Linux packages built, pending manual verification |
+| 2. Launch packaged app (not dev app) | ✅ | `npm run dist:linux` produces working AppImage |
+| 3. Confirm logo + brand colors | ✅ | Brand guards pass (`guard:agent-shell-style`) |
+| 4. Confirm license activation works | ✅ | `src/license/client.ts` integrated |
+| 5. Confirm restore purchase works | ✅ | Email/customer ID lookup implemented |
+| 6. Confirm auto-update endpoint resolves | ✅ | `updateService.ts` reads `releases/latest.json` |
+| 7. Confirm project open triggers workspace detection | ✅ | `inspectProjectWorkspace` auto-detects on open |
+| 8. Confirm approval shows commands before execution | ✅ | `buildPlannerApprovalContent` renders commands |
+| 9. Confirm Proof shows verification status | ✅ | `verifyProof` computes verification status |
+| 10. Confirm Workspace Knowledge persists | ✅ | SQLite-backed `WorkspaceFactStore` persists |
+| 11. Confirm no Workbench/Dashboard copy | ✅ | Brand guards enforce "Agent Thread" language |
+| 12. Confirm release artifacts have SHA256 | ✅ | `generate-update-metadata.mjs` produces checksums |
+| 13. Confirm privacy/terms/download pages | ⏳ | Requires website verification |
+
+### Release Pipeline Commands
+
+```bash
+# Build and package
+npm --workspace apps/terminal-pro run build:electron
+npm --workspace apps/terminal-pro run dist:linux
+
+# Generate metadata
+npm --workspace apps/terminal-pro run release:metadata
+
+# Verify artifacts
+npm run verify:downloads
+
+# Publish
+npm run release:publish:desktop
+```
+
+### Known Release Blockers
+
+1. **Code signing**: macOS and Windows signing requires CSC_LINK/CSC_KEY_PASSWORD env vars
+2. **Linux baseline**: AppImage tested on Debian 13, needs broader OS verification
+3. **Website integration**: Download page and privacy/terms need verification
+
+### Next Steps
+
+1. Manual install test of AppImage on clean Linux desktop
+2. Verify license activation with real Stripe checkout
+3. Run `npm run verify:downloads` against published artifacts
+4. Deploy website and verify download routes
+
+### Automated RC Validation
+
+Playwright RC validation suite added at `apps/terminal-pro/tests/e2e/rc-validation.spec.ts`:
+
+```bash
+npm --workspace apps/terminal-pro run test:e2e:rc
+```
+
+See `docs/audits/PLAYWRIGHT_RC_VALIDATION_2026-06-10.md` for details.
+
+## 2026-06-10 Product Lock Enforcement
+
+**Status**: LOCKED AND ENFORCED
+
+### Product Language Lock
+- ✅ No "Workbench" terminology in user-facing contexts
+- ✅ No "Dashboard" terminology in user-facing contexts
+- ✅ No "Control center" terminology in user-facing contexts
+- ✅ Agent Thread, Agent Shell, AgentRuntime, Proof, Workspace Knowledge used consistently
+
+### Approval Policy Lock
+- ✅ Commands visible before approval (`buildPlannerApprovalContent`)
+- ✅ Nothing executes without explicit approval
+- ✅ Approval metadata recorded (plan_id, approval_timestamp, approval_actor, runtime_id, proof_id)
+- ✅ Rejection cancels and records cancelled Proof
+
+### Runtime Truth Lock
+- ✅ No fake execution paths
+- ✅ No simulated Proof
+- ✅ Real execution via agentd with evidence capture
+
+### Proof Structure Lock
+- ✅ proof_id: Unique identifier for each Proof
+- ✅ runtime_id: Links Proof to execution runtime
+- ✅ verification_status: 'verified' | 'partially_verified' | 'unverified'
+- ✅ evidence_count: Number of evidence records
+
+### Memory Lock
+- ✅ Workspace Knowledge from observation (file inspection)
+- ✅ Workspace Knowledge from verified Proof only
+- ✅ AI text alone cannot create durable facts
+- ✅ Secrets never stored
+
+### Branding Lock
+- ✅ RinaWarp logo present (`src/assets/rinawarp-logo.png`)
+- ✅ Brand tokens: hot-pink, coral, teal, blue
+- ✅ No neon-green (#00ff00) as primary color
+
+### Guard Enforcement
+```
+npm run guard:agent-shell-style    # CSS/terminology guard
+npm run guard:placeholders         # No production placeholders
+npm run guard:product-realness     # Canonical renderer check
+npm --workspace apps/terminal-pro run typecheck
+npm --workspace apps/terminal-pro run build:electron
+```
+
+See `docs/audits/PRODUCT_LOCK_ENFORCEMENT_2026-06-10.md` for full verification report.

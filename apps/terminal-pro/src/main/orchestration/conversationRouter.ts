@@ -75,11 +75,11 @@ function classifyExecutionGoal(rawText: string): RoutedTurn['executionCandidate'
   const normalized = rawText.toLowerCase()
   if (SAFE_CHANGE_WORDS.test(normalized)) return { goal: 'fix', risk: 'medium' }
   if (/\bfix|repair\b/.test(normalized)) return { goal: 'fix', risk: 'medium' }
-  if (/\bbuild\b/.test(normalized)) return { goal: 'build_project', risk: 'low' }
-  if (/\btests?\b/.test(normalized)) return { goal: 'run_tests', risk: 'low' }
+  if (/\bbuild\b/.test(normalized)) return { goal: 'build_project', risk: 'medium' }
+  if (/\btests?\b/.test(normalized)) return { goal: 'run_tests', risk: 'medium' }
   if (/\bdeploy\b/.test(normalized)) return { goal: 'deploy_project', risk: 'medium' }
-  if (/\bdiagnos(?:e|tics?)\b/.test(normalized)) return { goal: 'diagnose', risk: 'low' }
-  if (/\blint|analy[sz]e\b/.test(normalized)) return { goal: 'inspect', risk: 'low' }
+  if (/\bdiagnos(?:e|tics?)\b/.test(normalized)) return { goal: 'diagnose', risk: 'medium' }
+  if (/\blint|analy[sz]e\b/.test(normalized)) return { goal: 'inspect', risk: 'medium' }
   return null
 }
 

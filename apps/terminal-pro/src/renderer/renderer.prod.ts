@@ -42,7 +42,7 @@ import {
   composePlanModeLead,
   composeRinaReplyLead,
 } from './services/responseComposer.js'
-import { buildTrustSnapshot, getAgentWorkspaceRootFromStore, getWorkspaceContextFromStore, getWorkspaceKeyFromStore, normalizeWorkspaceKey, setTransientStatusSummary } from './services/rendererCoreHelpers.js'
+import { buildTrustSnapshot, getAgentWorkspaceRootFromStore, getWorkspaceContextFromStore, getWorkspaceKeyFromStore, normalizeWorkspaceKey, setTransientStatusSummary, buildInterruptedRunRecoveryPrompt } from './services/rendererCoreHelpers.js'
 import { createRefreshActions } from './services/refreshData.js'
 import { initRetentionLoop } from './services/retentionLoop.js'
 import { initUpdateNotice } from './services/updateNotice.js'

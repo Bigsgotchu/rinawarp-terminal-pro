@@ -180,7 +180,7 @@ export function buildMessageBlockNode(block: MessageBlock): HTMLElement | Docume
         }
         li.appendChild(titleRow)
         if (step.command) {
-          li.appendChild(el('div', { class: 'rw-reply-inline-code' }, step.command))
+          li.appendChild(el('div', { class: 'rw-reply-inline-code rw-inline-runblock-command' }, step.command))
         }
         stepsList.appendChild(li)
       }
@@ -195,6 +195,7 @@ export function buildMessageBlockNode(block: MessageBlock): HTMLElement | Docume
             el(
               'button',
               {
+                type: 'button',
                 class: ['rw-inline-action', action.className].filter(Boolean).join(' '),
                 dataset: buildReplyActionDataset(action),
               },

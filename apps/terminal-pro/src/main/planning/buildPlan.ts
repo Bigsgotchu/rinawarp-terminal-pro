@@ -232,14 +232,14 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                         inspectPackageStep,
                         toPlanStep({ stepId: 'node_version', command: 'node -v', cwd: projectRoot, risk: 'inspect', description: 'Inspect Node.js version' }),
                         toPlanStep({ stepId: 'package_manager_version', command: runner === 'pnpm' ? 'pnpm -v' : 'npm -v', cwd: projectRoot, risk: 'inspect', description: 'Inspect package-manager version' }),
-                        toPlanStep({
-                            stepId: 'run_typecheck',
-                            command: typecheckScript ? `${runner} run ${typecheckScript}` : runner === 'pnpm' ? 'pnpm exec tsc --noEmit' : 'npx tsc --noEmit',
-                            cwd: projectRoot,
-                            risk: 'inspect',
-                            description: 'Run the current typecheck verification gate',
-                            timeoutMs: 120_000,
-                        }),
+toPlanStep({
+                        stepId: 'run_typecheck',
+                        command: typecheckScript ? `${runner} run ${typecheckScript}` : runner === 'pnpm' ? 'pnpm exec tsc --noEmit' : 'npx tsc --noEmit',
+                        cwd: projectRoot,
+                        risk: 'safe-write',
+                        description: 'Run the current typecheck verification gate',
+                        timeoutMs: 120_000,
+                    }),
                     ];
                 } else if (workflow === 'deploy') {
                     const deployCommand = deployScript ? `${runner} run ${deployScript}` : hasElectronBuilder ? 'npx electron-builder --publish never' : 'echo "No deploy target detected"';
@@ -274,7 +274,7 @@ export function createBuildPlanHelpers(deps: BuildPlanHelperDeps) {
                             stepId: 'build_project',
                             command: buildScript ? `${runner} run ${buildScript}` : `${runner} run build`,
                             cwd: projectRoot,
-                            risk: 'inspect',
+                            risk: 'safe-write',
                             description: workflow === 'build' ? 'Build the current project' : 'Run the primary build workflow',
                             timeoutMs: 120_000,
                         }),

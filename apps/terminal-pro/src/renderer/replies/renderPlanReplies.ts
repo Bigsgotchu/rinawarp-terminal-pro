@@ -57,7 +57,7 @@ export function buildExecutionPlanContent(
 ): MessageBlock[] {
   const steps = Array.isArray(plan.steps) ? plan.steps : []
   const intro = options?.introText?.trim() || plan.reasoning?.trim() || `I mapped "${prompt}" to a proof-backed run.`
-  const stepItems = steps
+const stepItems = steps
     .slice(0, 6)
     .map((step, index) => {
       const title = step.stepId || `Step ${index + 1}`
@@ -71,10 +71,15 @@ export function buildExecutionPlanContent(
 
   const allReady = (requirements.length === 0) || requirements.every((r) => r.state === 'ready')
   const isReviewOnly = options?.reviewOnly === true
+  const hasCommands = steps.some((s) => typeof s.input?.command === 'string' && s.input.command.trim().length > 0)
   const riskLevel = steps.some((s) => s.risk === 'high-impact' || s.risk === 'dangerous') ? 'high' : steps.some((s) => s.risk === 'safe-write') ? 'medium' : 'low'
+  const shouldShowApproval =
+    steps.length > 0 &&
+    Boolean(options?.workspaceRoot) &&
+    (Boolean(options?.reviewOnly) || hasCommands)
 
-  // In review-only mode, use the explicit planner-approval block type
-  if (isReviewOnly && steps.length > 0 && options?.workspaceRoot) {
+// In review-only mode or when plan is executable, use the explicit planner-approval block type
+  if (shouldShowApproval) {
     return buildPlannerApprovalContent(prompt, plan, {
       workspaceRoot: options.workspaceRoot,
       approvalReason: intro,
@@ -91,7 +96,7 @@ export function buildExecutionPlanContent(
       badge: isReviewOnly ? 'Review only' : undefined,
       bodyBlocks: [replyListBlock(stepItems, 'No plan steps returned.')],
       actions:
-        allReady && steps.length > 0 && options?.workspaceRoot
+        allReady && steps.length > 0 && options?.workspaceRoot && !hasCommands
           ? [
               {
                 label: isReviewOnly ? 'Approve & Run' : 'Run',

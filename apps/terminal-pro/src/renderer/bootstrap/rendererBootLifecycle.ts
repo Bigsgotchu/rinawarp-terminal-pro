@@ -68,11 +68,13 @@ export async function finalizeRendererBoot(store: WorkbenchStore): Promise<void>
   } catch (error) {
     console.warn('Failed to resolve license state during renderer boot:', error)
   } finally {
+    const isE2E = typeof window.__RINA_E2E_MODE === 'boolean' ? window.__RINA_E2E_MODE : false
     store.dispatch({
       type: 'runtime/set',
       runtime: {
         ...store.getState().runtime,
         rendererCanonicalReady: true,
+        e2eMode: isE2E,
       },
     })
     console.log('RinaWarp Terminal Pro initialized successfully')

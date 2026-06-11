@@ -165,17 +165,18 @@ export function registerIpcHandlers(_mainWindow: BrowserWindow): void {
   // Brain stats for Visual AI Brain Panel
   ipcMain.handle('rina:brain:stats', () => {
     const stats = thinkingStream.getStats()
+    const byType = stats?.byType || {}
     return {
-      total: stats.total,
-      intent: stats.byType.intent,
-      planning: stats.byType.planning,
-      reasoning: stats.byType.reasoning,
-      tool: stats.byType.tool,
-      memory: stats.byType.memory,
-      action: stats.byType.action,
-      result: stats.byType.result,
-      error: stats.byType.error,
-      avgDuration: Math.round(stats.avgDuration),
+      total: stats?.total ?? 0,
+      intent: byType.intent ?? 0,
+      planning: byType.planning ?? 0,
+      reasoning: byType.reasoning ?? 0,
+      tool: byType.tool ?? 0,
+      memory: byType.memory ?? 0,
+      action: byType.action ?? 0,
+      result: byType.result ?? 0,
+      error: byType.error ?? 0,
+      avgDuration: Math.round(stats?.avgDuration ?? 0),
     }
   })
 

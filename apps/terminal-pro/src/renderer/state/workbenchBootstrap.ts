@@ -182,6 +182,7 @@ export function createWorkbenchStore(initialWorkspaceKey?: string): WorkbenchSto
       autonomyLevel: 'off',
       ipcCanonicalReady: false,
       rendererCanonicalReady: false,
+      e2eMode: typeof window !== 'undefined' && (window as any).__RINA_E2E_MODE === true,
     },
     marketplace: { loading: false, agents: [], installed: [] },
     capabilities: { loading: false, packs: [] },

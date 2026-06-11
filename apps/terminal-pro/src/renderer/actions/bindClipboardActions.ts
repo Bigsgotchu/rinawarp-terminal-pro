@@ -113,8 +113,8 @@ function formatReceiptExportText(payload: ReceiptExportPayload): string {
     `RinaWarp proof ${payload.receiptId}`,
     `Timestamp: ${payload.timestamp || 'not recorded'}`,
     `Intent: ${payload.intent}`,
-    `Proof blocks: ${payload.proofBlockIds.join(', ') || 'none recorded'}`,
-    `Verification: ${payload.verificationResult.results.join(' · ') || (payload.verificationResult.ok === true ? 'passed' : payload.verificationResult.ok === false ? 'failed' : 'not recorded')}`,
+    `Proof blocks: ${Array.isArray(payload.proofBlockIds) ? payload.proofBlockIds.join(', ') : 'none recorded'}`,
+    `Verification: ${Array.isArray(payload.verificationResult?.results) ? payload.verificationResult.results.join(' · ') || (payload.verificationResult?.ok === true ? 'passed' : payload.verificationResult?.ok === false ? 'failed' : 'not recorded') : (payload.verificationResult?.ok === true ? 'passed' : payload.verificationResult?.ok === false ? 'failed' : 'not recorded')}`,
     `Exit code: ${payload.verificationResult.exitCode ?? 'not recorded'}`,
   ].join('\n')
 }

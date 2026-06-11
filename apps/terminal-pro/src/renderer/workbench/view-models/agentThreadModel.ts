@@ -169,7 +169,7 @@ export function buildWorkspaceSetupCardModel(state: WorkbenchState): AgentEmptyC
       { label: 'Choose project', className: actionClass('primary'), dataset: { pickWorkspace: 'workspace-setup' } },
     ],
     stats: undefined,
-    footerCopy: workspaceState.rootMarkers.length > 0 ? `Detected project markers: ${workspaceState.rootMarkers.join(', ')}` : 'After choosing a project, ask Rina to build, test, inspect, explain, or plan a fix.',
+    footerCopy: Array.isArray(workspaceState.rootMarkers) && workspaceState.rootMarkers.length > 0 ? `Detected project markers: ${workspaceState.rootMarkers.join(', ')}` : 'After choosing a project, ask Rina to build, test, inspect, explain, or plan a fix.',
   }
 }
 
@@ -233,8 +233,8 @@ export function buildInlineRunViewModel(state: WorkbenchState, run: RunModel): I
   const liveCognition = state.liveCognitionByRunId[run.id] || []
   const cognitionLines = [
     ...(canonicalBlock?.timeline
-      .filter((event) => event.cognitionLabel)
-      .map((event) => ({ label: String(event.cognitionLabel), eventType: String(event.type) })) || []),
+      ? canonicalBlock.timeline.filter((event) => event.cognitionLabel).map((event) => ({ label: String(event.cognitionLabel), eventType: String(event.type) }))
+      : []),
     ...liveCognition.map((line) => ({ label: line.label, eventType: line.eventType })),
   ].filter((line, index, lines) => lines.findIndex((entry) => entry.eventType === line.eventType && entry.label === line.label) === index)
 
@@ -281,7 +281,7 @@ export function buildInlineRunViewModel(state: WorkbenchState, run: RunModel): I
         : 'Output is hidden until you inspect it.',
     cognitionLines,
     memoryNote: canonicalBlock?.memoryNote,
-    verificationSummary: persistedReceipt?.verificationResults.join(' · '),
+    verificationSummary: Array.isArray(persistedReceipt?.verificationResults) ? persistedReceipt.verificationResults.join(' · ') : undefined,
     verificationStatus: canonicalBlock?.verificationStatus,
     evidenceCount: canonicalBlock?.evidenceCount,
     banner,

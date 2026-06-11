@@ -112,6 +112,11 @@ const TOP_MEM_CMD_SAFE = 'ps -eo pid,pcpu,pmem,comm --sort=-pmem 2>/dev/null | h
 const TOP_CPU_CMD_SAFE_SHORT = 'ps -eo pid,pcpu,pmem,comm --sort=-pcpu 2>/dev/null | head -10 || ps aux 2>/dev/null | sort -nrk3 | head -10 || ps aux | head -10';
 const e2ePlanPayloads = new Map();
 const bootMilestones: string[] = [];
+globalThis.__RINA_E2E_MODE = IS_E2E;
+
+export function getE2EMode(): boolean {
+  return IS_E2E;
+}
 registerDiskFullDiagnosticIpc(ipcMain);
 registerPortConflictDiagnosticIpc(ipcMain);
 function markBootMilestone(label: string): void {

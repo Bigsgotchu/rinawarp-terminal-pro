@@ -2,6 +2,7 @@ import type { RunModel, WorkbenchState } from '../store.js'
 import { el } from '../dom.js'
 import { renderInlineRunBlock } from '../components/agentSurface.js'
 import { buildInlineRunViewModel } from '../view-models/agentThreadModel.js'
+import { buildMessageBlockNode } from './messageBlocks.js'
 import type { ThreadItem } from '../../../workbench/store/threadTypes.js'
 import type { ExecutionReceipt } from '../../../workbench/runBlocks/types.js'
 import { resolveThreadItems } from '../../../workbench/store/threadMutations.js'
@@ -95,11 +96,49 @@ function renderAssistantPlan(item: Extract<ThreadItem, { type: 'assistant-plan' 
   )
 }
 
+function renderPlannerApproval(item: Extract<ThreadItem, { type: 'planner-approval' }>): HTMLElement {
+  const node = el('div', { class: 'rw-thread-message rina has-plan-approval', dataset: { msgId: item.id, threadItem: item.type } })
+  node.appendChild(el('div', { class: 'rw-thread-author' }, 'Rina'))
+  node.appendChild(
+    buildMessageBlockNode({
+      type: 'planner-approval',
+      label: 'Approval Required',
+      summary: item.summary,
+      steps: item.steps,
+      workspaceRoot: item.workspaceRoot,
+      approvalReason: item.approvalReason,
+      riskLevel: item.riskLevel,
+      planRunId: item.planRunId,
+      actions: item.actions || [
+        {
+          label: 'Approve & Run',
+          planApprove: item.planRunId || item.id,
+        },
+        {
+          label: 'Cancel',
+          planReject: item.planRunId || item.id,
+          className: 'secondary-btn',
+        },
+      ],
+    }),
+  )
+  return node
+}
+
 function renderRunBlock(state: WorkbenchState, item: Extract<ThreadItem, { type: 'run-block' }>): HTMLElement {
   const run = runModelFromThreadRun(state, item.run.runId, item)
   const wrapper = el('div', {
     class: 'rw-thread-run-artifact',
     dataset: { runId: item.run.runId, threadItem: item.type },
+  })
+  wrapper.appendChild(renderInlineRunBlock(buildInlineRunViewModel(state, run)))
+  return wrapper
+}
+
+function renderLiveRun(state: WorkbenchState, run: RunModel): HTMLElement {
+  const wrapper = el('div', {
+    class: 'rw-thread-run-artifact',
+    dataset: { runId: run.id, threadItem: 'live-run' },
   })
   wrapper.appendChild(renderInlineRunBlock(buildInlineRunViewModel(state, run)))
   return wrapper
@@ -230,6 +269,8 @@ export function renderThreadItem(state: WorkbenchState, item: ThreadItem): HTMLE
       return renderAssistantMessage(item)
     case 'assistant-plan':
       return renderAssistantPlan(item)
+    case 'planner-approval':
+      return renderPlannerApproval(item)
     case 'run-block':
       return renderRunBlock(state, item)
     case 'cognition-stream':
@@ -248,8 +289,15 @@ export function renderThreadItem(state: WorkbenchState, item: ThreadItem): HTMLE
 export function renderCanonicalThread(state: WorkbenchState): DocumentFragment {
   const fragment = document.createDocumentFragment()
   const items = resolveThreadItems(state, state.workspaceKey)
+  const renderedRunIds = new Set<string>()
   for (const item of items) {
+    if (item.type === 'run-block') renderedRunIds.add(item.run.runId)
     fragment.appendChild(renderThreadItem(state, item))
+  }
+  for (const run of state.runs) {
+    if (run.status !== 'running') continue
+    if (renderedRunIds.has(run.id)) continue
+    fragment.appendChild(renderLiveRun(state, run))
   }
   return fragment
 }

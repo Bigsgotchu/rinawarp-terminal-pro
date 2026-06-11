@@ -69,4 +69,8 @@ module.exports = [
       'max-lines-per-function': 'off',
     },
   },
+  // E2E fixture files: skip linting due to dynamic Playwright injection patterns
+  {
+    ignores: ['e2e/fixtures/**/*.ts'],
+  },
 ]

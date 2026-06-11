@@ -1278,7 +1278,7 @@ describe('buildExecutionPlanContent trust blocker fix', () => {
     expect(approvalBlock.riskLevel).toBe('high')
   })
 
-  it('does not show approval actions for non-review-only mode', () => {
+  it('shows approval for command steps regardless of risk level', () => {
     const plan: FixPlanResponse = {
       id: 'plan_exec',
       reasoning: 'Direct execution',
@@ -1292,7 +1292,59 @@ describe('buildExecutionPlanContent trust blocker fix', () => {
       workspaceRoot: '/tmp/test',
     })
 
-    // Should NOT be planner-approval type
+    // Should be planner-approval type because step has a command
+    expect(blocks[1].type).toBe('planner-approval')
+  })
+
+  it('shows approval block for reviewOnly even without commands', () => {
+    const plan: FixPlanResponse = {
+      id: 'plan_review_only',
+      reasoning: 'Review-only plan without commands',
+      steps: [
+        { stepId: 's1', tool: 'terminal', input: {}, risk: 'inspect' },
+      ],
+    }
+
+    const blocks = buildExecutionPlanContent('review only', plan, [], {
+      reviewOnly: true,
+      workspaceRoot: '/tmp/test',
+    })
+
+    // Should return planner-approval block type even without commands
+    expect(blocks.length).toBeGreaterThan(0)
+    expect(blocks[1].type).toBe('planner-approval')
+
+    const approvalBlock = blocks[1] as {
+      type: 'planner-approval'
+      steps?: Array<{ stepId: string; command: string }>
+      actions?: Array<{ label: string }>
+    }
+
+    // Steps should be present with empty command
+    expect(approvalBlock.steps).toHaveLength(1)
+    expect(approvalBlock.steps?.[0].command).toBe('')
+
+    // Approval actions must be present
+    expect(approvalBlock.actions).toBeDefined()
+    expect(approvalBlock.actions?.[0].label).toBe('Approve & Run')
+    expect(approvalBlock.actions?.[1].label).toBe('Reject')
+  })
+
+  it('shows reply-card (not approval) when no commands and reviewOnly is false', () => {
+    const plan: FixPlanResponse = {
+      id: 'plan_no_cmd',
+      reasoning: 'Plan without commands',
+      steps: [
+        { stepId: 's1', tool: 'terminal', input: {}, risk: 'inspect' },
+      ],
+    }
+
+    const blocks = buildExecutionPlanContent('no commands', plan, [], {
+      reviewOnly: false,
+      workspaceRoot: '/tmp/test',
+    })
+
+    // Should be reply-card type, not planner-approval
     expect(blocks[1].type).toBe('reply-card')
   })
 })

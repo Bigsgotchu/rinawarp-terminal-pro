@@ -33,6 +33,7 @@
     "test:e2e:fix-project": "npm run build:electron && bash scripts/run-electron-playwright.sh fix-project.spec.ts",
     "test:e2e:telemetry": "npm run build:electron && bash scripts/run-electron-playwright.sh telemetry.test.ts",
     "e2e:smoke": "unset FORCE_COLOR && unset NO_COLOR && unset ELECTRON_RUN_AS_NODE && npm run build:electron && bash scripts/run-electron-playwright.sh",
+    "test:e2e:rc": "npm run build:electron && bash scripts/run-electron-playwright.sh rc-validation.spec.ts",
     "e2e:smoke:headed": "unset FORCE_COLOR && unset NO_COLOR && unset ELECTRON_RUN_AS_NODE && npm run build:electron && bash scripts/run-electron-playwright.sh --headed",
     "e2e:tier1": "unset FORCE_COLOR && unset NO_COLOR && unset ELECTRON_RUN_AS_NODE && npm run build:electron && bash scripts/run-electron-playwright.sh harness-window-ready.spec.ts tier1-product-smoke.spec.ts",
     "e2e:golden": "unset FORCE_COLOR && unset NO_COLOR && unset ELECTRON_RUN_AS_NODE && npm run build:electron && PLAYWRIGHT_CONFIG=e2e/playwright.config.ts bash scripts/run-electron-playwright.sh golden",
@@ -60,7 +61,8 @@
     "release:metadata": "node scripts/generate-update-metadata.mjs",
     "verify:update-artifacts": "node scripts/verify-electron-update-artifacts.mjs",
     "verify:packaged-sqlite": "node scripts/verify-packaged-sqlite.mjs",
-    "verify:signing": "node scripts/verify-signing-config.mjs"
+    "verify:signing": "node scripts/verify-signing-config.mjs",
+    "release:readiness": "npm run typecheck && npm run lint && npm run test:unit && npm run test:policy-gate && npm run test:fix-project-flow && npm run build:electron"
   },
   "dependencies": {
     "@rinawarp/agent": "workspace:*",

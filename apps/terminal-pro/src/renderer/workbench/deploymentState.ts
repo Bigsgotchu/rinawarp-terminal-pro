@@ -180,7 +180,7 @@ function findRunForReceipt(runs: RunModel[], receipt: StructuredReceipt): RunMod
 }
 
 function inferDeployTarget(chunks: Array<string | null | undefined>): WorkbenchState['deployment']['target'] {
-  const source = chunks.filter(Boolean).join('\n').toLowerCase()
+  const source = (chunks || []).filter(Boolean).join('\n').toLowerCase()
   if (/\b(cloudflare|wrangler|workers|pages)\b/.test(source)) return 'cloudflare'
   if (/\bvercel\b/.test(source)) return 'vercel'
   if (/\bnetlify\b/.test(source)) return 'netlify'
@@ -190,7 +190,7 @@ function inferDeployTarget(chunks: Array<string | null | undefined>): WorkbenchS
 }
 
 function inferArtifact(chunks: Array<string | null | undefined>): string | null {
-  const source = chunks.filter(Boolean).join('\n')
+  const source = (chunks || []).filter(Boolean).join('\n')
   const explicit =
     source.match(/\bartifact(?: path)?[:=]\s*([^\s]+)/i)?.[1] ||
     source.match(/\bimage(?: tag)?[:=]\s*([^\s]+)/i)?.[1] ||
@@ -201,7 +201,7 @@ function inferArtifact(chunks: Array<string | null | undefined>): string | null 
 }
 
 function inferBuildId(chunks: Array<string | null | undefined>): string | null {
-  const source = chunks.filter(Boolean).join('\n')
+  const source = (chunks || []).filter(Boolean).join('\n')
   const explicit =
     source.match(/\bbuild(?: id)?[:=#]\s*([a-z0-9._-]+)/i)?.[1] ||
     source.match(/\bdeployment(?: id)?[:=#]\s*([a-z0-9._-]+)/i)?.[1]
@@ -357,7 +357,7 @@ function inferTargetIdentity(
   source: WorkbenchState['deployment']['targetIdentitySource']
   evidence: string[]
 } {
-  const source = chunks.filter(Boolean).join('\n')
+  const source = (chunks || []).filter(Boolean).join('\n')
   const evidence: string[] = []
   const patterns: Array<[RegExp, string]> = [
     [/\bproject(?:-name)?[=:]\s*([a-z0-9._-]+)/i, 'project'],
@@ -399,7 +399,7 @@ function inferTargetIdentity(
 }
 
 function inferVerificationEvidence(targetUrl: string | null, chunks: Array<string | null | undefined>): string[] {
-  const source = chunks.filter(Boolean).join('\n')
+  const source = (chunks || []).filter(Boolean).join('\n')
   const evidence = new Set<string>()
   if (targetUrl) evidence.add(`target URL ${targetUrl}`)
   const health = source.match(/\b(health check|smoke test|verified|verification passed|response 200|status 200)\b/gi) || []
@@ -413,7 +413,7 @@ function inferRollbackEvidence(
   target: WorkbenchState['deployment']['target'],
   chunks: Array<string | null | undefined>
 ): string[] {
-  const source = chunks.filter(Boolean).join('\n')
+  const source = (chunks || []).filter(Boolean).join('\n')
   const evidence = new Set<string>()
   const explicit = source.match(/\b(rollback(?: command| url)?[=:].+|rollback is manual|rollback not supported|previous deployment|deployment history|promote flow)\b/gi) || []
   for (const item of explicit.slice(0, 3)) evidence.add(item.trim())

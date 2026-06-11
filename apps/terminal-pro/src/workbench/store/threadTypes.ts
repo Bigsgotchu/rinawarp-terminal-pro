@@ -41,6 +41,15 @@ export interface PlannerApprovalItem extends ThreadItemBase {
   approvalReason?: string
   riskLevel?: 'low' | 'medium' | 'high'
   planRunId?: string
+  actions?: Array<{
+    label: string
+    className?: string
+    planApprove?: string
+    planReject?: string
+    planId?: string
+    executePlanPrompt?: string
+    executePlanWorkspaceRoot?: string
+  }>
 }
 
 export interface RunBlockItem extends ThreadItemBase {

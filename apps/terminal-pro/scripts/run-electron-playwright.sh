@@ -19,7 +19,7 @@ for arg in "$@"; do
   normalized_args+=("$normalized_arg")
 
   case "$arg" in
-    *packaged-first-run.spec.ts*|*release-golden-journeys.spec.ts*)
+    *packaged-first-run.spec.ts*|*release-golden-journeys.spec.ts*|*rc-validation.spec.ts*)
       needs_packaged_build=1
       ;;
   esac

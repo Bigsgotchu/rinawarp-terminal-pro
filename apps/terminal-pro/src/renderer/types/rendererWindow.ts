@@ -7,6 +7,7 @@ import type { FixProjectResult } from '../../main/assistant/fixProjectFlow.js'
 export interface RinaRendererWindow {
   addEventListener: Window['addEventListener']
   removeEventListener: Window['removeEventListener']
+  __RINA_E2E_MODE?: boolean
   rina: {
     invoke: (channel: string, ...args: unknown[]) => Promise<unknown>
     on: (channel: string, handler: (...args: unknown[]) => void) => () => void

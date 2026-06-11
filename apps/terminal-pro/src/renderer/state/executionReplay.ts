@@ -19,28 +19,28 @@ export function replayRunFromReceipt(store: WorkbenchStore, runId: string): bool
     return false
   }
 
-  const tail = state.runOutputTailByRunId[runId] || ''
-  if (run || tail) {
-    const commands = getReceiptCommands(receipt || undefined)
-    const verificationLabels = getReceiptVerificationChecks(receipt || undefined).map((check) => check.label)
-    store.dispatch({
-      type: 'executionTrace/blockUpsert',
-      block: {
-        id: `replay:${runId}`,
-        cmd: run?.command || commands[0]?.command,
-        status:
-          receipt?.status === 'cancelled' || run?.status === 'failed'
-            ? 'failed'
-            : run?.status === 'ok' || receipt?.status === 'succeeded'
-              ? 'success'
-              : 'info',
-        runId,
-        exitCode: run?.exitCode ?? commands.find((command) => typeof command.exitCode === 'number')?.exitCode ?? null,
-        output: tail || runBlock?.summary || verificationLabels.join('\n') || '',
-        ts: Date.now(),
-      },
-    })
-  }
+const tail = state.runOutputTailByRunId[runId] || ''
+    if (run || tail) {
+      const commands = getReceiptCommands(receipt || undefined)
+      const verificationLabels = getReceiptVerificationChecks(receipt || undefined).map((check) => check.label)
+      store.dispatch({
+        type: 'executionTrace/blockUpsert',
+        block: {
+          id: `replay:${runId}`,
+          cmd: run?.command || commands[0]?.command,
+          status:
+            receipt?.status === 'cancelled' || run?.status === 'failed'
+              ? 'failed'
+              : run?.status === 'ok' || receipt?.status === 'succeeded'
+                ? 'success'
+                : 'info',
+          runId,
+          exitCode: run?.exitCode ?? commands.find((command) => typeof command.exitCode === 'number')?.exitCode ?? null,
+          output: tail || runBlock?.summary || (Array.isArray(verificationLabels) ? verificationLabels.join('\n') : '') || '',
+          ts: Date.now(),
+        },
+      })
+    }
 
   store.dispatch({ type: 'ui/toggleRunOutput', runId })
   if (!state.ui.expandedRunOutputByRunId[runId]) {
@@ -74,6 +74,6 @@ export function copyReceiptSummary(store: WorkbenchStore, runId: string): string
     `Rollback: ${receipt.status === 'cancelled' ? 'yes' : 'no'}`,
     `Commands: ${commands.map((command) => command.command).join(' · ') || 'n/a'}`,
     `Files changed: ${fileChanges.map((change) => change.path).join(', ') || 'none'}`,
-    `Verification: ${verificationLabels.join(' · ') || 'n/a'}`,
+    `Verification: ${(Array.isArray(verificationLabels) ? verificationLabels.join(' · ') : '') || 'n/a'}`,
   ].join('\n')
 }

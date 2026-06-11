@@ -23,6 +23,7 @@ export function structuredReceiptFromExecutionReceipt(receipt: ExecutionReceipt,
   const verificationLabels = getReceiptVerificationChecks(receipt).map((check) => check.label)
   const exitCode = commands.find((command) => typeof command.exitCode === 'number')?.exitCode ?? null
   const rolledBack = receipt.status === 'cancelled'
+  const verificationLabelsJoined = Array.isArray(verificationLabels) ? verificationLabels.join('\n') : ''
   return {
     kind: 'structured_command_receipt',
     id: receiptRunId,
@@ -43,7 +44,7 @@ export function structuredReceiptFromExecutionReceipt(receipt: ExecutionReceipt,
       exitCode,
       ok: receipt.status === 'succeeded' && receipt.verification.status === 'passed',
       cancelled: false,
-      error: receipt.status === 'succeeded' ? null : verificationLabels.join('\n') || null,
+      error: receipt.status === 'succeeded' ? null : verificationLabelsJoined || null,
     },
     artifacts: {
       stdoutChunks: 0,
@@ -51,7 +52,7 @@ export function structuredReceiptFromExecutionReceipt(receipt: ExecutionReceipt,
       metaChunks: verificationLabels.length,
       stdoutPreview: '',
       stderrPreview: '',
-      metaPreview: verificationLabels.join('\n'),
+      metaPreview: verificationLabelsJoined,
       changedFiles: fileChanges.map((change) => change.path),
       diffHints: rolledBack ? ['rollback occurred'] : [],
       urls: [],
