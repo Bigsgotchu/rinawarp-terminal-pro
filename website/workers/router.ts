@@ -1636,6 +1636,7 @@ function renderSitemapXml(origin: string): Response {
     '/pricing',
     '/download',
     '/docs',
+    '/docs/proof',
     '/trust',
     '/support',
     '/matter-intelligence',
@@ -1821,53 +1822,51 @@ function renderPage(path: string, active: SitePage, hero: string, content: strin
 }
 
 function renderHomepage(): Response {
-  const hero = `
-    <section class="hero">
-      <div class="hero-grid">
-        <div class="hero-panel">
-          <span class="eyebrow">RinaWarp Terminal Pro</span>
-          <h1>Your project is broken. RinaWarp fixes it.</h1>
-          <p class="hero-copy">Upload a repository. Let RinaWarp investigate, repair, verify, and explain every change.</p>
-          <div class="cta-row">
-            <a href="/download" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download Free</a>
-            <a href="/#proof" class="btn btn-secondary btn-secondary-strong">Watch Demo</a>
-          </div>
-          <div class="trust-row">
-            <span class="trust-chip">Real terminal output</span>
-            <span class="trust-chip">Before-after repairs</span>
-            <span class="trust-chip">Verification attached</span>
-          </div>
-        </div>
-        <div class="terminal-preview" aria-label="Fix Project terminal preview">
-          <div class="demo-windowbar">
-            <span class="demo-dot"></span>
-            <span class="demo-dot"></span>
-            <span class="demo-dot"></span>
-            <span>RinaWarp Terminal Pro</span>
-          </div>
-          <span class="terminal-line dim">&gt; npm run build</span>
-          <span class="terminal-line fail">Module not found: react-scripts</span>
-          <span class="terminal-line dim">&gt; rina fix</span>
-          <span class="terminal-line ok">Installing missing dependency</span>
-          <span class="terminal-line ok">Updating project config</span>
-          <span class="terminal-line ok">Rebuilding project</span>
-          <span class="terminal-line ok">Build successful</span>
-          <div class="demo-proof">
-            <div class="demo-proof-header">
-              <span>Repair summary</span>
-              <span class="demo-proof-tag">Confidence 94%</span>
+   const hero = `
+     <section class="hero">
+       <div class="hero-grid">
+         <div class="hero-panel">
+           <span class="eyebrow">RinaWarp Terminal Pro</span>
+           <h1>The AI copilot for real computer work.</h1>
+           <p class="hero-copy">Observe projects. Plan changes. Approve execution. Verify outcomes. Trust the proof.</p>
+<div class="cta-row">
+              <a href="/download" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download Beta</a>
+              <a href="/docs/proof" class="btn btn-secondary btn-secondary-strong">See Proof workflow</a>
             </div>
-            <div class="demo-proof-lines">
-              <span>What changed: installed react-scripts</span>
-              <span>What worked: production build passed</span>
-              <span>Receipt: proof attached to run output</span>
-            </div>
-          </div>
-          <span class="terminal-caption">Show → Execute → Prove</span>
-        </div>
-      </div>
-    </section>
-  `
+           <div class="trust-row">
+             <span class="trust-chip">Nothing executes without approval</span>
+             <span class="trust-chip">Commands visible before execution</span>
+             <span class="trust-chip">Proof from runtime evidence</span>
+           </div>
+         </div>
+         <div class="terminal-preview" aria-label="Terminal Pro proof workflow preview">
+           <div class="demo-windowbar">
+             <span class="demo-dot"></span>
+             <span class="demo-dot"></span>
+             <span class="demo-dot"></span>
+             <span>RinaWarp Terminal Pro</span>
+           </div>
+           <span class="terminal-line dim">Observe: Scanning project structure</span>
+           <span class="terminal-line dim">Plan: Proposed file changes and commands</span>
+           <span class="terminal-line ok">Approve: [Approve] button clicked for npm install</span>
+           <span class="terminal-line ok">Execute: Running install and build</span>
+           <span class="terminal-line ok">Proof: Build exit code 0, tests passed</span>
+           <div class="demo-proof">
+             <div class="demo-proof-header">
+               <span>Execution proof</span>
+               <span class="demo-proof-tag">Verified</span>
+             </div>
+             <div class="demo-proof-lines">
+               <span>Changed: package.json</span>
+               <span>Executed: npm install, npm run build</span>
+               <span>Result: exit code 0, 214 tests passed</span>
+             </div>
+           </div>
+           <span class="terminal-caption">Observe → Plan → Approve → Execute → Proof</span>
+         </div>
+       </div>
+     </section>
+   `
 
   const content = `
     <section class="section feature-band">
@@ -1881,40 +1880,45 @@ function renderHomepage(): Response {
       </div>
     </section>
 
-    <section class="section split-section">
-      <div class="terminal-preview" aria-label="Terminal Pro proof preview">
-        <div class="demo-windowbar"><span class="demo-dot"></span><span class="demo-dot"></span><span class="demo-dot"></span><span>Repair proof</span></div>
-        <span class="terminal-line dim">&gt; npm run build</span>
-        <span class="terminal-line fail">Module not found: react-scripts</span>
-        <span class="terminal-line dim">&gt; rina fix --verify</span>
-        <span class="terminal-line ok">Installed missing dependency</span>
-        <span class="terminal-line ok">Updated package scripts</span>
-        <span class="terminal-line ok">Build successful</span>
-      </div>
-      <div class="step-list">
-        <h2 class="section-title">Three Steps</h2>
-        <article><span>1</span><div><h3>Scan</h3><p>Open the broken repo and let RinaWarp inspect the project, logs, config, and dependency state.</p></div></article>
-        <article><span>2</span><div><h3>Fix</h3><p>Apply focused repairs to the files and settings that are actually causing the failure.</p></div></article>
-        <article><span>3</span><div><h3>Verify</h3><p>Run the build, tests, or health checks and keep the proof attached to the repair.</p></div></article>
-      </div>
-    </section>
+<section class="section split-section">
+       <div class="terminal-preview" aria-label="Terminal Pro proof preview">
+         <div class="demo-windowbar"><span class="demo-dot"></span><span class="demo-dot"></span><span class="demo-dot"></span><span>Proof workflow</span></div>
+         <span class="terminal-line dim">Observe: Reading project state</span>
+         <span class="terminal-line dim">Plan: Proposed fix with diffs</span>
+         <span class="terminal-line ok">Approve: [Approve] clicked</span>
+         <span class="terminal-line ok">Execute: Commands run</span>
+         <span class="terminal-line ok">Proof: Exit code 0</span>
+       </div>
+       <div class="step-list">
+         <h2 class="section-title">Proof-first workflow</h2>
+         <article><span>1</span><div><strong>Observe</strong><p>Open a project. Rina reads the codebase, configuration, and runtime behavior.</p></div></article>
+         <article><span>2</span><div><strong>Plan</strong><p>Review proposed changes and commands. Nothing executes until you approve.</p></div></article>
+         <article><span>3</span><div><strong>Approve</strong><p>Confirm high-impact actions. Safe changes can run automatically on paid tiers.</p></div></article>
+         <article><span>4</span><div><strong>Execute</strong><p>Commands run in your project context. All output is captured.</p></div></article>
+         <article><span>5</span><div><strong>Proof</strong><p>Verification output shows success or failure. Workspace knowledge persists.</p></div></article>
+       </div>
+     </section>
 
-    <section id="proof" class="section proof-section">
-      <h2 class="section-title centered">Before to After Repair Proof</h2>
-      <p class="section-copy centered">Developers trust terminal output. Show the fix, then show the verification.</p>
-      <div class="proof-grid">
-        <article class="proof-item bad"><div class="kicker">Before</div><h3>React build</h3><pre>npm run build
+<section id="proof" class="section proof-section">
+       <h2 class="section-title centered">Observe → Plan → Approve → Execute → Proof</h2>
+       <p class="section-copy centered">Nothing executes without approval. Commands are visible before execution. Proof is generated from runtime evidence.</p>
+       <div class="proof-grid">
+         <article class="proof-item bad"><div class="kicker">Before</div><h3>Build failing</h3><pre>npm run build
 Module not found: react-scripts</pre></article>
-        <article class="proof-item good"><div class="kicker">After</div><h3>Build successful</h3><pre>Installed missing dependency
-Updated package scripts
-Build successful</pre></article>
-        <article class="proof-item bad"><div class="kicker">Before</div><h3>TypeScript</h3><pre>error TS2322
+         <article class="proof-item good"><div class="kicker">After</div><h3>Verified</h3><pre>Observe: Scanned project
+Plan: Proposed fix
+Approve: Confirmed
+Execute: npm install
+Proof: Exit code 0</pre></article>
+         <article class="proof-item bad"><div class="kicker">Before</div><h3>TypeScript errors</h3><pre>error TS2322
 Type 'string' is not assignable</pre></article>
-        <article class="proof-item good"><div class="kicker">After</div><h3>Tests passing</h3><pre>Fixed type mismatch
-Build successful
-Tests passing</pre></article>
-      </div>
-    </section>
+         <article class="proof-item good"><div class="kicker">After</div><h3>Verified</h3><pre>Observe: Identified type mismatch
+Plan: Proposed interface fix
+Approve: Confirmed
+Execute: tsc --build
+Proof: Exit code 0</pre></article>
+       </div>
+     </section>
 
     <section class="section feature-band">
       <h2 class="section-title centered">Built for Developers</h2>
@@ -1950,9 +1954,9 @@ Tests passing</pre></article>
 
     <section class="section final-cta">
       <h2>Ready to stop debugging and start shipping?</h2>
-      <p>Download Terminal Pro and fix the broken project blocking your next release.</p>
+      <p>Download Terminal Pro Beta and fix the broken project blocking your next release.</p>
       <div class="cta-row">
-        <a href="/download/" class="btn btn-light" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_final" data-analytics-prop-target="download">Download Terminal Pro</a>
+        <a href="/download/" class="btn btn-light" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_final" data-analytics-prop-target="download">Download Beta</a>
       </div>
     </section>
   `
@@ -1994,27 +1998,27 @@ function renderProducts(): Response {
   const content = `
     <section class="section">
       <div class="duo-grid">
-        <article class="product-showcase stack">
-          <span class="pill">Developer product</span>
-          <h2>RinaWarp Terminal Pro</h2>
-          <p>Fix broken projects automatically.</p>
-          <p>AI that reads your code, fixes issues, and verifies the result. Built for broken installs, failed builds, bad config, and crashed dev servers.</p>
-          <div class="signal-grid">
-            <div class="signal-card">
-              <strong>What changed</strong>
-              <p>Readable repair diff and execution narrative.</p>
-            </div>
-            <div class="signal-card">
-              <strong>What worked</strong>
-              <p>Builds, tests, and checks after the fix.</p>
-            </div>
-          </div>
-          <div class="cta-row">
-            <a href="/" class="btn btn-primary">View Terminal Pro</a>
-            <a href="/pricing" class="btn btn-secondary">See pricing</a>
-            <a href="/download" class="btn btn-secondary">Download</a>
-          </div>
-        </article>
+<article class="product-showcase stack">
+           <span class="pill">Developer product</span>
+           <h2>RinaWarp Terminal Pro</h2>
+           <p>The AI copilot for real computer work.</p>
+           <p>Observe projects. Plan changes. Approve execution. Verify outcomes. Trust the proof. Built for real repositories, real commands, and verified results.</p>
+           <div class="signal-grid">
+             <div class="signal-card">
+               <strong>Nothing executes without approval</strong>
+               <p>All changes are visible and approved before they run.</p>
+             </div>
+             <div class="signal-card">
+               <strong>Proof from runtime evidence</strong>
+               <p>Build and test output stays attached to every action.</p>
+             </div>
+           </div>
+           <div class="cta-row">
+             <a href="/docs/proof" class="btn btn-primary">See Proof workflow</a>
+             <a href="/pricing" class="btn btn-secondary">See pricing</a>
+             <a href="/download" class="btn btn-secondary">Download</a>
+           </div>
+         </article>
         <article class="product-showcase stack">
           <span class="pill">Trust product</span>
           <h2>RinaWarp Matter Intelligence</h2>
@@ -2793,88 +2797,75 @@ function renderMatterIntelligencePrivacy(): Response {
 }
 
 function renderPricing(): Response {
-  const hero = `
-    <section class="hero">
-      <span class="eyebrow">Fix Project pricing</span>
-      <h1>Plans mapped to real product access.</h1>
-      <p class="hero-copy">Choose the level of repair, verification, and team control you need. Pricing stays focused on buying RinaWarp, not repeating the whole product tour.</p>
-      <div class="trust-row">
-        <span class="trust-chip">Free</span>
-        <span class="trust-chip">One Fix</span>
-        <span class="trust-chip">Pro</span>
-        <span class="trust-chip">Team</span>
-        <span class="trust-chip">Enterprise</span>
-      </div>
-    </section>
-  `
+   const hero = `
+     <section class="hero">
+       <span class="eyebrow">RinaWarp Terminal Pro pricing</span>
+       <h1>Plans mapped to proof-first workflow access.</h1>
+       <p class="hero-copy">Free for evaluation. Pro for individual developers. Team for shared controls. Pricing stays focused on the Observe → Plan → Approve → Execute → Proof value.</p>
+       <div class="trust-row">
+         <span class="trust-chip">Free</span>
+         <span class="trust-chip">Pro</span>
+         <span class="trust-chip">Team</span>
+       </div>
+     </section>
+   `
 
-  const content = `
-    <section class="section">
-      <div class="pricing-grid">
-        <article class="card pricing-card">
-          <span class="pill">Free</span>
-          <div class="price">$0 <span>/ month</span></div>
-          <p>Evaluate RinaWarp on a broken project before you pay.</p>
-          <ul class="feature-list">
-            <li>Chat with Rina</li>
-            <li>Inspect workspace</li>
-            <li>Limited build/test runs</li>
-            <li>Local memory</li>
-            <li>Limited proof history</li>
-          </ul>
-          <a href="/download" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Start free</a>
-        </article>
-        <article class="card pricing-card">
-          <span class="pill">One Fix</span>
-          <div class="price">$3 <span>/ repair</span></div>
-          <p>Use one approval-gated repair when a single project is blocking you.</p>
-          <ul class="feature-list">
-            <li>One approval-gated repair</li>
-            <li>Verification run</li>
-            <li>Proof export</li>
-          </ul>
-          <button class="btn btn-secondary" data-checkout-tier="fix" type="button">Buy One Fix</button>
-        </article>
-        <article class="card pricing-card featured">
-          <span class="pill">Pro</span>
-          <div class="price">$15 <span>/ month</span></div>
-          <p>For individual developers who want ongoing proof-backed repair work.</p>
-          <ul class="feature-list">
-            <li>Unlimited local proof-backed runs</li>
-            <li>Safe mutation approvals</li>
-            <li>Marketplace packs</li>
-            <li>Proof export</li>
-            <li>Local memory</li>
-            <li>Priority updates</li>
-          </ul>
-          <button class="btn btn-primary" data-checkout-tier="pro" type="button">Start Pro</button>
-        </article>
-        <article class="card pricing-card">
-          <span class="pill">Team</span>
-          <div class="price">$40 <span>/ user / month</span></div>
-          <p>Seat-based checkout for teams that need shared controls.</p>
-          <ul class="feature-list">
-            <li>Team seats</li>
-            <li>Shared policy controls</li>
-            <li>Shared project memory later</li>
-            <li>Admin controls</li>
-            <li>Shared proof history</li>
-          </ul>
-          <button class="btn btn-secondary" data-checkout-tier="team" type="button">Start Team</button>
-        </article>
-      </div>
-    </section>
+   const content = `
+     <section class="section">
+       <div class="pricing-grid">
+         <article class="card pricing-card">
+           <span class="pill">Free</span>
+           <div class="price">$0 <span>/ month</span></div>
+           <p>Evaluate RinaWarp on a project before you pay.</p>
+           <ul class="feature-list">
+             <li>Observe and ask questions</li>
+             <li>Limited proof-backed runs</li>
+             <li>Local memory</li>
+             <li>Limited proof history</li>
+           </ul>
+           <a href="/download" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Start free</a>
+         </article>
+         <article class="card pricing-card featured">
+           <span class="pill">Pro</span>
+           <div class="price">$15 <span>/ month</span></div>
+           <p>For developers who want the full proof-first workflow.</p>
+           <ul class="feature-list">
+             <li>Full Observe → Plan → Approve workflow</li>
+             <li>Unlimited proof-backed runs</li>
+             <li>Safe mutation approvals</li>
+             <li>Marketplace packs</li>
+             <li>Proof export</li>
+             <li>Local memory</li>
+             <li>Priority updates</li>
+           </ul>
+           <button class="btn btn-primary" data-checkout-tier="pro" type="button">Start Pro</button>
+         </article>
+         <article class="card pricing-card">
+           <span class="pill">Team</span>
+           <div class="price">$40 <span>/ user / month</span></div>
+           <p>Seat-based checkout for teams that need shared controls.</p>
+           <ul class="feature-list">
+             <li>Team seats</li>
+             <li>Shared policy controls</li>
+             <li>Shared project memory later</li>
+             <li>Admin controls</li>
+             <li>Shared proof history</li>
+           </ul>
+           <button class="btn btn-secondary" data-checkout-tier="team" type="button">Start Team</button>
+         </article>
+       </div>
+     </section>
 
-    <section class="section">
-      <article class="panel stack">
-        <h2 class="section-title">Secure checkout</h2>
-        <p class="section-copy">Enter the email that should own the license, then choose One Fix, Pro, or Team.</p>
-        <input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for checkout" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,0.04);color:var(--text)">
-        <div class="note" id="checkout-status" aria-live="polite">One Fix is $3. Pro is $15/month. Team is $40/user/month. Checkout opens in Stripe.</div>
-      </article>
-    </section>
+     <section class="section">
+       <article class="panel stack">
+         <h2 class="section-title">Secure checkout</h2>
+         <p class="section-copy">Enter the email that should own the license, then choose Pro or Team.</p>
+         <input id="checkout-email" type="email" placeholder="you@company.com" aria-label="Email for checkout" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,0.04);color:var(--text)">
+         <p class="note" id="checkout-status" aria-live="polite">Pro is $15/month. Team is $40/user/month. Checkout opens in Stripe.</p>
+       </article>
+     </section>
 
-    <section class="section"><div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Feature</th><th>Free</th><th>One Fix</th><th>Pro</th><th>Team</th></tr></thead><tbody><tr><td>Workspace inspection</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Approval-gated repair</td><td class="mark-no">Limited</td><td class="mark-yes">1</td><td class="mark-yes">Unlimited</td><td class="mark-yes">Unlimited</td></tr><tr><td>Verification and proof export</td><td class="mark-no">Limited</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Marketplace packs</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Shared policy controls</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td></tr></tbody></table></div></section>
+     <section class="section"><div class="compare-table-wrap"><table class="compare-table"><thead><tr><th>Feature</th><th>Free</th><th>Pro</th><th>Team</th></tr></thead><tbody><tr><td>Observe projects</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Plan changes with diffs</td><td class="mark-no">Limited</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Approve before execute</td><td class="mark-no">Limited</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Proof verification</td><td class="mark-no">Limited</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Marketplace packs</td><td class="mark-no">—</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr><tr><td>Shared policy controls</td><td class="mark-no">—</td><td class="mark-no">—</td><td class="mark-yes">✓</td></tr></tbody></table></div></section>
 
     <section class="section">
       <article class="panel stack">
@@ -2953,105 +2944,226 @@ function renderPricing(): Response {
 }
 
 function renderTrust(): Response {
-  const hero = `
-    <section class="hero">
-      <span class="eyebrow">Trust & Safety</span>
-      <h1>How RinaWarp keeps developer work inspectable.</h1>
-      <p class="hero-copy">RinaWarp is built for real repositories, real commands, and real verification. The product should show what it inspected, ask before high-impact changes, and keep proof attached to every repair.</p>
-      <div class="trust-row">
-        <span class="trust-chip">Local-first execution</span>
-        <span class="trust-chip">Approval before mutation</span>
-        <span class="trust-chip">Proof-backed results</span>
-      </div>
-    </section>
-  `
+   const hero = `
+     <section class="hero">
+       <span class="eyebrow">Trust & Safety</span>
+       <h1>How RinaWarp keeps developer work inspectable.</h1>
+       <p class="hero-copy">RinaWarp is built for real repositories, real commands, and real verification. The product shows what it inspected, asks before high-impact changes, and keeps proof attached to every action.</p>
+       <div class="trust-row">
+         <span class="trust-chip">Nothing executes without approval</span>
+         <span class="trust-chip">Commands visible before execution</span>
+         <span class="trust-chip">Proof from runtime evidence</span>
+       </div>
+     </section>
+   `
 
-  const content = `
-    <section class="section">
+   const content = `
+<section class="section">
       <article class="panel stack">
         <span class="pill">Current production status</span>
         <h2 class="section-title">Linux production candidate. macOS and Windows pending.</h2>
         <p class="section-copy">The current public release is available for Linux as a checksum-verified .deb and AppImage. macOS and Windows are pending signed, notarized, and smoke-tested installers before they return to the download page.</p>
       </article>
     </section>
-    <section class="section">
-      <div class="grid three-up">
-        <article class="card"><h3>Local-first execution</h3><p>RinaWarp runs developer work from the selected workspace and keeps repository inspection tied to the local project context.</p></article>
-        <article class="card"><h3>Workspace boundaries</h3><p>Repairs should stay scoped to the project you opened. High-impact actions must be visible before they run.</p></article>
-        <article class="card"><h3>Approval before mutation</h3><p>File changes, install steps, and risky commands should require clear approval instead of happening silently.</p></article>
-      </div>
-    </section>
-    <section class="section">
-      <div class="grid three-up">
-        <article class="card"><h3>Rollback and recovery</h3><p>Repair work should preserve a recovery path so developers can understand and undo changes when a fix is not right.</p></article>
-        <article class="card"><h3>Proof-backed results</h3><p>Build, test, and health-check output should stay attached to the repair so success is evidence-based.</p></article>
-        <article class="card"><h3>Secret redaction</h3><p>Logs and telemetry should avoid secrets, tokens, file contents, command output, and private paths unless they are safely redacted or hashed.</p></article>
-      </div>
-    </section>
-    <section class="section">
-      <div class="grid two-up">
-        <article class="panel stack"><h2 class="section-title">Memory and data controls</h2><p>Local memory should help RinaWarp remember project context without turning private code into a public profile. Cloud sync is optional, not the default. Developers should be able to export or delete saved memory.</p></article>
-        <article class="panel stack"><h2 class="section-title">Marketplace permissions</h2><p>Capability packs need a manifest, publisher, version, permissions, risk level, install approval, disable control, changelog, and proof of what ran. Packs should not bypass Agent Thread, policy, execution, verification, and proof.</p></article>
-      </div>
-    </section>
-    <section class="section">
-      <div class="grid two-up">
-        <article class="panel stack"><h2 class="section-title">Download verification</h2><p>Installers are linked through public release metadata and checksums. If the SHA256 checksum does not match the published file, do not run the installer.</p><a href="/download" class="btn btn-secondary">Verify downloads</a></article>
-        <article class="panel stack"><h2 class="section-title">Privacy-safe telemetry</h2><p>RinaWarp should measure activation events like install, first launch, first scan, first proof, fix approval, proof export, marketplace install, memory saved, memory cleared, and crash report creation. It should not collect source files, terminal output, secrets, tokens, or private paths.</p><a href="/privacy" class="btn btn-secondary">Read privacy policy</a></article>
-      </div>
-    </section>
-  `
 
-  return renderPage('/trust', 'trust', hero, content)
-}
+    <section class="section">
+      <article class="panel stack">
+        <h2 class="section-title">Why Users Trust RinaWarp Terminal Pro</h2>
+        <div class="trust-workflow-grid">
+          <article class="trust-step">
+            <div class="trust-step-number">1</div>
+            <strong>Observe</strong>
+            <p>Rina understands your workspace before planning changes. It scans the codebase, configuration, and runtime state.</p>
+          </article>
+          <article class="trust-step">
+            <div class="trust-step-number">2</div>
+            <strong>Plan</strong>
+            <p>Every action starts with a visible plan. Proposed changes and commands are shown for review.</p>
+          </article>
+          <article class="trust-step">
+            <div class="trust-step-number">3</div>
+            <strong>Approve</strong>
+            <p>Nothing executes without approval. High-impact actions pause for your explicit confirmation.</p>
+          </article>
+          <article class="trust-step">
+            <div class="trust-step-number">4</div>
+            <strong>Execute</strong>
+            <p>Actions run through AgentRuntime with all output captured in the Agent Thread.</p>
+          </article>
+          <article class="trust-step">
+            <div class="trust-step-number">5</div>
+            <strong>Proof</strong>
+            <p>Results are verified using runtime evidence. Build exit codes, test passes, and health checks are attached.</p>
+          </article>
+          <article class="trust-step">
+            <div class="trust-step-number">6</div>
+            <strong>Remember</strong>
+            <p>Verified knowledge improves future planning. Workspace Knowledge persists from observation and proof.</p>
+          </article>
+        </div>
+      </article>
+    </section>
+    <section class="section feature-band">
+      <h2 class="section-title centered">Trust differentiators</h2>
+      <p class="section-copy centered">These are what make RinaWarp different from other AI coding tools.</p>
+      <div class="grid three-up">
+        <article class="card"><h3>Nothing Executes Without Approval</h3><p>All file changes and commands are visible before they run. High-impact actions pause for explicit confirmation.</p></article>
+        <article class="card"><h3>Commands Are Visible Before Execution</h3><p>Every command appears in the Agent Thread before running. You see exactly what will execute in your project context.</p></article>
+        <article class="card"><h3>Proof Comes From Runtime Evidence</h3><p>Build, test, and health-check output stays attached to the action. Success is proven, not promised.</p></article>
+      </div>
+    </section>
+    <section class="section">
+      <div class="grid three-up">
+        <article class="card"><h3>Workspace Knowledge Is Built From Observation And Verified Proof</h3><p>Memory comes from watching what actually runs and verifying outcomes, not from training on public code.</p></article>
+        <article class="card"><h3>Secrets Are Not Stored As Workspace Knowledge</h3><p>API keys, tokens, and credentials are redacted from memory. Workspace Knowledge contains only what you approve for retention.</p></article>
+        <article class="card"><h3>Rollback Capability</h3><p>Every proof includes a restore path. If something goes wrong, you can undo changes and return to a known state.</p></article>
+      </div>
+    </section>
+     <section class="section feature-band">
+       <h2 class="section-title centered">The proof-first differentiators</h2>
+       <p class="section-copy centered">These are what make RinaWarp different from other AI coding tools.</p>
+       <div class="grid three-up">
+         <article class="card"><h3>Nothing executes without approval</h3><p>All file changes and commands are visible before they run. High-impact actions pause for explicit confirmation.</p></article>
+         <article class="card"><h3>Commands visible before execution</h3><p>Every command appears in the Agent Thread before running. You see exactly what will execute in your project context.</p></article>
+         <article class="card"><h3>Proof from runtime evidence</h3><p>Build, test, and health-check output stays attached to the action. Success is proven, not promised.</p></article>
+       </div>
+     </section>
+     <section class="section">
+       <div class="grid three-up">
+         <article class="card"><h3>Local-first execution</h3><p>RinaWarp runs developer work from the selected workspace and keeps repository inspection tied to the local project context.</p></article>
+         <article class="card"><h3>Workspace boundaries</h3><p>Repairs stay scoped to the project you opened. High-impact actions must be visible before they run.</p></article>
+         <article class="card"><h3>Approval before mutation</h3><p>File changes, install steps, and risky commands should require clear approval instead of happening silently.</p></article>
+       </div>
+     </section>
+     <section class="section">
+       <div class="grid three-up">
+         <article class="card"><h3>Rollback and recovery</h3><p>Repair work should preserve a recovery path so developers can understand and undo changes when a fix is not right.</p></article>
+         <article class="card"><h3>Proof-backed results</h3><p>Build, test, and health-check output should stay attached to the repair so success is evidence-based.</p></article>
+         <article class="card"><h3>Secret redaction</h3><p>Logs and telemetry should avoid secrets, tokens, file contents, command output, and private paths unless they are safely redacted or hashed.</p></article>
+       </div>
+     </section>
+     <section class="section">
+       <div class="grid two-up">
+         <article class="panel stack"><h2 class="section-title">Workspace Knowledge</h2><p>Local memory helps RinaWarp remember project context without turning private code into a public profile. Workspace Knowledge comes from observation and verified proof. Cloud sync is optional, not the default.</p></article>
+         <article class="panel stack"><h2 class="section-title">Marketplace permissions</h2><p>Capability packs need a manifest, publisher, version, permissions, risk level, install approval, disable control, changelog, and proof of what ran. Packs should not bypass Agent Thread, policy, execution, verification, and proof.</p></article>
+       </div>
+     </section>
+     <section class="section">
+       <div class="grid two-up">
+         <article class="panel stack"><h2 class="section-title">Download verification</h2><p>Installers are linked through public release metadata and checksums. If the SHA256 checksum does not match the published file, do not run the installer.</p><a href="/download" class="btn btn-secondary">Verify downloads</a></article>
+         <article class="panel stack"><h2 class="section-title">Privacy-safe telemetry</h2><p>RinaWarp should measure activation events like install, first launch, first scan, first proof, fix approval, proof export, marketplace install, memory saved, memory cleared, and crash report creation. It should not collect source files, terminal output, secrets, tokens, or private paths.</p><a href="/privacy" class="btn btn-secondary">Read privacy policy</a></article>
+       </div>
+     </section>
+   `
+
+   return renderPage('/trust', 'trust', hero, content)
+ }
 
 function renderDocs(): Response {
-  const hero = `
-    <section class="hero">
-      <span class="eyebrow">Documentation</span>
-      <h1>RinaWarp Terminal Pro docs</h1>
-      <p class="hero-copy">Install, run your first repair, troubleshoot failures, and reference expected command behavior.</p>
-    </section>
-  `
+   const hero = `
+     <section class="hero">
+       <span class="eyebrow">Documentation</span>
+       <h1>RinaWarp Terminal Pro docs</h1>
+       <p class="hero-copy">Install, run your first proof workflow, troubleshoot failures, and reference expected command behavior.</p>
+     </section>
+   `
 
-  const content = `
+const content = `
     <section class="section">
       <nav class="docs-nav" aria-label="Documentation sections">
         <a href="#installation">Installation</a>
-        <a href="#first-repair">First repair</a>
+        <a href="#first-repair">First proof workflow</a>
+        <a href="/docs/proof">Proof workflow</a>
+        <a href="#frameworks">Frameworks</a>
+        <a href="#permissions">Permissions</a>
+        <a href="#security">Security model</a>
         <a href="#troubleshooting">Troubleshooting</a>
         <a href="#api-reference">API/reference</a>
+        <a href="#fix-guides">Fix guides</a>
       </nav>
     </section>
+
+    <section class="section">
+      <article class="panel stack">
+        <h2 class="section-title">What RinaWarp Actually Does</h2>
+        <p>RinaWarp Terminal Pro is the AI copilot for real computer work. Here is exactly what it does:</p>
+        <div class="proof-step">
+          <strong>Observe</strong>
+          <p>Rina understands your project structure, dependencies, runtime, deployment targets, and workspace knowledge.</p>
+        </div>
+        <div class="proof-step">
+          <strong>Plan</strong>
+          <p>Rina creates safe execution plans using workspace context. Nothing runs without approval.</p>
+        </div>
+        <div class="proof-step">
+          <strong>Approve</strong>
+          <p>Review commands before anything runs. High-impact actions pause for your confirmation.</p>
+        </div>
+        <div class="proof-step">
+          <strong>Execute</strong>
+          <p>Actions run through AgentRuntime in your project context. All output is captured.</p>
+        </div>
+        <div class="proof-step">
+          <strong>Proof</strong>
+          <p>Every run produces evidence, verification status, and Proof artifacts. Build exit code 0, tests passing, health checks green.</p>
+        </div>
+        <div class="proof-step">
+          <strong>Remember</strong>
+          <p>Verified workspace knowledge improves future planning. Memory is local-first, not public.</p>
+        </div>
+      </article>
+    </section>
+
     <section class="section">
       <article id="installation" class="panel stack">
         <h2 class="section-title">Installation</h2>
+        <h3>Linux (available now)</h3>
         <ol class="signal-list">
-          <li>Download <code>.deb</code> or AppImage from the download page.</li>
-          <li>Verify SHA256 before install.</li>
-          <li>Install the <code>.deb</code> on Debian/Ubuntu, or mark the AppImage executable and run it.</li>
+          <li>Download <code>.deb</code> or AppImage from the <a href="/download/">download page</a>.</li>
+          <li>Verify SHA256 using <a href="/download/">SHASUMS256.txt</a> before install.</li>
+          <li><strong>.deb:</strong> Install on Debian/Ubuntu. Updates are manual <code>.deb</code> reinstalls unless you switch paths.</li>
+          <li><strong>AppImage:</strong> Portable build with in-app update checks when configured.</li>
           <li>Launch Terminal Pro and open your repository folder.</li>
         </ol>
+        <h3>macOS/Windows (unsigned beta preview)</h3>
+        <p><strong>Important:</strong> These beta builds may be unsigned and require OS security bypass steps. Production builds will be signed and notarized.</p>
+        <ul class="signal-list">
+          <li>Download the unsigned .dmg or .exe installer from the <a href="/download/">download page</a>.</li>
+          <li><strong>macOS:</strong> Right-click the app and select "Open" to bypass Gatekeeper on first launch.</li>
+          <li><strong>Windows:</strong> Click "More info" → "Run anyway" if SmartScreen blocks the installer.</li>
+          <li>These builds are for validation testing only — production builds will be signed.</li>
+        </ul>
+        <h3>Requirements</h3>
+        <ul class="signal-list">
+          <li>4 GB RAM minimum; 8 GB+ recommended for large monorepos</li>
+          <li>Node.js 18+ and npm/pnpm in PATH for JavaScript/TypeScript projects</li>
+          <li>Git recommended so you can review diffs and roll back</li>
+          <li>Outbound network for package registries during repairs</li>
+        </ul>
       </article>
     </section>
 
     <section class="section">
       <article id="first-repair" class="panel stack">
-        <h2 class="section-title">First repair</h2>
+        <h2 class="section-title">First proof workflow</h2>
         <ol class="signal-list">
-          <li><strong>Open the repo.</strong> Select the broken project root.</li>
-          <li><strong>Click Fix Project.</strong> Rina scans dependencies, config, and build/test output.</li>
-          <li><strong>Review the report.</strong> Read proposed file changes and the command plan.</li>
+          <li><strong>Open the repo.</strong> Select the project root folder.</li>
+          <li><strong>Ask Rina.</strong> Describe what's broken. Rina follows the Observe → Plan → Approve → Execute → Proof workflow.</li>
+          <li><strong>Review the plan.</strong> Read proposed file changes and the command plan.</li>
           <li><strong>Approve when prompted.</strong> High-impact steps pause until you confirm.</li>
-          <li><strong>Verify.</strong> Confirm build, test, or boot checks show exit code 0.</li>
+          <li><strong>Verify proof.</strong> Confirm build, test, or boot checks show exit code 0.</li>
         </ol>
+        <div class="screenshot-frame">
+          <img src="/assets/img/terminal-pro-agent-thread.png" alt="Current Terminal Pro Agent Thread interface" width="1400" height="768" loading="lazy" decoding="async">
+        </div>
+        <p class="section-copy">If verification fails, read the failing command output and run the proof workflow again with a narrower scope or after fixing network/registry access.</p>
       </article>
     </section>
 
     <section class="section">
       <article id="troubleshooting" class="panel stack">
         <h2 class="section-title">Troubleshooting</h2>
-        <h3>Build failures after repair</h3><p>Read the failing command in the terminal. One env var, flaky test, or remaining type error may need a narrower second pass.</p>
+        <h3>Build failures after proof</h3><p>Read the failing command in the terminal. Often one env var, flaky test, or remaining type error needs a second proof workflow pass.</p>
         <h3>Permission errors</h3><p>Ensure the workspace is writable and package managers are not blocked by sandboxed directories.</p>
         <h3>Broken install</h3><p>Re-verify checksums, try the other Linux artifact, or install missing GUI libraries on minimal images.</p>
       </article>
@@ -3061,7 +3173,7 @@ function renderDocs(): Response {
       <article id="api-reference" class="panel stack">
         <h2 class="section-title">API/reference</h2>
         <div class="grid three-up">
-          <article class="card"><h3>Repair commands</h3><p>RinaWarp favors project-scoped build, test, package, and diagnostic commands.</p></article>
+          <article class="card"><h3>Repair commands</h3><p>RinaWarp favors project-scoped build, test, package, and diagnostic commands. Destructive or publishing actions require explicit approval.</p></article>
           <article class="card"><h3>Exit codes</h3><p>A repair is complete only after the relevant command exits successfully and proof is visible.</p></article>
           <article class="card"><h3>Support data</h3><p>Include app version, platform, installer type, failing command, and a short workflow description.</p></article>
         </div>
@@ -3069,8 +3181,129 @@ function renderDocs(): Response {
     </section>
   `
 
-  return renderPage('/docs', 'docs', hero, content)
-}
+    return renderPage('/docs', 'docs', hero, content)
+ }
+
+function renderProofDocs(): Response {
+   const hero = `
+     <section class="hero">
+       <span class="eyebrow">Proof workflow</span>
+       <h1>Observe → Plan → Approve → Execute → Proof</h1>
+       <p class="hero-copy">The proof-first AI copilot for real computer work. Nothing executes without approval. Commands are visible before execution. Proof is generated from runtime evidence.</p>
+       <div class="trust-row">
+         <span class="trust-chip">Nothing executes without approval</span>
+         <span class="trust-chip">Commands visible before execution</span>
+         <span class="trust-chip">Proof from runtime evidence</span>
+       </div>
+     </section>
+   `
+
+   const content = `
+     <section class="section">
+       <article class="panel stack">
+         <h2 class="section-title">The proof-first workflow</h2>
+         <p>RinaWarp Terminal Pro follows a deliberate workflow designed for trust and verification.</p>
+         <div class="proof-step">
+           <strong>Step 1: Observe</strong>
+           <p>Open a project. Rina reads the codebase, configuration, logs, and runtime state. Workspace Knowledge comes from observation and verified proof.</p>
+         </div>
+         <div class="proof-step">
+           <strong>Step 2: Plan</strong>
+           <p>Review proposed changes and commands. Nothing executes until you approve. High-impact actions require explicit approval.</p>
+         </div>
+         <div class="proof-step">
+           <strong>Step 3: Approve</strong>
+           <p>Confirm the plan before execution. Safe changes can auto-apply on paid tiers, but high-impact actions always pause for approval.</p>
+         </div>
+         <div class="proof-step">
+           <strong>Step 4: Execute</strong>
+           <p>Commands run in your project context. All output is captured and attached to the action.</p>
+         </div>
+         <div class="proof-step">
+           <strong>Step 5: Proof</strong>
+           <p>Verification output shows success or failure. Build exit code 0, tests passing, health checks green — all attached as evidence.</p>
+         </div>
+       </article>
+     </section>
+
+<section class="section">
+        <div class="grid two-up">
+          <article class="panel stack">
+            <h2 class="section-title">Trust signals</h2>
+            <ul class="signal-list">
+              <li><strong>Nothing executes without approval</strong> — All changes are visible and approved before they run.</li>
+              <li><strong>Commands visible before execution</strong> — Every command appears in the Agent Thread before running.</li>
+              <li><strong>Proof from runtime evidence</strong> — Build and test output stays attached to every action.</li>
+              <li><strong>Workspace Knowledge</strong> — Memory comes from observation and verified proof, not speculation.</li>
+            </ul>
+          </article>
+          <article class="panel stack">
+            <h2 class="section-title">Example terminal flow</h2>
+            <div class="terminal-preview">
+              <div class="demo-windowbar"><span class="demo-dot"></span><span class="demo-dot"></span><span class="demo-dot"></span><span>Terminal Pro</span></div>
+              <span class="terminal-line dim"># Observe</span>
+              <span class="terminal-line dim">rina observe --project ./my-app</span>
+              <span class="terminal-line dim"># Plan</span>
+              <span class="terminal-line dim">rina plan --changes "Fix type errors"</span>
+              <span class="terminal-line ok"># Approve</span>
+              <span class="terminal-line ok">Approve: Run npm install, tsc --build</span>
+              <span class="terminal-line dim"># Execute</span>
+              <span class="terminal-line ok">npm install</span>
+              <span class="terminal-line ok">tsc --build</span>
+              <span class="terminal-line ok"># Proof</span>
+              <span class="terminal-line ok">Build: exit code 0</span>
+              <span class="terminal-line ok">Tests: 214 passed</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title centered">Proof workflow screenshots</h2>
+        <p class="section-copy centered">Real screenshots from Terminal Pro showing each step of the workflow.</p>
+        <div class="screenshots-grid">
+          <article class="screenshot-card">
+            <div class="screenshot-frame">
+              <img src="/assets/img/terminal-pro-agent-thread.png" alt="Agent Thread showing Observe step" loading="lazy" decoding="async">
+            </div>
+            <h3>Agent Thread: Observe</h3>
+            <p>Rina scans the project and presents findings before any changes.</p>
+          </article>
+          <article class="screenshot-card">
+            <div class="screenshot-frame">
+              <img src="/assets/img/terminal-pro-interface.png" alt="Planner Approval showing Plan step" loading="lazy" decoding="async">
+            </div>
+            <h3>Planner: Approval</h3>
+            <p>The plan is reviewed and approved before execution begins.</p>
+          </article>
+          <article class="screenshot-card">
+            <div class="screenshot-frame">
+              <img src="/assets/img/terminal-pro-agent-thread.png" alt="Execute step in progress" loading="lazy" decoding="async">
+            </div>
+            <h3>Execute: AgentRuntime</h3>
+            <p>Commands run with full output capture in the Agent Thread.</p>
+          </article>
+          <article class="screenshot-card">
+            <div class="screenshot-frame">
+              <img src="/assets/img/terminal-pro-interface.png" alt="Proof verification output" loading="lazy" decoding="async">
+            </div>
+            <h3>Proof: Verification</h3>
+            <p>Build exit codes, test results, and health checks prove success.</p>
+          </article>
+        </div>
+      </section>
+
+<section class="section final-cta">
+        <h2>Ready to try the proof-first workflow?</h2>
+        <p>Download Terminal Pro Beta and experience the difference verification makes.</p>
+        <div class="cta-row">
+          <a href="/download/" class="btn btn-light">Download Beta</a>
+        </div>
+      </section>
+   `
+
+   return renderPage('/docs/proof', 'docs', hero, content)
+ }
 
 function renderSuccess(returnTo: string = '', sessionId: string = ''): Response {
   const hero = `
@@ -5066,6 +5299,10 @@ export default {
 
       if (path === '/docs' || path === '/docs/') {
         return renderDocs()
+      }
+
+      if (path === '/docs/proof' || path === '/docs/proof/') {
+        return renderProofDocs()
       }
 
       if (path === '/terms' || path === '/terms/') {
