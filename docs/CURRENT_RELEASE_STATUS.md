@@ -50,7 +50,7 @@ RinaWarp Terminal Pro v1.8.2-beta has live production surfaces, working Linux pu
 - **Current Package Version:** 1.8.2-beta
 - **Latest Public Beta Tag:** v1.8.2-beta
 - **Next Candidate Version:** 1.8.2-beta (maintaining current package version unless intentionally changed)
-- **Release Readiness:** Requires running `npm --workspace apps/terminal-pro run release:readiness`
+- **Release Readiness:** PASSED - `npm --workspace apps/terminal-pro run release:readiness`
 - **Artifacts to Build (for validation):**
   - RinaWarp-Terminal-Pro-1.8.2-beta-linux-x86_64.AppImage
   - RinaWarp-Terminal-Pro-1.8.2-beta-linux-amd64.deb
@@ -72,3 +72,39 @@ RinaWarp Terminal Pro v1.8.2-beta has live production surfaces, working Linux pu
 
 ## Immediate Next Milestone
 v1.8.2-beta controlled Linux paid beta verification.
+
+## Release Candidate Status
+**Date**: 2026-06-10  
+**Status**: RELEASE BLOCKER FIXED - See PROJECT_STATE.md for full checklist
+
+### RC Validation Summary
+- ✅ Product lock: enforced
+- ✅ Packaged RC E2E: passing
+- **Remaining manual gates:**
+  - clean-machine install
+  - real Stripe/license activation
+  - public download route + SHA256
+
+This was not wasted work. The RC suite caught the exact product-breaking seam before customers did.
+
+## First External User Validation Milestone
+
+**Success Metric**: Can a real user complete the core loop without help?
+
+### Core Loop Tests (Real Person Validation)
+- **Test 1**: "What do you know about this project?" → Do they trust the answer?
+- **Test 2**: "Plan a safe change." → Do they understand the approval screen?
+- **Test 3**: Approve & Run → Do they trust the Proof?
+
+### Remaining Manual Gates
+1. Clean-machine install
+2. Real Stripe purchase/license activation
+3. Public download page
+4. SHA256 verification
+
+### Weekly Plan
+- **Day 1**: Clean Linux install + verify update flow
+- **Day 2**: Real Stripe purchase + restore purchase
+- **Day 3**: Publish download page + verify artifacts
+- **Day 4**: Put one real external user in front of it
+- **Day 5**: Fix only issues that user encounters

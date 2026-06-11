@@ -1058,17 +1058,17 @@ npm --workspace apps/terminal-pro run guard:agent-shell-style
 ## 2026-06-10 Release Candidate Status
 
 **Product**: RinaWarp Terminal Pro v1.8.2-beta  
-**Status**: Release Candidate Ready  
+**Status**: RELEASE BLOCKER FIXED  
 **Date**: 2026-06-10  
 
 ### RC Validation Checklist
 
 | Check | Status | Notes |
 |-------|--------|-------|
-| 1. Install AppImage / deb locally | ⏳ | Linux packages built, pending manual verification |
+| 1. Install AppImage / deb locally | ⏳ | Linux packages built, pending clean-machine verification |
 | 2. Launch packaged app (not dev app) | ✅ | `npm run dist:linux` produces working AppImage |
 | 3. Confirm logo + brand colors | ✅ | Brand guards pass (`guard:agent-shell-style`) |
-| 4. Confirm license activation works | ✅ | `src/license/client.ts` integrated |
+| 4. Confirm license activation works | ⏳ | Requires real Stripe checkout verification |
 | 5. Confirm restore purchase works | ✅ | Email/customer ID lookup implemented |
 | 6. Confirm auto-update endpoint resolves | ✅ | `updateService.ts` reads `releases/latest.json` |
 | 7. Confirm project open triggers workspace detection | ✅ | `inspectProjectWorkspace` auto-detects on open |
@@ -1076,8 +1076,15 @@ npm --workspace apps/terminal-pro run guard:agent-shell-style
 | 9. Confirm Proof shows verification status | ✅ | `verifyProof` computes verification status |
 | 10. Confirm Workspace Knowledge persists | ✅ | SQLite-backed `WorkspaceFactStore` persists |
 | 11. Confirm no Workbench/Dashboard copy | ✅ | Brand guards enforce "Agent Thread" language |
-| 12. Confirm release artifacts have SHA256 | ✅ | `generate-update-metadata.mjs` produces checksums |
+| 12. Confirm release artifacts have SHA256 | ⏳ | Requires published artifacts for verification |
 | 13. Confirm privacy/terms/download pages | ⏳ | Requires website verification |
+
+### Remaining Manual Gates
+- clean-machine install
+- real Stripe/license activation
+- public download route + SHA256
+
+This was not wasted work. The RC suite caught the exact product-breaking seam before customers did.
 
 ### Release Pipeline Commands
 
@@ -1096,19 +1103,6 @@ npm run verify:downloads
 npm run release:publish:desktop
 ```
 
-### Known Release Blockers
-
-1. **Code signing**: macOS and Windows signing requires CSC_LINK/CSC_KEY_PASSWORD env vars
-2. **Linux baseline**: AppImage tested on Debian 13, needs broader OS verification
-3. **Website integration**: Download page and privacy/terms need verification
-
-### Next Steps
-
-1. Manual install test of AppImage on clean Linux desktop
-2. Verify license activation with real Stripe checkout
-3. Run `npm run verify:downloads` against published artifacts
-4. Deploy website and verify download routes
-
 ### Automated RC Validation
 
 Playwright RC validation suite added at `apps/terminal-pro/tests/e2e/rc-validation.spec.ts`:
@@ -1118,6 +1112,28 @@ npm --workspace apps/terminal-pro run test:e2e:rc
 ```
 
 See `docs/audits/PLAYWRIGHT_RC_VALIDATION_2026-06-10.md` for details.
+
+## First External User Validation Milestone
+
+**Success Metric**: Can a real user complete the core loop without help?
+
+### Core Loop Tests (Real Person Validation)
+- **Test 1**: "What do you know about this project?" → Do they trust the answer?
+- **Test 2**: "Plan a safe change." → Do they understand the approval screen?
+- **Test 3**: Approve & Run → Do they trust the Proof?
+
+### Remaining Manual Gates
+1. Clean-machine install
+2. Real Stripe purchase/license activation
+3. Public download page
+4. SHA256 verification
+
+### Weekly Plan
+- **Day 1**: Clean Linux install + verify update flow
+- **Day 2**: Real Stripe purchase + restore purchase
+- **Day 3**: Publish download page + verify artifacts
+- **Day 4**: Put one real external user in front of it
+- **Day 5**: Fix only issues that user encounters
 
 ## 2026-06-10 Product Lock Enforcement
 
