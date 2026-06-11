@@ -3,9 +3,9 @@
  */
 
 export const HERO_REPAIR_REPORT = `
-<aside class="repair-report" aria-label="Example repair report">
+<aside class="repair-report" aria-label="Example proof report">
   <div class="repair-report-header">
-    <span class="kicker">Repair report</span>
+    <span class="kicker">Proof report</span>
     <span class="repair-report-badge">Verified run</span>
   </div>
   <dl class="repair-report-grid">
@@ -26,7 +26,7 @@ export const HERO_REPAIR_REPORT = `
     </dd></div>
     <div><dt>Time</dt><dd>2m 11s</dd></div>
   </dl>
-  <p class="repair-report-note">Representative Early Access repair — your repo will differ. Screenshots below are from real Terminal Pro runs, not illustrations.</p>
+  <p class="repair-report-note">Representative Early Access proof — your repo will differ. Screenshots below are from real Terminal Pro runs, not illustrations.</p>
 </aside>
 `
 
@@ -34,7 +34,8 @@ export const DOCS_BODY_HTML = `
 <section class="section">
   <nav class="docs-nav" aria-label="Documentation sections">
     <a href="#installation">Installation</a>
-    <a href="#first-repair">First repair</a>
+    <a href="#first-repair">First proof workflow</a>
+    <a href="/docs/proof">Proof workflow</a>
     <a href="#frameworks">Frameworks</a>
     <a href="#permissions">Permissions</a>
     <a href="#security">Security model</a>
@@ -43,7 +44,7 @@ export const DOCS_BODY_HTML = `
     <a href="#fix-guides">Fix guides</a>
   </nav>
 
-  <article id="installation" class="panel stack">
+<article id="installation" class="panel stack">
     <h2 class="section-title">Installation</h2>
     <h3>Linux (available now)</h3>
     <ol class="signal-list">
@@ -71,18 +72,33 @@ export const DOCS_BODY_HTML = `
   </article>
 
   <article id="first-repair" class="panel stack">
-    <h2 class="section-title">First repair (step by step)</h2>
+    <h2 class="section-title">First proof workflow</h2>
     <ol class="signal-list">
-      <li><strong>Open the repo</strong> — File → Open project (or equivalent) and select the broken project root.</li>
-      <li><strong>Click Fix Project</strong> — Rina scans dependencies, config, and build/test output.</li>
-      <li><strong>Review the repair report</strong> — Read proposed file changes and the command plan before approving high-impact steps.</li>
-      <li><strong>Approve when prompted</strong> — Destructive or high-impact commands pause until you confirm.</li>
-      <li><strong>Verify in terminal</strong> — Confirm <code>npm run build</code>, tests, or boot checks show exit code 0.</li>
+      <li><strong>Open the repo.</strong> Select the project root folder.</li>
+      <li><strong>Ask Rina.</strong> Describe what's broken. Rina follows the Observe → Plan → Approve → Execute → Proof workflow.</li>
+      <li><strong>Review the plan.</strong> Read proposed file changes and the command plan.</li>
+      <li><strong>Approve when prompted.</strong> High-impact steps pause until you confirm.</li>
+      <li><strong>Verify proof.</strong> Confirm build, test, or boot checks show exit code 0.</li>
     </ol>
     <div class="screenshot-frame">
       <img src="/assets/img/terminal-pro-agent-thread.png" alt="Current Terminal Pro Agent Thread interface" width="1400" height="768" loading="lazy" decoding="async">
     </div>
-    <p class="section-copy">If verification fails, read the failing command output and run Fix Project again with a narrower scope or after fixing network/registry access.</p>
+    <p class="section-copy">If verification fails, read the failing command in the terminal and run another proof workflow pass with a narrower scope or after fixing network/registry access.</p>
+  </article>
+
+  <article id="first-repair" class="panel stack">
+    <h2 class="section-title">First repair (step by step)</h2>
+<ol class="signal-list">
+       <li><strong>Open the repo.</strong> Select the project root folder.</li>
+       <li><strong>Ask Rina.</strong> Describe what's broken or what you want to change. Rina follows the Observe → Plan → Approve → Execute → Proof workflow.</li>
+       <li><strong>Review the plan.</strong> Read proposed file changes and the command plan.</li>
+       <li><strong>Approve when prompted.</strong> High-impact steps pause until you confirm.</li>
+       <li><strong>Verify proof.</strong> Confirm build, test, or boot checks show exit code 0.</li>
+     </ol>
+    <div class="screenshot-frame">
+      <img src="/assets/img/terminal-pro-agent-thread.png" alt="Current Terminal Pro Agent Thread interface" width="1400" height="768" loading="lazy" decoding="async">
+    </div>
+    <p class="section-copy">If verification fails, read the failing command output and run the proof workflow again with a narrower scope or after fixing network/registry access.</p>
   </article>
 
   <article id="frameworks" class="panel stack">
@@ -106,25 +122,25 @@ export const DOCS_BODY_HTML = `
     <h3>What files can Rina modify?</h3>
     <p>Files inside the opened project and paths required to fix it (lockfiles, config, generated types). Rina should not modify arbitrary paths outside the project.</p>
     <h3>What commands can it run?</h3>
-    <p>Package managers, compilers, test runners, and diagnostics relevant to the repair (<code>npm</code>, <code>pnpm</code>, <code>tsc</code>, <code>vite build</code>, <code>docker compose build</code>, etc.).</p>
+    <p>Package managers, compilers, test runners, and diagnostics relevant to the proof workflow (<code>npm</code>, <code>pnpm</code>, <code>tsc</code>, <code>vite build</code>, <code>docker compose build</code>, etc.).</p>
     <h3>Approval workflow</h3>
-    <p>Safe repairs can auto-apply on paid tiers. High-impact actions (mass deletes, publish, deploy hooks) require explicit approval in the UI.</p>
+    <p>Safe changes can auto-apply on paid tiers. High-impact actions (mass deletes, publish, deploy hooks) require explicit approval in the UI.</p>
   </article>
 
   <article id="security" class="panel stack">
     <h2 class="section-title">Security model</h2>
     <ul class="signal-list">
-      <li><strong>Local-first execution</strong> — Fix Project runs against your disk unless a feature is explicitly labeled cloud.</li>
-      <li><strong>Command allowlisting</strong> — Repairs use project-scoped tooling; unexpected system-wide commands should surface for approval.</li>
-      <li><strong>Rollback</strong> — Use git to revert bad repairs; the repair report lists files touched so rollback is explicit.</li>
-      <li><strong>No secret exfiltration by default</strong> — <code>.env</code> values are not uploaded as part of the default repair path; see <a href="/privacy/">privacy</a> for telemetry scope.</li>
+      <li><strong>Local-first execution</strong> — The proof workflow runs against your disk unless a feature is explicitly labeled cloud.</li>
+      <li><strong>Command allowlisting</strong> — Proof workflow uses project-scoped tooling; unexpected system-wide commands should surface for approval.</li>
+      <li><strong>Rollback</strong> — Use git to revert bad changes; the proof report lists files touched so rollback is explicit.</li>
+      <li><strong>No secret exfiltration by default</strong> — <code>.env</code> values are not uploaded as part of the default proof workflow path; see <a href="/privacy/">privacy</a> for telemetry scope.</li>
     </ul>
   </article>
 
   <article id="troubleshooting" class="panel stack">
     <h2 class="section-title">Troubleshooting</h2>
-    <h3>Build failures after repair</h3>
-    <p>Read the failing command in the terminal. Often one env var, flaky test, or remaining type error needs a second Fix Project pass.</p>
+    <h3>Build failures after proof</h3>
+    <p>Read the failing command in the terminal. Often one env var, flaky test, or remaining type error needs a second proof workflow pass.</p>
     <h3>Permission errors</h3>
     <p>Ensure the project is writable and package managers are not blocked by sandboxed directories. On Linux, avoid running as root inside the project tree.</p>
     <h3>Broken install</h3>
@@ -135,8 +151,8 @@ export const DOCS_BODY_HTML = `
     <h2 class="section-title">API/reference</h2>
     <p>Use these references when you need exact command, permission, or verification behavior instead of sales copy.</p>
     <div class="grid three-up">
-      <article class="card"><h3>Repair commands</h3><p>RinaWarp favors project-scoped build, test, package, and diagnostic commands. Destructive or publishing actions require explicit approval.</p></article>
-      <article class="card"><h3>Exit codes</h3><p>A repair is not complete until the relevant build, test, install, or boot command exits successfully and the proof is visible.</p></article>
+      <article class="card"><h3>Proof commands</h3><p>RinaWarp favors project-scoped build, test, package, and diagnostic commands. Destructive or publishing actions require explicit approval.</p></article>
+      <article class="card"><h3>Exit codes</h3><p>A proof is not complete until the relevant build, test, install, or boot command exits successfully and the proof is visible.</p></article>
       <article class="card"><h3>Support data</h3><p>When you contact support, include app version, platform, installer type, failing command, and a short description of the broken workflow.</p></article>
     </div>
   </article>
@@ -205,7 +221,7 @@ export function buildCaseStudyHtml(study) {
   return `
     <section class="section">
       <div class="repair-report">
-        <div class="repair-report-header"><span class="kicker">Repair report</span></div>
+        <div class="repair-report-header"><span class="kicker">Proof report</span></div>
         <dl class="repair-report-grid">
           <div><dt>Repository</dt><dd>${study.repo}</dd></div>
           <div><dt>Problem</dt><dd>${study.problem}</dd></div>
@@ -230,7 +246,7 @@ export function buildCaseStudyHtml(study) {
 
 export const CASE_STUDIES_INDEX_HTML = `
 <section class="section">
-  <p class="section-copy">Three detailed repair examples from Early Access — real terminal verification patterns, not invented metrics.</p>
+  <p class="section-copy">Three detailed proof examples from Early Access — real terminal verification patterns, not invented metrics.</p>
   <div class="grid three-up">
     ${CASE_STUDY_PAGES.map(
       (s) => `

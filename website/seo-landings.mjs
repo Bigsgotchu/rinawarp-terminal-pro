@@ -366,13 +366,13 @@ export function buildSeoLandingPageHtml(page) {
 
     <section class="section">
       <h2 class="section-title">How RinaWarp fixes it</h2>
-      <p class="section-copy">Fix Project runs on your machine against the real repo — not a pasted snippet in a chat window.</p>
+      <p class="section-copy">RinaWarp Terminal Pro follows the Observe → Plan → Approve → Execute → Proof workflow. Nothing executes without your approval.</p>
       <ul class="feature-list">
         ${page.rinaApproach.map((s) => `<li>${s}</li>`).join('')}
       </ul>
       <div class="cta-row" style="margin-top:20px">
         <a href="/download" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="seo_landing" data-analytics-prop-target="download">Download Free</a>
-        <a href="https://rinawarptech.com/#demo" class="btn btn-secondary">Watch Demo</a>
+        <a href="/docs/proof" class="btn btn-secondary">See proof workflow</a>
       </div>
     </section>
 
@@ -402,7 +402,7 @@ export function buildSeoLandingPageHtml(page) {
     <section class="section">
       <div class="panel stack">
         <h2 class="section-title">Try it on your broken project</h2>
-        <p class="section-copy">Free tier includes daily Fix Project runs on small and medium repos. Pro ($15/mo) removes limits for serious individual use.</p>
+        <p class="section-copy">Free tier includes daily proof workflow runs on small and medium repos. Pro ($15/mo) removes limits for serious individual use.</p>
         <div class="cta-row">
           <a href="/download" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="seo_landing_footer" data-analytics-prop-target="download">Download Free</a>
           <a href="/pricing" class="btn btn-secondary">See pricing</a>

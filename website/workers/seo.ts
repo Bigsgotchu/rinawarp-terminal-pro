@@ -17,26 +17,26 @@ const GA_MEASUREMENT_ID = 'G-YGX1R0MEB6'
 
 export const SEO_CONFIG: Record<string, SeoData> = {
   '/': {
-    title: 'Your Project Is Broken. RinaWarp Fixes It. | Terminal Pro',
+    title: 'RinaWarp Terminal Pro | The AI Copilot for Real Computer Work',
     description:
-      'RinaWarp analyzes your codebase, repairs errors, runs verification, and explains every change. Try free on a broken project.',
+      'Observe projects. Plan changes. Approve execution. Verify outcomes. Trust the proof. The AI copilot for real developer work.',
     canonical: 'https://rinawarptech.com/',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords:
-      'fix broken project, developer debugging, terminal pro, proof-backed repair, automated fixes, verify build',
+      'AI copilot, developer tool, proof-backed repair, Observe Plan Approve Execute Proof, terminal pro',
   },
   '/products': {
     title: 'RinaWarp Products | Terminal Pro',
     description:
-      'RinaWarp Terminal Pro detects, repairs, and verifies broken developer projects automatically.',
+      'RinaWarp Terminal Pro: the proof-first AI copilot for real computer work. Observe, plan, approve, execute, and verify.',
     canonical: 'https://rinawarptech.com/products',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
-    keywords: 'RinaWarp products, Terminal Pro, AI developer tool',
+    keywords: 'RinaWarp products, Terminal Pro, AI developer copilot, proof-first',
   },
   '/beta': {
     title: 'Join the RinaWarp Terminal Pro Beta | RinaWarp',
     description:
-      'Join the RinaWarp Terminal Pro v1.8.2 beta for a conversational AI copilot with memory, controlled execution, and proof-backed runs.',
+      'Join the RinaWarp Terminal Pro beta for a conversational AI copilot with memory, controlled execution, and proof-backed runs.',
     canonical: 'https://rinawarptech.com/beta',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'RinaWarp beta, Terminal Pro beta, AI developer copilot, proof-backed execution',
@@ -52,18 +52,18 @@ export const SEO_CONFIG: Record<string, SeoData> = {
   '/agents': {
     title: 'RinaWarp Packs | Capability Packs for RinaWarp Terminal Pro',
     description:
-      'Browse capability packs for RinaWarp Terminal Pro. Add focused workflows for deployment, diagnostics, security, and repeated developer tasks.',
+      'Browse capability packs for RinaWarp Terminal Pro. Extend the Observe → Plan → Approve → Execute → Proof workflow with focused tools.',
     canonical: 'https://rinawarptech.com/agents',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'capability packs, AI agents, marketplace, RinaWarp, developer tools, automation',
   },
   '/pricing': {
-    title: 'RinaWarp Pricing | Fix Your Broken Project Automatically',
+    title: 'RinaWarp Terminal Pro Pricing | Free, Pro, Team',
     description:
-      'See RinaWarp pricing for Free, One Fix, Pro, Team, and Enterprise access mapped to repair, verification, proof export, and team controls.',
+      'Simple pricing for Terminal Pro: Free for evaluation, Pro for individuals, Team for shared controls. Observe → Plan → Approve → Execute → Proof.',
     canonical: 'https://rinawarptech.com/pricing',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
-    keywords: 'pricing, fix project, developer tool pricing, RinaWarp, AI repair, proof-backed fixes',
+    keywords: 'pricing, Terminal Pro pricing, AI developer tool, proof-first, Free Pro Team',
   },
   '/download': {
     title: 'Download RinaWarp Terminal Pro | Verified AI Terminal Releases',
@@ -74,9 +74,9 @@ export const SEO_CONFIG: Record<string, SeoData> = {
     keywords: 'download, RinaWarp, verified releases, checksums, AppImage, deb, exe',
   },
   '/trust': {
-    title: 'RinaWarp Trust & Safety | Local-First Proof-Backed AI Workbench',
+    title: 'RinaWarp Trust & Safety | Nothing Executes Without Approval',
     description:
-      'Learn how RinaWarp handles local execution, approval-gated repairs, rollback, proof, privacy-safe telemetry, marketplace permissions, and current platform readiness.',
+      'Learn how RinaWarp keeps developer work inspectable: nothing executes without approval, commands are visible before execution, proof from runtime evidence.',
     canonical: 'https://rinawarptech.com/trust',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'RinaWarp trust, developer privacy, local-first AI, approval-gated repair, proof-backed execution',
@@ -112,6 +112,14 @@ export const SEO_CONFIG: Record<string, SeoData> = {
     canonical: 'https://rinawarptech.com/rinawarp-vs-warp',
     ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
     keywords: 'RinaWarp vs Warp, AI terminal comparison, proof-first AI terminal, developer terminal tools',
+  },
+  '/docs/proof': {
+    title: 'Proof Workflow | RinaWarp Terminal Pro',
+    description:
+      'The Observe → Plan → Approve → Execute → Proof workflow. Nothing executes without approval. Commands are visible before execution. Proof from runtime evidence.',
+    canonical: 'https://rinawarptech.com/docs/proof',
+    ogImage: 'https://rinawarptech.com/assets/img/rinawarp-logo.png',
+    keywords: 'proof workflow, Observe Plan Approve Execute Proof, AI copilot, proof-first',
   },
   ...Object.fromEntries(
     SEO_LANDING_PAGES.map((page) => [

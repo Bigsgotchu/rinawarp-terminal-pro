@@ -322,8 +322,8 @@ export async function marketplaceUI(req: Request, env: any): Promise<Response> {
   <main id="main-content" tabindex="-1">
     <div class="hero">
       <span class="eyebrow">Agents</span>
-      <h1>Agents that analyze and fix your code automatically.</h1>
-      <p class="subtitle">These packs extend what Rina can fix inside the desktop app. Think deployment helpers, diagnostics, security, and repeated repair workflows, not a detached plugin bazaar.</p>
+      <h1>Agents that analyze and fix your code with proof.</h1>
+      <p class="subtitle">These packs extend the Observe → Plan → Approve → Execute → Proof workflow inside Terminal Pro. Think deployment helpers, diagnostics, security, and repeated repair workflows, not a detached plugin bazaar.</p>
     </div>
     
     <div class="container">

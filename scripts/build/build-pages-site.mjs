@@ -2835,6 +2835,119 @@ Type 'string' is not assignable</pre></article>
     content: DOCS_BODY_HTML
   },
   {
+    route: "docs/proof",
+    path: "/docs/proof",
+    page: "docs",
+    title: "Proof Workflow | RinaWarp Terminal Pro",
+    description: "Observe → Plan → Approve → Execute → Proof: The proof-first AI copilot workflow for real developer work.",
+    eyebrow: "Proof workflow",
+    heading: "Observe → Plan → Approve → Execute → Proof",
+    copy: "The proof-first AI copilot for real computer work. Nothing executes without approval.",
+    content: `
+      <section class="section">
+        <article class="panel stack">
+          <h2 class="section-title">The proof-first workflow</h2>
+          <p>RinaWarp Terminal Pro follows a deliberate workflow designed for trust and verification.</p>
+          <div class="proof-step">
+            <strong>Step 1: Observe</strong>
+            <p>Open a project. Rina reads the codebase, configuration, logs, and runtime state. Workspace Knowledge comes from observation and verified proof.</p>
+          </div>
+          <div class="proof-step">
+            <strong>Step 2: Plan</strong>
+            <p>Review proposed changes and commands. Nothing executes until you approve. High-impact actions require explicit approval.</p>
+          </div>
+          <div class="proof-step">
+            <strong>Step 3: Approve</strong>
+            <p>Confirm the plan before execution. Safe changes can auto-apply on paid tiers, but high-impact actions always pause for approval.</p>
+          </div>
+          <div class="proof-step">
+            <strong>Step 4: Execute</strong>
+            <p>Commands run in your project context. All output is captured and attached to the action.</p>
+          </div>
+          <div class="proof-step">
+            <strong>Step 5: Proof</strong>
+            <p>Verification output shows success or failure. Build exit code 0, tests passing, health checks green — all attached as evidence.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="section">
+        <div class="grid two-up">
+          <article class="panel stack">
+            <h2 class="section-title">Trust signals</h2>
+            <ul class="signal-list">
+              <li><strong>Nothing executes without approval</strong> — All changes are visible and approved before they run.</li>
+              <li><strong>Commands visible before execution</strong> — Every command appears in the Agent Thread before running.</li>
+              <li><strong>Proof from runtime evidence</strong> — Build and test output stays attached to every action.</li>
+              <li><strong>Workspace Knowledge</strong> — Memory comes from observation and verified proof, not speculation.</li>
+            </ul>
+          </article>
+          <article class="panel stack">
+            <h2 class="section-title">Example terminal flow</h2>
+            <div class="terminal-preview">
+              <div class="demo-windowbar"><span class="demo-dot"></span><span class="demo-dot"></span><span class="demo-dot"></span><span>Terminal Pro</span></div>
+              <span class="terminal-line dim"># Observe</span>
+              <span class="terminal-line dim">rina observe --project ./my-app</span>
+              <span class="terminal-line dim"># Plan</span>
+              <span class="terminal-line dim">rina plan --changes "Fix type errors"</span>
+              <span class="terminal-line ok"># Approve</span>
+              <span class="terminal-line ok">Approve: Run npm install, tsc --build</span>
+              <span class="terminal-line dim"># Execute</span>
+              <span class="terminal-line ok">npm install</span>
+              <span class="terminal-line ok">tsc --build</span>
+              <span class="terminal-line ok"># Proof</span>
+              <span class="terminal-line ok">Build: exit code 0</span>
+              <span class="terminal-line ok">Tests: 214 passed</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title centered">Proof workflow screenshots</h2>
+        <p class="section-copy centered">Real screenshots from Terminal Pro showing each step of the workflow.</p>
+        <div class="screenshots-grid">
+          <article class="screenshot-card">
+            <div class="screenshot-frame">
+              <img src="/assets/img/terminal-pro-agent-thread.png" alt="Agent Thread showing Observe step" loading="lazy" decoding="async">
+            </div>
+            <h3>Agent Thread: Observe</h3>
+            <p>Rina scans the project and presents findings before any changes.</p>
+          </article>
+          <article class="screenshot-card">
+            <div class="screenshot-frame">
+              <img src="/assets/img/terminal-pro-interface.png" alt="Planner Approval showing Plan step" loading="lazy" decoding="async">
+            </div>
+            <h3>Planner: Approval</h3>
+            <p>The plan is reviewed and approved before execution begins.</p>
+          </article>
+          <article class="screenshot-card">
+            <div class="screenshot-frame">
+              <img src="/assets/img/terminal-pro-agent-thread.png" alt="Execute step in progress" loading="lazy" decoding="async">
+            </div>
+            <h3>Execute: AgentRuntime</h3>
+            <p>Commands run with full output capture in the Agent Thread.</p>
+          </article>
+          <article class="screenshot-card">
+            <div class="screenshot-frame">
+              <img src="/assets/img/terminal-pro-interface.png" alt="Proof verification output" loading="lazy" decoding="async">
+            </div>
+            <h3>Proof: Verification</h3>
+            <p>Build exit codes, test results, and health checks prove success.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section final-cta">
+        <h2>Ready to try the proof-first workflow?</h2>
+        <p>Download Terminal Pro Beta and experience the difference verification makes.</p>
+        <div class="cta-row">
+          <a href="/download/" class="btn btn-light">Download Beta</a>
+        </div>
+      </section>
+    `
+  },
+  {
     route: "about",
     path: "/about",
     page: "legal",
