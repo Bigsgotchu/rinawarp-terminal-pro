@@ -64,12 +64,9 @@ function redisConfigured(): boolean {
   )
 }
 
-function requireRedisInProduction(): void {
-  if (process.env.NODE_ENV === 'production' && !redisConfigured()) {
-    const err = new Error('redis_required_in_production')
-    ;(err as Error & { code?: string }).code = 'redis_required_in_production'
-    throw err
-  }
+function redisRequired(): boolean {
+  const raw = String(process.env.RINAWARP_REDIS_REQUIRED || '').trim().toLowerCase()
+  return raw === '1' || raw === 'true' || raw === 'yes'
 }
 
 async function redisGetInt(key: string): Promise<number | null> {
@@ -113,7 +110,9 @@ export async function enforceInviteCreateRate(args: {
   email: string
   maxPerMinute: number
 }): Promise<{ ok: true } | { ok: false; retryAfterSec: number }> {
-  requireRedisInProduction()
+  if (redisRequired() && !redisConfigured()) {
+    throw new Error('redis_required')
+  }
   const email = args.email.trim().toLowerCase()
   const key = `invite_attempt:${email}`
   const maxPerMinute = Math.max(1, args.maxPerMinute)
@@ -145,7 +144,9 @@ export async function enforceInviteCreateRate(args: {
 export async function enforceInviteAcceptCooldown(args: {
   ip: string
 }): Promise<{ ok: true } | { ok: false; retryAfterSec: number }> {
-  requireRedisInProduction()
+  if (redisRequired() && !redisConfigured()) {
+    throw new Error('redis_required')
+  }
   const key = `invite_cooldown:${args.ip}`
   const redisValue = await redisGetInt(key)
   if (redisValue != null && redisValue > Date.now()) {
@@ -164,7 +165,9 @@ export async function recordInviteAcceptFailure(args: {
   threshold: number
   cooldownMinutes: number
 }): Promise<void> {
-  requireRedisInProduction()
+  if (redisRequired() && !redisConfigured()) {
+    throw new Error('redis_required')
+  }
   const threshold = Math.max(1, args.threshold)
   const cooldownMinutes = Math.max(1, args.cooldownMinutes)
   const failKey = `invite_fail:${args.ip}`

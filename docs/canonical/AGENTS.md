@@ -365,3 +365,49 @@ export default myPlugin;
 ### Available Plugins
 
 - **docker-plugin** - Docker container management tools and AI coder agent
+
+## Environment Consistency Rule
+
+Local, Beta, and Production environments MUST execute the same code paths.
+
+**Correct:** Configuration differs only
+```typescript
+const posthogKey = process.env.POSTHOG_KEY  // Different keys per environment
+```
+
+**Wrong:** Behavior differs
+```typescript
+if (isProduction) {
+  useDifferentPlanner()  // ❌ Different code path
+}
+```
+
+### Environment Matrix
+
+| Feature | Local | Beta | Production |
+|---------|-------|------|------------|
+| PostHog | test project key | beta project key | production project key |
+| Stripe | test mode | test mode | live mode |
+| License API | configured via env | configured via env | configured via signed token |
+| Update feed | local | beta channel | stable channel |
+| Sentry | dev project | beta project | production project |
+
+### Safety Model
+
+Safety is enforced via configuration, not environment checks:
+
+| Safety Feature | Configuration |
+|----------------|---------------|
+| Test/demo keys | `RINAWARP_ALLOW_TEST_LICENSES=true` |
+| Redis required | `RINAWARP_REDIS_REQUIRED=true` |
+| Entitlement secret | `RINAWARP_AGENTD_ENTITLEMENT_SECRET` |
+| License header | `RINAWARP_AGENTD_ALLOW_LICENSE_HEADER=true` |
+
+### Verification Checklist
+
+Before shipping, verify:
+- [ ] Same approval flow in all environments
+- [ ] Same proof flow in all environments
+- [ ] Same runtime behavior
+- [ ] Only configuration values differ (API keys, endpoints, channels)
+- [ ] Safety features enforced via config, not `NODE_ENV`

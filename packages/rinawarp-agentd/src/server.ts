@@ -681,6 +681,11 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+function envFlag(name: string): boolean {
+  const raw = String(process.env[name] || '').trim().toLowerCase()
+  return raw === '1' || raw === 'true' || raw === 'yes'
+}
+
 async function startDaemonProcess(): Promise<{ ok: boolean; alreadyRunning?: boolean; pid?: number; error?: string }> {
   const existingPid = readPid()
   if (existingPid && isPidAlive(existingPid)) {
@@ -1264,44 +1269,44 @@ export function createServer(opts: { port: number }) {
           .toLowerCase()
         const key = String(body?.key || '').trim()
 
-        const entitlement = readEntitlement({ customerId, deviceId, email, stripeCustomerId: customerId })
-        if (entitlement) {
-          return sendJson(
-            res,
-            200,
-            entitlementResponse({
-              customerId: entitlement.customerId,
-              tier: entitlement.tier,
-              status: entitlement.status,
-              expiresAt: entitlement.expiresAt,
-              valid: entitlement.status === 'active',
-            })
-          )
-        }
-
-        const isDevMode = process.env.NODE_ENV === 'development'
-        if (isDevMode && (key === 'DEMO' || key.startsWith('TEST-'))) {
-          return sendJson(
-            res,
-            200,
-            entitlementResponse({
-              customerId: customerId || 'demo_customer',
-              tier: 'pro',
-              status: 'active',
-            })
-          )
-        }
-
+const entitlement = readEntitlement({ customerId, deviceId, email, stripeCustomerId: customerId })
+      if (entitlement) {
         return sendJson(
           res,
           200,
           entitlementResponse({
-            customerId: customerId || null,
-            tier: 'starter',
-            status: 'inactive',
-            valid: false,
+            customerId: entitlement.customerId,
+            tier: entitlement.tier,
+            status: entitlement.status,
+            expiresAt: entitlement.expiresAt,
+            valid: entitlement.status === 'active',
           })
         )
+      }
+
+      const allowTestKeys = envFlag('RINAWARP_ALLOW_TEST_LICENSES')
+      if (allowTestKeys && (key === 'DEMO' || key.startsWith('TEST-'))) {
+        return sendJson(
+          res,
+          200,
+          entitlementResponse({
+            customerId: customerId || 'demo_customer',
+            tier: 'pro',
+            status: 'active',
+          })
+        )
+      }
+
+      return sendJson(
+        res,
+        200,
+        entitlementResponse({
+          customerId: customerId || null,
+          tier: 'starter',
+          status: 'inactive',
+          valid: false,
+        })
+      )
       }
 
       // --- FEEDBACK SUBMISSION (public)

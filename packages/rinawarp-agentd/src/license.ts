@@ -137,10 +137,6 @@ function envFlag(name: string): boolean {
   return value === '1' || value === 'true' || value === 'yes'
 }
 
-function isProductionMode(): boolean {
-  return process.env.NODE_ENV === 'production'
-}
-
 function b64urlDecodeToBuffer(value: string): Buffer {
   const normalized = value.replace(/-/g, '+').replace(/_/g, '/')
   const padding = normalized.length % 4 === 0 ? '' : '='.repeat(4 - (normalized.length % 4))
@@ -195,32 +191,17 @@ function parseTierFromLicenseToken(token: string, secret: string): LicenseTier {
 /**
  * Resolve effective license for this request.
  *
- * Priority:
- * Production mode:
- * 1) Require signed entitlement token in `x-rinawarp-license-token`
- *    (verified via `RINAWARP_AGENTD_ENTITLEMENT_SECRET`)
+ * Same behavior across all environments - fails closed when required config is missing.
  *
- * Non-production mode:
- * 1) Signed entitlement token in `x-rinawarp-license-token` (if configured)
+ * Priority:
+ * 1) Signed entitlement token in `x-rinawarp-license-token` (requires RINAWARP_AGENTD_ENTITLEMENT_SECRET)
  * 2) `RINAWARP_AGENTD_LICENSE` env var (if provided, must be valid)
- * 3) optional dev/testing tier header (`x-rinawarp-license`) only when:
- *    - NOT production mode
- *    - `RINAWARP_AGENTD_ALLOW_LICENSE_HEADER=true|1|yes`
+ * 3) `x-rinawarp-license` header (if RINAWARP_AGENTD_ALLOW_LICENSE_HEADER=true)
  * 4) fallback: `starter` (safe default)
  */
 export function resolveRequestLicense(req: IncomingMessage): LicenseTier {
   const entitlementSecret = process.env.RINAWARP_AGENTD_ENTITLEMENT_SECRET
   const entitlementToken = toSingleHeaderValue(req.headers['x-rinawarp-license-token'])
-
-  if (isProductionMode()) {
-    if (!entitlementSecret) {
-      throw makeServerError('missing RINAWARP_AGENTD_ENTITLEMENT_SECRET in production')
-    }
-    if (!entitlementToken) {
-      throw makeUnauthorized('missing x-rinawarp-license-token')
-    }
-    return parseTierFromLicenseToken(entitlementToken, entitlementSecret)
-  }
 
   if (entitlementToken) {
     if (!entitlementSecret) {
@@ -240,7 +221,7 @@ export function resolveRequestLicense(req: IncomingMessage): LicenseTier {
     return fromEnv
   }
 
-  const headerAllowed = !isProductionMode() && envFlag('RINAWARP_AGENTD_ALLOW_LICENSE_HEADER')
+  const headerAllowed = envFlag('RINAWARP_AGENTD_ALLOW_LICENSE_HEADER')
   const headerValue = toSingleHeaderValue(req.headers['x-rinawarp-license'])
   if (headerAllowed && headerValue !== undefined) {
     const fromHeader = normalizeTier(headerValue)

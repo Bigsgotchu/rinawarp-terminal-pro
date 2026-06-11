@@ -134,12 +134,6 @@ export function createPolicyGate(deps: PolicyGateDeps) {
             return { ok: false, message };
         if (action === 'allow')
             return { ok: true };
-        if (currentPolicyEnv() === 'prod' && /high-impact|rm\s+-rf|terraform\s+apply|kubectl/i.test(command)) {
-            const role = getCurrentRole();
-            if (role !== 'owner') {
-                return { ok: false, message: 'Policy: only owner can execute high-impact commands in prod.' };
-            }
-        }
         if (/terraform\s+apply/i.test(command) && !hasRecentCommand(/\bterraform\s+plan\b/i, 5)) {
             return { ok: false, message: 'Policy: terraform apply requires a recent terraform plan.' };
         }

@@ -194,26 +194,10 @@ class RinaController {
   }
 
   verifyLicense(key: string) {
-    // Only allow demo/test keys in development/test environments
-    // Production builds should always require real license verification
-    const isDevMode = process.env.NODE_ENV === 'development' || process.env.RINAWARP_DEV === 'true'
-    const isTestMode = process.env.NODE_ENV === 'test'
-
-    if (isDevMode || isTestMode) {
-      // In dev/test mode, allow demo and test keys
-      if (key === 'DEMO' || key.startsWith('TEST-')) {
-        return { valid: true, tier: 'demo' }
-      }
-    }
-
-    // Production: require proper license verification via API
-    // Sync verifyLicense is a reserved seam - use verifyLicenseAsync for full verification
     if (!key || key.length < 10) {
       return { valid: false, message: 'Invalid license key format' }
     }
-
-    // Mark as needing verification
-    return { valid: false, message: 'Use verifyLicenseAsync for production verification' }
+    return { valid: false, message: 'Use verifyLicenseAsync for license verification' }
   }
 
   /**
