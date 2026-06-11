@@ -575,7 +575,7 @@ async function getStripeClient(): Promise<any> {
 }
 
 function isProdStrictWebhookMode(): boolean {
-  return process.env.NODE_ENV === 'production' || process.env.RINAWARP_STRICT_WEBHOOKS === '1'
+  return process.env.RINAWARP_STRICT_WEBHOOKS === '1'
 }
 
 function allowUnsignedStripeWebhooks(): boolean {
@@ -773,11 +773,7 @@ export function createServer(opts: { port: number }) {
     const required =
       String(process.env.RINAWARP_NATS_REQUIRED || '')
         .trim()
-        .toLowerCase() === 'true' ||
-      (process.env.NODE_ENV === 'production' &&
-        String(process.env.RINAWARP_NATS_MODE || '')
-          .trim()
-          .toLowerCase() === 'jetstream')
+        .toLowerCase() === 'true'
     if (required) {
       throw new Error('event_bus_init_failed')
     }
@@ -3441,15 +3437,16 @@ const entitlement = readEntitlement({ customerId, deviceId, email, stripeCustome
           })
           return sendJson(res, 409, { ok: false, error: remembered.error })
         }
-        if (process.env.NODE_ENV === 'production' && !secret) {
+        const webhookSecretRequired = String(process.env.RINAWARP_GITHUB_WEBHOOK_SECRET_REQUIRED || '').trim().toLowerCase() === 'true'
+        if (webhookSecretRequired && !secret) {
           await appendWebhookAudit({
             outcome: 'rejected',
-            reason: 'missing_secret_production',
+            reason: 'missing_secret',
             eventName,
             deliveryId,
             clientIp,
           })
-          return sendJson(res, 503, { ok: false, error: 'GITHUB_WEBHOOK_SECRET is required in production' })
+          return sendJson(res, 503, { ok: false, error: 'GITHUB_WEBHOOK_SECRET is required' })
         }
         if (secret) {
           const signature = String(req.headers['x-hub-signature-256'] || '')
