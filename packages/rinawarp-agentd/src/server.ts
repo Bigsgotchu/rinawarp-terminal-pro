@@ -160,8 +160,17 @@ import { entitlementFilePath, readEntitlement, upsertEntitlement, type Entitleme
 const require = createRequire(import.meta.url)
 const engine = new ExecutionEngine(createStandardRegistry())
 
-// OpenAI client for AI streaming
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+// OpenAI client for AI streaming (optional dependency)
+let openai: any = null
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const openaiModule = require('openai') as any
+  if (openaiModule?.OpenAI) {
+    openai = new openaiModule.OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  }
+} catch {
+  // OpenAI is optional - will be null if not installed
+}
 
 function expectedSafety(risk: Risk): Pick<PlanStep, 'risk_level' | 'requires_confirmation'> {
   if (risk === 'high-impact') {
@@ -1840,7 +1849,9 @@ const entitlement = readEntitlement({ customerId, deviceId, email, stripeCustome
         })
 
         try {
-          // Stream from OpenAI using the responses API
+          if (!openai) {
+            return sendJson(res, 503, { ok: false, error: 'openai_not_configured' })
+          }
           const stream = await openai.responses.stream({
             model: 'gpt-4.1',
             input: prompt,

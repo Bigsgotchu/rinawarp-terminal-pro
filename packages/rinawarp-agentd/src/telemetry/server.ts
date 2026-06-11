@@ -39,17 +39,17 @@ const clients = new Set<WebSocket>()
 app.use(express.json())
 
 // Health check endpoint
-app.get("/health", (_req, res) => {
+app.get("/health", (_req: express.Request, res: express.Response) => {
   res.json({ status: "ok", timestamp: Date.now() })
 })
 
 // Metrics REST endpoint
-app.get("/metrics", (_req, res) => {
+app.get("/metrics", (_req: express.Request, res: express.Response) => {
   res.json(metrics)
 })
 
 // Reset metrics endpoint (for testing)
-app.post("/metrics/reset", (_req, res) => {
+app.post("/metrics/reset", (_req: express.Request, res: express.Response) => {
   metrics = {
     activeSessions: 0,
     commandsRun: 0,

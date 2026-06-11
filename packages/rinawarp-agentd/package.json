@@ -27,12 +27,17 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/express": "^5.0.0",
+    "@types/ws": "^8.5.0",
     "tsx": "^4.6.0",
     "typescript": "^5.4.2"
   },
   "dependencies": {
     "@rinawarp/rina-runtime": "workspace:*",
     "@rinawarp/context": "workspace:*",
-    "@rinawarp/core": "workspace:*"
-  }
+    "@rinawarp/core": "workspace:*",
+    "express": "^4.21.0",
+    "openai": "^4.0.0",
+    "ws": "^8.17.0"
+  },
 }
