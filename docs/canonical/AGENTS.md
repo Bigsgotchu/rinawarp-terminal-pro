@@ -411,3 +411,18 @@ Before shipping, verify:
 - [ ] Same runtime behavior
 - [ ] Only configuration values differ (API keys, endpoints, channels)
 - [ ] Safety features enforced via config, not `NODE_ENV`
+
+### Final Audit
+
+Run before release:
+
+```bash
+# Disallowed patterns - should return no output
+grep -R "if.*NODE_ENV.*production" packages/ apps/ --include="*.ts"
+grep -R "isProduction.*{" packages/ apps/ --include="*.ts"
+```
+
+All `NODE_ENV` usage must be for:
+- Logging/telemetry suppression
+- Build configuration
+- Policy environment resolution
