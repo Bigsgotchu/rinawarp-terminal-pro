@@ -10,6 +10,11 @@ import {
   HERO_REPAIR_REPORT,
   buildCaseStudyHtml,
 } from "../../website/site-shared.mjs";
+import {
+  PHONE_TOOLKIT_BODY_HTML,
+  PHONE_TOOLKIT_DESCRIPTION,
+  PHONE_TOOLKIT_TITLE,
+} from "../../website/phone-toolkit-page.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,8 +32,8 @@ const VERSION = String(packageJson.version);
 const GITHUB_RELEASES_BASE = "https://github.com/Bigsgotchu/rinawarp-terminal-pro/releases";
 const PUBLIC_BETA_TAG = `v${VERSION}`;
 const PUBLIC_BETA_DOWNLOAD_BASE = `${GITHUB_RELEASES_BASE}/download/${PUBLIC_BETA_TAG}`;
-const PUBLIC_BETA_DEB_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/RinaWarp-Terminal-Pro-${VERSION}.deb`;
-const PUBLIC_BETA_APPIMAGE_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/RinaWarp-Terminal-Pro-${VERSION}.AppImage`;
+const PUBLIC_BETA_DEB_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/RinaWarp-Terminal-Pro-${VERSION}-linux-amd64.deb`;
+const PUBLIC_BETA_APPIMAGE_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/RinaWarp-Terminal-Pro-${VERSION}-linux-x86_64.AppImage`;
 const PUBLIC_BETA_CHECKSUMS_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/SHASUMS256.txt`;
 const PUBLIC_BETA_LATEST_JSON_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest.json`;
 const PUBLIC_BETA_LATEST_YML_URL = `${PUBLIC_BETA_DOWNLOAD_BASE}/latest.yml`;
@@ -1545,6 +1550,12 @@ const SITE_JS = `
 const page = document.body.dataset.page || '';
 
 async function trackSiteEvent(event, properties = {}) {
+  const safeProperties = {
+    ...properties,
+    version: ${JSON.stringify(VERSION)},
+    path: window.location.pathname,
+    referrer: document.referrer ? 'present' : 'none',
+  };
   try {
     await fetch('/api/events', {
       method: 'POST',
@@ -1552,7 +1563,7 @@ async function trackSiteEvent(event, properties = {}) {
       keepalive: true,
       body: JSON.stringify({
         event,
-        properties,
+        properties: safeProperties,
         path: window.location.pathname,
         hostname: window.location.hostname,
         ts: Date.now(),
@@ -1564,14 +1575,15 @@ async function trackSiteEvent(event, properties = {}) {
 }
 
 const pageViewEventMap = {
-  home: 'site_home_viewed',
-  pricing: 'site_pricing_viewed',
-  download: 'site_download_viewed',
+  home: 'homepage_view',
+  pricing: 'pricing_view',
+  download: 'download_view',
+  docs: window.location.pathname === '/docs/proof/' ? 'docs_proof_view' : '',
 };
 
 const pageViewEvent = pageViewEventMap[page];
 if (pageViewEvent) {
-  trackSiteEvent(pageViewEvent, { referrer: document.referrer ? 'present' : 'none' });
+  trackSiteEvent(pageViewEvent);
 }
 
 document.addEventListener('click', (event) => {
@@ -1645,7 +1657,7 @@ if (page === 'pricing') {
       setStatus('checkout-status', 'Opening secure checkout…');
       button.disabled = true;
       try {
-        trackSiteEvent('checkout_started', {
+        trackSiteEvent('checkout_click', {
           tier,
           billingCycle: 'monthly',
           placement: tier === 'team' ? 'pricing_team' : tier === 'fix' ? 'pricing_one_fix' : 'pricing_pro',
@@ -1683,7 +1695,7 @@ if (page === 'team') {
     }
     setStatus('team-checkout-status', 'Opening secure Team checkout…');
     try {
-      trackSiteEvent('checkout_started', {
+      trackSiteEvent('checkout_click', {
         tier: 'team',
         placement: 'team_page',
         seats,
@@ -2208,6 +2220,7 @@ function nav(active) {
   const items = [
     ["/", "Home", "home"],
     ["/products/", "Features", "products"],
+    ["/phone-toolkit/", "Phone Toolkit", "phone-toolkit"],
     ["/pricing/", "Pricing", "pricing"],
     ["/download/", "Download", "download"],
     ["/docs/", "Docs", "docs"],
@@ -2227,7 +2240,8 @@ function nav(active) {
     .join("");
 }
 
-function shell({ path, page, title, description, eyebrow, heading, copy, heroActions = "", heroSupport = "", heroProof = "", heroMedia = "", content }) {
+function shell({ path, page, title, description, eyebrow, heading, copy, heroActions = "", heroSupport = "", heroProof = "", heroMedia = "", content, stylesheets = "" }) {
+  const extraStylesheets = stylesheets ? `<link rel="stylesheet" href="${stylesheets}">` : "";
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2235,6 +2249,7 @@ function shell({ path, page, title, description, eyebrow, heading, copy, heroAct
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   ${seo(path, title, description)}
   <link rel="stylesheet" href="/assets/site.css?v=${ASSET_VERSION}">
+  ${extraStylesheets}
 </head>
 <body data-page="${page}">
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -2299,7 +2314,7 @@ const pages = [
     heading: "Your project is broken. RinaWarp fixes it.",
     copy: "Upload a repository. Let RinaWarp investigate, repair, verify, and explain every change.",
     heroActions: `
-      <a href="/download/" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download Free</a>
+      <a href="/download/" class="btn btn-primary" data-analytics-event="download_click" data-analytics-prop-placement="home_hero" data-analytics-prop-target="download">Download Free</a>
       <a href="/#proof" class="btn btn-secondary">Watch Demo</a>
     `,
     heroMedia: `
@@ -2375,12 +2390,12 @@ Type 'string' is not assignable</pre></article>
         <h2>Ready to stop debugging and start shipping?</h2>
         <p>Download Terminal Pro and fix the broken project blocking your next release.</p>
         <div class="cta-row">
-          <a href="/download/" class="btn btn-light" data-analytics-event="site_download_clicked" data-analytics-prop-placement="home_final" data-analytics-prop-target="download">Download Terminal Pro</a>
+          <a href="/download/" class="btn btn-light" data-analytics-event="download_click" data-analytics-prop-placement="home_final" data-analytics-prop-target="download">Download Terminal Pro</a>
         </div>
       </section>
     `
   },
-  {
+{
     route: "products",
     path: "/products",
     page: "products",
@@ -2388,13 +2403,35 @@ Type 'string' is not assignable</pre></article>
     description: "RinaWarp Terminal Pro detects, repairs, and verifies broken developer projects automatically.",
     eyebrow: "Products",
     heading: "Two products. Two audiences.",
-    copy: "Terminal Pro is for developers. Matter Intelligence is separate and not GA — do not mix the pitches.",
+    copy: "Terminal Pro is for developers. Phone Toolkit is for device workflows. Matter Intelligence is separate and not GA — do not mix the pitches.",
     content: `
       <section class="section"><div class="product-compare">
         <article class="product-card stack"><span class="pill">For developers</span><h2>Terminal Pro</h2><p><strong>Fixes broken repos.</strong></p><div class="link-row"><a href="/download/" class="btn btn-primary">Download Free</a><a href="/pricing/" class="btn btn-secondary">Pricing</a></div></article>
-        <article class="product-card muted-product stack"><span class="pill">Legal &amp; compliance</span><h2>Matter Intelligence</h2><p><strong>Coming Soon</strong></p><a href="/matter-intelligence/contact" class="btn btn-secondary">Join waitlist</a></article>
+        <article class="product-card stack"><span class="pill">For device workflows</span><h2>Phone Toolkit</h2><p><strong>Professional phone tools.</strong></p><div class="link-row"><a href="/phone-toolkit/" class="btn btn-primary">Explore Phone Toolkit</a></div></article>
+        <article class="product-card muted-product stack"><span class="pill">Legal &amp; compliance</span><h2>Matter Intelligence</h2><p><strong>Coming Soon</strong></p><a href="/matter-intelligence/contact" class="btn btn-secondary">Join waitlist</a></div></article>
       </div></section>
     `
+  },
+  {
+    route: "phone-toolkit",
+    path: "/phone-toolkit",
+    page: "phone-toolkit",
+    title: PHONE_TOOLKIT_TITLE,
+    description: PHONE_TOOLKIT_DESCRIPTION,
+    eyebrow: "Phone Toolkit",
+    heading: "RinaWarp Phone Toolkit",
+    copy: "Professional phone tools with guided workflows, clear results, and customer-first safeguards.",
+    heroActions: `
+      <a href="#windows" class="btn btn-primary" data-analytics-event="phone_toolkit_download_click">Get Phone Toolkit for Windows</a>
+      <a href="#capabilities" class="btn btn-secondary">Explore capabilities</a>
+    `,
+    heroMedia: `
+      <div class="screenshot-frame">
+        <img src="/assets/img/phone-toolkit/hero-brand-board.webp" alt="RinaWarp Phone Toolkit branding" width="1536" height="1024" loading="eager" decoding="async">
+      </div>
+    `,
+    stylesheets: "/assets/phone-toolkit.css",
+    content: PHONE_TOOLKIT_BODY_HTML
   },
   {
     route: "beta",
@@ -2614,7 +2651,7 @@ Type 'string' is not assignable</pre></article>
     copy: "Choose the level of repair, verification, and team control you need. Pricing stays focused on buying RinaWarp, not repeating the whole product tour.",
     content: `
       <section class="section"><div class="pricing-grid">
-        <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Evaluate RinaWarp on a broken project before you pay.</p><ul class="feature-list"><li>Chat with Rina</li><li>Inspect workspace</li><li>Limited build/test runs</li><li>Local memory</li><li>Limited proof history</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Start free</a></article>
+        <article class="card pricing-card"><span class="pill">Free</span><div class="price">$0 <span>/ month</span></div><p>Evaluate RinaWarp on a broken project before you pay.</p><ul class="feature-list"><li>Chat with Rina</li><li>Inspect workspace</li><li>Limited build/test runs</li><li>Local memory</li><li>Limited proof history</li></ul><a href="/download/" class="btn btn-secondary" data-analytics-event="download_click" data-analytics-prop-placement="pricing_free" data-analytics-prop-target="download">Start free</a></article>
         <article class="card pricing-card"><span class="pill">One Fix</span><div class="price">$3 <span>/ repair</span></div><p>Use one approval-gated repair when a single project is blocking you.</p><ul class="feature-list"><li>One approval-gated repair</li><li>Verification run</li><li>Proof export</li></ul><button class="btn btn-secondary" data-checkout-tier="fix" type="button">Buy One Fix — $3</button></article>
         <article class="card pricing-card featured"><span class="pill">Pro</span><div class="price">$15 <span>/ month</span></div><p>For individual developers who want ongoing proof-backed repair work.</p><ul class="feature-list"><li>Unlimited local proof-backed runs</li><li>Safe mutation approvals</li><li>Marketplace packs</li><li>Proof export</li><li>Local memory</li><li>Priority updates</li></ul><button class="btn btn-primary" data-checkout-tier="pro" type="button">Start Pro — $15/mo</button></article>
         <article class="card pricing-card"><span class="pill">Team</span><div class="price">$40 <span>/ user / month</span></div><p>Seat-based checkout for teams that need shared controls.</p><ul class="feature-list"><li>Team seats</li><li>Shared policy controls</li><li>Shared project memory later</li><li>Admin controls</li><li>Shared proof history</li></ul><button class="btn btn-secondary" data-checkout-tier="team" type="button">Start Team — $40/user/mo</button></article>
@@ -2640,8 +2677,8 @@ Type 'string' is not assignable</pre></article>
     heading: "Download RinaWarp Terminal Pro.",
     copy: "Get the current Linux public beta, verify the checksum, and install Terminal Pro.",
     heroActions: `
-      <a href="${PUBLIC_BETA_DEB_URL}" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a>
-      <a href="${PUBLIC_BETA_APPIMAGE_URL}" class="btn btn-secondary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a>
+      <a href="${PUBLIC_BETA_DEB_URL}" class="btn btn-primary" data-analytics-event="download_click" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="deb">Download Linux .deb</a>
+      <a href="${PUBLIC_BETA_APPIMAGE_URL}" class="btn btn-secondary" data-analytics-event="download_click" data-analytics-prop-placement="download_hero" data-analytics-prop-platform="linux" data-analytics-prop-artifact="appimage">Download AppImage</a>
     `,
     heroSupport: `Version ${VERSION} · Linux only in this public beta · <a href="${PUBLIC_BETA_CHECKSUMS_URL}">Verify SHA256</a>`,
     heroMedia: `
@@ -3244,7 +3281,7 @@ Type 'string' is not assignable</pre></article>
     heading: seoPage.headline,
     copy: seoPage.lede,
     heroActions: `
-      <a href="/download/" class="btn btn-primary" data-analytics-event="site_download_clicked" data-analytics-prop-placement="seo_hero" data-analytics-prop-target="download">Download Free</a>
+      <a href="/download/" class="btn btn-primary" data-analytics-event="download_click" data-analytics-prop-placement="seo_hero" data-analytics-prop-target="download">Download Free</a>
       <a href="/pricing/" class="btn btn-secondary">See pricing</a>
     `,
     content: buildSeoLandingPageHtml(seoPage),
@@ -3306,6 +3343,7 @@ const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://rinawarptech.com/</loc></url>
   <url><loc>https://rinawarptech.com/products/</loc></url>
+  <url><loc>https://rinawarptech.com/phone-toolkit/</loc></url>
   <url><loc>https://rinawarptech.com/beta/</loc></url>
   <url><loc>https://rinawarptech.com/beta-feedback/</loc></url>
   <url><loc>https://rinawarptech.com/pricing/</loc></url>
@@ -3325,7 +3363,9 @@ ${CASE_STUDY_PAGES.map((s) => `  <url><loc>https://rinawarptech.com${s.path}/</l
 
 await rm(outdir, { recursive: true, force: true });
 await mkdir(path.join(outdir, "assets", "img"), { recursive: true });
+await mkdir(path.join(outdir, "assets", "img", "phone-toolkit"), { recursive: true });
 await writeFile(path.join(outdir, "assets", "site.css"), SITE_CSS, "utf8");
+await writeFile(path.join(outdir, "assets", "phone-toolkit.css"), await readFile(path.join(repoRoot, "website", "assets", "phone-toolkit.css"), "utf8"), "utf8");
 await writeFile(path.join(outdir, "assets", "site.js"), SITE_JS, "utf8");
 await writeFile(path.join(outdir, "assets", "img", "rinawarp-mark.svg"), BRAND_MARK_SVG, "utf8");
 await writeFile(path.join(outdir, "assets", "img", "rinawarp-logo.svg"), BRAND_MARK_SVG, "utf8");
@@ -3346,6 +3386,14 @@ for (const [filename, sourcePath] of SCREENSHOT_SOURCES) {
   await copyIfPresent(sourcePath, path.join(outdir, "assets", "img", filename));
 }
 await copyIfPresent(DEMO_GIF_PATH, path.join(outdir, "assets", "img", "rinawarp-demo.gif"));
+await copyIfPresent(
+  path.join(repoRoot, "website", "assets", "img", "phone-toolkit", "hero-brand-board.webp"),
+  path.join(outdir, "assets", "img", "phone-toolkit", "hero-brand-board.webp")
+);
+await copyIfPresent(
+  path.join(repoRoot, "website", "assets", "img", "phone-toolkit", "social-card.jpg"),
+  path.join(outdir, "assets", "img", "phone-toolkit", "social-card.jpg")
+);
 await writeFile(path.join(outdir, "_redirects"), REDIRECTS, "utf8");
 await writeFile(path.join(outdir, "robots.txt"), ROBOTS_TXT, "utf8");
 await writeFile(path.join(outdir, "sitemap.xml"), SITEMAP_XML, "utf8");
