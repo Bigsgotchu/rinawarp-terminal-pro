@@ -2068,11 +2068,9 @@ if (page === 'account') {
 }
 `;
 
-function seo(path, title, description) {
+function seo(path, title, description, ogImage = "https://rinawarptech.com/assets/img/rinawarp-logo.png") {
   const canonical = `https://rinawarptech.com${path}`;
-  const ogImage = "https://rinawarptech.com/assets/img/rinawarp-logo.png";
   const normalizedPath = path === "/" ? "/" : path.replace(/\/$/, "");
-  const isProductsPage = normalizedPath === "/products" || normalizedPath.startsWith("/products");
   const noindexPaths = new Set(["/account", "/login", "/register", "/forgot-password", "/reset-password", "/success/"]);
   const robots = noindexPaths.has(path) ? 'noindex, nofollow' : 'index, follow';
   const structuredData = buildStructuredData(path, title, description);
@@ -2240,14 +2238,14 @@ function nav(active) {
     .join("");
 }
 
-function shell({ path, page, title, description, eyebrow, heading, copy, heroActions = "", heroSupport = "", heroProof = "", heroMedia = "", content, stylesheets = "" }) {
+function shell({ path, page, title, description, eyebrow, heading, copy, heroActions = "", heroSupport = "", heroProof = "", heroMedia = "", content, stylesheets = "", ogImage }) {
   const extraStylesheets = stylesheets ? `<link rel="stylesheet" href="${stylesheets}">` : "";
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  ${seo(path, title, description)}
+  ${seo(path, title, description, ogImage)}
   <link rel="stylesheet" href="/assets/site.css?v=${ASSET_VERSION}">
   ${extraStylesheets}
 </head>
@@ -2431,7 +2429,10 @@ Type 'string' is not assignable</pre></article>
       </div>
     `,
     stylesheets: "/assets/phone-toolkit.css",
+    ogImage: "https://rinawarptech.com/assets/img/phone-toolkit/social-card.jpg",
     content: PHONE_TOOLKIT_BODY_HTML
+  },
+  {
   },
   {
     route: "beta",
