@@ -2068,11 +2068,9 @@ if (page === 'account') {
 }
 `;
 
-function seo(path, title, description) {
+function seo(path, title, description, ogImage = "https://rinawarptech.com/assets/img/rinawarp-logo.png") {
   const canonical = `https://rinawarptech.com${path}`;
-  const ogImage = "https://rinawarptech.com/assets/img/rinawarp-logo.png";
   const normalizedPath = path === "/" ? "/" : path.replace(/\/$/, "");
-  const isProductsPage = normalizedPath === "/products" || normalizedPath.startsWith("/products");
   const noindexPaths = new Set(["/account", "/login", "/register", "/forgot-password", "/reset-password", "/success/"]);
   const robots = noindexPaths.has(path) ? 'noindex, nofollow' : 'index, follow';
   const structuredData = buildStructuredData(path, title, description);
@@ -2240,14 +2238,14 @@ function nav(active) {
     .join("");
 }
 
-function shell({ path, page, title, description, eyebrow, heading, copy, heroActions = "", heroSupport = "", heroProof = "", heroMedia = "", content, stylesheets = "" }) {
+function shell({ path, page, title, description, eyebrow, heading, copy, heroActions = "", heroSupport = "", heroProof = "", heroMedia = "", content, stylesheets = "", ogImage }) {
   const extraStylesheets = stylesheets ? `<link rel="stylesheet" href="${stylesheets}">` : "";
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  ${seo(path, title, description)}
+  ${seo(path, title, description, ogImage)}
   <link rel="stylesheet" href="/assets/site.css?v=${ASSET_VERSION}">
   ${extraStylesheets}
 </head>
@@ -2263,6 +2261,7 @@ function shell({ path, page, title, description, eyebrow, heading, copy, heroAct
       </nav>
     </header>
     <main id="main-content" tabindex="-1">
+      ${heading ? `
       <section class="hero">
         <div class="hero-layout">
           <div class="hero-body">
@@ -2276,6 +2275,17 @@ function shell({ path, page, title, description, eyebrow, heading, copy, heroAct
           ${heroMedia ? `<div class="hero-media">${heroMedia}</div>` : ""}
         </div>
       </section>
+      ` : `
+      <section class="hero">
+        <div class="hero-layout">
+          <div class="hero-body">
+            <span class="eyebrow">${eyebrow}</span>
+            ${heroActions ? `<div class="hero-actions">${heroActions}</div>` : ""}
+            ${heroMedia ? `<div class="hero-media">${heroMedia}</div>` : ""}
+          </div>
+        </div>
+      </section>
+      `}
       ${content}
     </main>
     <footer>
@@ -2419,8 +2429,8 @@ Type 'string' is not assignable</pre></article>
     title: PHONE_TOOLKIT_TITLE,
     description: PHONE_TOOLKIT_DESCRIPTION,
     eyebrow: "Phone Toolkit",
-    heading: "RinaWarp Phone Toolkit",
-    copy: "Professional phone tools with guided workflows, clear results, and customer-first safeguards.",
+    heading: "",
+    copy: "",
     heroActions: `
       <a href="#windows" class="btn btn-primary" data-analytics-event="phone_toolkit_download_click">Get Phone Toolkit for Windows</a>
       <a href="#capabilities" class="btn btn-secondary">Explore capabilities</a>
@@ -2431,6 +2441,7 @@ Type 'string' is not assignable</pre></article>
       </div>
     `,
     stylesheets: "/assets/phone-toolkit.css",
+    ogImage: "https://rinawarptech.com/assets/img/phone-toolkit/social-card.jpg",
     content: PHONE_TOOLKIT_BODY_HTML
   },
   {
