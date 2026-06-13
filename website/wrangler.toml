@@ -297,4 +297,5 @@ database_id = "ca5efe98-909b-4bb5-9182-29cc9dd1fba2"
 # STRIPE_MI_ENTERPRISE_PRICE_ID - Matter Intelligence Enterprise Stripe price ID
 # BETA_ADMIN_TOKEN - Bearer token for /api/beta-admin/digest
 [build]
-command = ""
+command = "node scripts/build/build-pages-site.mjs"
+pages_build_output_dir = "website/.pages-dist"
