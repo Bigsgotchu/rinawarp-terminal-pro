@@ -7838,12 +7838,25 @@ async function handleCheckoutRequest(
       mi_enterprise: String(
         env.STRIPE_MI_ENTERPRISE_PRICE_ID || env.STRIPE_MATTER_INTELLIGENCE_ENTERPRISE_PRICE_ID || ''
       ).trim(),
+      phone_pro: String(env.STRIPE_PHONE_PRO_PRICE_ID || env.STRIPE_PHONE_PRO_MONTHLY_PRICE_ID || '').trim(),
+      phone_team: String(env.STRIPE_PHONE_TEAM_PRICE_ID || '').trim(),
+      phone_onetool: String(env.STRIPE_PHONE_ONE_FIX_PRICE_ID || '').trim(),
     }
 
     if (normalizedProduct === 'matter-intelligence') {
       if (normalizedTier !== 'solo' && normalizedTier !== 'team' && normalizedTier !== 'enterprise') {
         return new Response(
           JSON.stringify({ error: 'Only Solo, Team, and Enterprise are configured for Matter Intelligence.' }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        )
+      }
+    } else if (normalizedProduct === 'phone-toolkit') {
+      if (normalizedTier !== 'pro' && normalizedTier !== 'team' && normalizedTier !== 'onetool') {
+        return new Response(
+          JSON.stringify({ error: 'Only Pro, Team, and OneTool are configured for Phone Toolkit.' }),
           {
             status: 400,
             headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -7872,7 +7885,13 @@ async function handleCheckoutRequest(
           : normalizedTier === 'enterprise'
             ? 'mi_enterprise'
             : 'mi_solo'
-        : normalizedTier === 'power' || normalizedTier === 'team'
+        : normalizedProduct === 'phone-toolkit'
+          ? normalizedTier === 'team'
+            ? 'phone_team'
+            : normalizedTier === 'onetool'
+              ? 'phone_onetool'
+              : 'phone_pro'
+          : normalizedTier === 'power' || normalizedTier === 'team'
           ? 'power'
           : normalizedTier === 'fix'
             ? 'pay_per_fix'
@@ -7884,7 +7903,9 @@ async function handleCheckoutRequest(
     const successUrl = new URL(
       normalizedProduct === 'matter-intelligence'
         ? 'https://rinawarptech.com/matter-intelligence/download/'
-        : 'https://rinawarptech.com/success/'
+        : normalizedProduct === 'phone-toolkit'
+          ? 'https://rinawarptech.com/phone-toolkit/'
+          : 'https://rinawarptech.com/success/'
     )
     if (String(returnTo || '').trim()) {
       successUrl.searchParams.set('return_to', String(returnTo).trim())
